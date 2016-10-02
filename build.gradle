@@ -1,0 +1,13 @@
+group 'ca.waterloodsg.activeg'
+version '0.1'
+
+apply plugin: 'java'
+apply plugin: 'antlr'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}

@@ -40,7 +40,7 @@ public class Graph {
         getVertices().add(edge.getToVertex());
     }
 
-    public void addVertex(Vertex v) {
+    public void addVertice(Vertex v) {
         getVertices().add(v);
     }
 
@@ -78,7 +78,7 @@ class GraphDeserializer implements JsonDeserializer<Graph> {
         Graph graph = new Graph();
         for (JsonElement vertex : vertices) {
             JsonObject vertexObj = vertex.getAsJsonObject();
-            graph.addVertex(new Vertex(vertexObj.get("id").getAsInt(), vertexObj.get("label").getAsString()));
+            graph.addVertice(new Vertex(vertexObj.get("id").getAsInt(), vertexObj.get("label").getAsString()));
         }
 
         for (JsonElement edge: edges) {

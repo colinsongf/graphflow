@@ -5,14 +5,25 @@ package ca.waterloodsg.activeg.models;
  */
 public class Vertex implements Comparable<Vertex> {
     private String label;
+    private int id;
+    private String weight;
 
     public Vertex(String label) {
         this.label = label.toUpperCase();
     }
 
+    public Vertex(int id, String label) {
+        this.id = id;
+        this.label = label;
+    }
+
+    public Vertex(int id) {
+        this.id = id;
+    }
+
     @Override
     public int compareTo(Vertex o) {
-        return (this.getLabel().compareTo(o.getLabel()));
+        return (new Integer(this.getId()).compareTo(o.getId()));
     }
 
     public String getLabel() {
@@ -21,5 +32,21 @@ public class Vertex implements Comparable<Vertex> {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getWeight() {
+        return weight;
+    }
+
+    public void setWeight(String weight) {
+        this.weight = weight;
     }
 }

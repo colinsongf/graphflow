@@ -38,7 +38,7 @@ clause : match
        | delete
        | remove
        | with
-       | return
+       | cypherreturn
        ;
 
 match : ( OPTIONAL sp )? MATCH ws pattern ( ws where )? ;
@@ -75,7 +75,7 @@ with : ( WITH DISTINCT sp returnBody where? )
      | ( WITH sp returnBody where? )
      ;
 
-return : ( RETURN sp DISTINCT sp returnBody )
+cypherreturn : ( RETURN sp DISTINCT sp returnBody )
        | ( RETURN sp returnBody )
        ;
 

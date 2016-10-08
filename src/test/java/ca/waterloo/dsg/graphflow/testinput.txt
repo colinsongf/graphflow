@@ -1,0 +1,1 @@
+MATCH (m)-[:follows]->(n),(n)-[:follows]->(o) RETURN n

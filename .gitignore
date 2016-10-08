@@ -1,3 +1,6 @@
-build
-.idea
+build/
+gradle/
+.gradle/
+.idea/
 .DS_Store
+gradlew*

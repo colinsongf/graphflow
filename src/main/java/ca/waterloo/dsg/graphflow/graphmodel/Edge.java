@@ -1,8 +1,5 @@
-package ca.waterloodsg.activeg.models;
+package ca.waterloo.dsg.graphflow.graphmodel;
 
-/**
- * Created by chathura on 10/2/16.
- */
 public class Edge {
 
     private Vertex fromVertex;

@@ -18,3 +18,7 @@ generateGrammarSource {
     maxHeapSize = "64m"
     arguments += ["-visitor", "-long-messages", "-package", "ca.waterloo.dsg.graphflow.grammar"]
 }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
+}

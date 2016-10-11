@@ -29,9 +29,9 @@ public class GenericJoinProcessorTest {
 
   @Test
   public void processTriangles() throws Exception {
-//    ArrayList<ArrayList<Integer>> triangles =  processor.processTriangles();
-//    System.out.println(triangles.toString());
-//    Assert.assertEquals(2, triangles.size());
+    ArrayList<ArrayList<Integer>> triangles =  processor.processTriangles();
+    System.out.println(triangles.toString());
+    Assert.assertEquals(3, triangles.size());
   }
 
 }

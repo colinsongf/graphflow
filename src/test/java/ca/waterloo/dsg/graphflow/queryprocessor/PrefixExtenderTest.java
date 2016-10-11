@@ -69,8 +69,8 @@ public class PrefixExtenderTest {
     proposals.add(5);
 
     ArrayList<ArrayList<Integer>> intersections = extender.intersect(proposals);
+
     Assert.assertEquals(2, intersections.size());
-    System.out.println(intersections);
     ArrayList<ArrayList<Integer>> prefixes = new ArrayList<>(2);
 
     prefixes.add(new ArrayList<Integer>());
@@ -79,7 +79,7 @@ public class PrefixExtenderTest {
     prefixes.get(1).add(3);
     extender = new PrefixExtender(prefixes, 0, false, testGraph);
     intersections = extender.intersect(proposals);
-    System.out.println(intersections);
+    Assert.assertEquals(2, intersections.size());
   }
 
 }

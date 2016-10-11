@@ -27,26 +27,19 @@ public class GenericJoinProcessor {
     //get lists of possible 'a'
     ArrayList<PrefixExtender> prefixExtenders = new ArrayList<>();
     //prefix index, fromSource true/false
-//    prefixExtenders.add(new PrefixExtender(null, -1, true, queryGraph));
-//    prefixExtenders.add(new PrefixExtender(null, -1, false, queryGraph));
-//    System.out.println("Stating singles");
-//    // Prefix instances, prefix Extenders
-//    GenericJoinExtender extender = new GenericJoinExtender(null, prefixExtenders);
-//    ArrayList<ArrayList<Integer>> singles = extender.extend();
 
-    //initialize with all the vertices
     ArrayList<ArrayList<Integer>> singles = new ArrayList<>();
     for(int i=0;i<queryGraph.getVertexCount();i++) {
-      singles.add(new ArrayList<Integer>());
+      singles.add(new ArrayList<>());
       singles.get(i).add(i);
     }
+
     prefixExtenders = new ArrayList<>();
 
     prefixExtenders.add(new PrefixExtender(singles, 0, true, queryGraph));
-    prefixExtenders.add(new PrefixExtender(singles, 0, false, queryGraph));
     System.out.println("Stating pairs");
     // Prefix instances, prefix extenders
-    GenericJoinExtender secondExtender = new GenericJoinExtender(singles, prefixExtenders);
+    GenericJoinExtender secondExtender = new GenericJoinExtender(singles, prefixExtenders, queryGraph);
     ArrayList<ArrayList<Integer>> pairs = secondExtender.extend();
 
     prefixExtenders = new ArrayList<>();
@@ -55,8 +48,10 @@ public class GenericJoinProcessor {
     prefixExtenders.add(new PrefixExtender(pairs, 0, false, queryGraph));
     System.out.println("Stating triangles");
     // Prefix instances, prefix extenders
-    GenericJoinExtender thirdExtender = new GenericJoinExtender(pairs, prefixExtenders);
+    GenericJoinExtender thirdExtender = new GenericJoinExtender(pairs, prefixExtenders, queryGraph);
     ArrayList<ArrayList<Integer>> triangles = thirdExtender.extend();
     return triangles;
   }
+
+
 }

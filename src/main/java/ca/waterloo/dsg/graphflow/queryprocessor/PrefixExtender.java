@@ -70,8 +70,8 @@ public class PrefixExtender {
   public ArrayList<Integer> propose() {
 
     ArrayList<Integer> proposals = new ArrayList<>();
-    for(int node : getPrefixNodes()) {
-
+    for(int node : this.getPrefixNodes()) {
+      //System.out.println(node+ ": "+g.getAdjacencyList(node, this.isSrcToDst));
         proposals.addAll(g.getAdjacencyList(node, this.isSrcToDst));
       }
 
@@ -80,27 +80,29 @@ public class PrefixExtender {
 
   /**
    * Returns the intersection of the given proposals and possible proposals from this relation
-   * @return ArrayList<ArrayList<Integer>>
+   * @return ArrayList<Integer>
    */
   public ArrayList<ArrayList<Integer>> intersect(ArrayList<Integer> proposals) {
 
     ArrayList<ArrayList<Integer>> intersections = new ArrayList<>();
     //TODO: use faster method to intersect
     //iterate over prefixes and find matching proposals from each adjacency list
-    for (ArrayList<Integer> prefix: prefixes) {
-      ArrayList<Integer> adjList = g.getAdjacencyList(prefix.get(prefixIndex), isSrcToDst);
+
+    for (int node: this.getPrefixNodes()) {
+      ArrayList<Integer> adjList = g.getAdjacencyList(node, isSrcToDst);
       ArrayList<Integer> intersectNodes = (ArrayList<Integer>)adjList.clone();
       intersectNodes.retainAll(proposals);
-
+      intersections.add(intersectNodes);
       //look at using streams here
 
-      //create a new arraylist adding the extension to the prefix tuple
-      for(Integer node: intersectNodes) {
-        ArrayList<Integer> intersectTuple = (ArrayList<Integer>)prefix.clone();
-        intersectTuple.add(node);
-        intersections.add(intersectTuple);
-      }
+//      //create a new arraylist adding the extension to the prefix tuple
+//      for(Integer node: intersectNodes) {
+//        ArrayList<Integer> intersectTuple = (ArrayList<Integer>)prefix.clone();
+//        intersectTuple.add(node);
+//        intersections.add(intersectTuple);
+//      }
     }
+    System.out.println("Intersections: "+intersections);
     return intersections;
   }
 

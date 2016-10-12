@@ -1,0 +1,16 @@
+CREATE (A:Person {name:'A'})
+CREATE (B:Person {name:'B'})
+CREATE (C:Person {name:'C'})
+CREATE (D:Person {name:'D'})
+CREATE (F:Person {name:'F'})
+CREATE (G:Person {name:'G'})
+CREATE (H:Person {name:'H'})
+CREATE (I:Person {name:'I'})
+CREATE
+ (A)-[:KNOWS {relation:'knows'}]->(B),
+ (A)-[:KNOWS {relation:'knows'}]->(C),
+ (B)-[:KNOWS {relation:'knows'}]->(D),
+ (C)-[:KNOWS {relation:'knows'}]->(D),
+ (C)-[:KNOWS {relation:'knows'}]->(I),
+ (F)-[:KNOWS {relation:'knows'}]->(H),
+ (G)-[:KNOWS {relation:'knows'}]->(H)

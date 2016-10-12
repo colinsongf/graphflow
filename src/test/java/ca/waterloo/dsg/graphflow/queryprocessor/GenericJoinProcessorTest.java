@@ -34,4 +34,10 @@ public class GenericJoinProcessorTest {
     Assert.assertEquals(3, triangles.size());
   }
 
+  @Test
+  public void processSquares() throws Exception {
+    ArrayList<ArrayList<Integer>> squares = processor.processSquares();
+    System.out.println(squares.toString());
+    Assert.assertEquals(4,squares.size());
+  }
 }

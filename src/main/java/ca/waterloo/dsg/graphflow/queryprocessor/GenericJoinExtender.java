@@ -25,7 +25,6 @@ public class GenericJoinExtender {
    * @return ArrayList<ArrayList<Integer>>
    */
   public ArrayList<ArrayList<Integer>> extend() {
-
     PrefixExtender lowestExtender = null;
     int count = Integer.MAX_VALUE;
     for (PrefixExtender extender : this.prefixExtenders) {
@@ -41,16 +40,16 @@ public class GenericJoinExtender {
     System.out.println(proposals);
     ArrayList<ArrayList<Integer>> extensions = null;
 
-
+    //each prefixExtender takes the intersection of the extensions provided by previous prefixExtenders
+    //number of members of intersection results =  number of prefixes
     for (PrefixExtender extender : this.prefixExtenders) {
       if (extensions == null) {
         extensions = extender.intersect(proposals);
       } else {
         ArrayList<ArrayList<Integer>> extensionStream = extender.intersect(proposals);
         int prefixCounter = 0;
-        System.out.println("Extension streams");
         for (ArrayList<Integer> extensionsPerPrefix : extensionStream) {
-          System.out.println(extensionsPerPrefix + ": " + extensions.get(prefixCounter));
+
           extensions.get(prefixCounter).retainAll(extensionsPerPrefix);
           prefixCounter++;
         }
@@ -59,7 +58,8 @@ public class GenericJoinExtender {
 
     ArrayList<ArrayList<Integer>> extendedTuples = new ArrayList<>();
 
-
+    //create new extended tuples using the extensions per prefix calculated above and
+    //the prefixes themselves
     for (int i = 0; i < prefixInstances.size(); i++) {
       for (Integer possibleExtension : extensions.get(i)) {
         ArrayList<Integer> extendedTuple = (ArrayList<Integer>) prefixInstances.get(i).clone();
@@ -68,17 +68,6 @@ public class GenericJoinExtender {
       }
     }
 
-
-
-//    for(ArrayList<Integer> prefix: this.prefixInstances) {
-//      ArrayList<Integer> possibleExtensions = (ArrayList<Integer>) this.queryGraph.getAdjacencyList(prefix.get(prefix.size()-1),true).clone();
-//      possibleExtensions.retainAll(extensions);
-//      for (Integer extension: possibleExtensions) {
-//        ArrayList<Integer> extendedTuple = (ArrayList<Integer>) prefix.clone();
-//        extendedTuple.add(extension);
-//        extendedTuples.add(extendedTuple);
-//      }
-//    }
   return extendedTuples;
 }
 

@@ -89,7 +89,7 @@ public class Graph {
   }
 
   /**
-   * Returns the srcToDst adj. list if srcToDst is True, else returns dstToSrc adj. list
+   * Returns the srcToDst adj. list if srcToDst is True, else returns dstToSrc adj. list.
    * @param srcToDst
    * @return
    */
@@ -104,7 +104,7 @@ public class Graph {
 
 
   /**
-   * Convert graph to string
+   * Convert graph to string.
    * @return
    */
   @Override

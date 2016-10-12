@@ -80,6 +80,13 @@ public class PrefixExtenderTest {
     extender = new PrefixExtender(prefixes, 0, false, testGraph);
     intersections = extender.intersect(proposals);
     Assert.assertEquals(2, intersections.size());
+
+    extender = new PrefixExtender(prefixes, -1, false, testGraph);
+    intersections = extender.intersect(proposals);
+    Assert.assertEquals(2, intersections.size());
+    for(ArrayList<Integer> intersection: intersections) {
+      Assert.assertEquals(3, intersection.size());
+    }
   }
 
 }

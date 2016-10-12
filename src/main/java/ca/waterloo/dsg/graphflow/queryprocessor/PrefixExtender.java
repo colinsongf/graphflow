@@ -27,20 +27,21 @@ public class PrefixExtender {
   }
 
   /**
-   * Returns the list of nodes relevant to the PrefixExtender's relation from the prefix instances
+   * Returns the list of nodes relevant to the PrefixExtender's relation from the prefix instances.
    * @return int[]
    */
   public int[] getPrefixNodes() {
 
     if(prefixNodes == null) {
 
-      if(prefixes != null) {
+      if(prefixes != null && prefixIndex>=0) {
         prefixNodes = new int[prefixes.size()];
 
         for(int i=0; i< prefixes.size();i++) {
           prefixNodes[i] =prefixes.get(i).get(prefixIndex);
         }
       } else if (prefixIndex <0) {
+        //if no prefix is given return all possible vertices, ensuring the largest possible selection of proposals
         prefixNodes = IntStream.range(0,g.getVertexCount()).toArray();
       }
 
@@ -79,30 +80,42 @@ public class PrefixExtender {
   }
 
   /**
-   * Returns the intersection of the given proposals and possible proposals from this relation
+   * Returns the intersection of the given proposals and possible proposals from this relation.
    * @return ArrayList<Integer>
    */
   public ArrayList<ArrayList<Integer>> intersect(ArrayList<Integer> proposals) {
 
+    //the problem with extensions where b in b,c is being asked to be selected based on b in a,b
+    //is that we don't know what b is. the best guess are the proposals. So if u intersect the proposals
+    //with all the b vertices (all the vertices in the adj. lists of a reverse graph) u should get the contrbutions
+    //from that relation. and they are the same for each prefix
     ArrayList<ArrayList<Integer>> intersections = new ArrayList<>();
     //TODO: use faster method to intersect
     //iterate over prefixes and find matching proposals from each adjacency list
-
-    for (int node: this.getPrefixNodes()) {
-      ArrayList<Integer> adjList = g.getAdjacencyList(node, isSrcToDst);
-      ArrayList<Integer> intersectNodes = (ArrayList<Integer>)adjList.clone();
-      intersectNodes.retainAll(proposals);
-      intersections.add(intersectNodes);
-      //look at using streams here
-
-//      //create a new arraylist adding the extension to the prefix tuple
-//      for(Integer node: intersectNodes) {
-//        ArrayList<Integer> intersectTuple = (ArrayList<Integer>)prefix.clone();
-//        intersectTuple.add(node);
-//        intersections.add(intersectTuple);
-//      }
+    if(prefixIndex >=0) {
+      for (int node: this.getPrefixNodes()) {
+        ArrayList<Integer> adjList = g.getAdjacencyList(node, isSrcToDst);
+        ArrayList<Integer> intersectNodes = (ArrayList<Integer>)adjList.clone();
+        intersectNodes.retainAll(proposals);
+        intersections.add(intersectNodes);
+        //look at using streams here
+      }
+    } else {
+      ArrayList<Integer> possibleExtensions = new ArrayList<>();
+      for(ArrayList<Integer> adjList: g.getVertices(isSrcToDst)) {
+        for(Integer vertex : adjList) {
+          if(!possibleExtensions.contains(vertex)) {
+            possibleExtensions.add(vertex);
+          }
+        }
+      }
+      possibleExtensions = (ArrayList<Integer>)possibleExtensions.clone();
+      possibleExtensions.retainAll(proposals);
+      for(int i=0; i< this.prefixes.size(); i++) {
+        intersections.add(possibleExtensions);
+      }
     }
-    System.out.println("Intersections: "+intersections);
+
     return intersections;
   }
 

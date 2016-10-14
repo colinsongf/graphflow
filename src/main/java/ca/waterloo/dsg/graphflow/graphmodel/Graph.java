@@ -22,26 +22,25 @@ import java.util.ArrayList;
 public class Graph {
 
 
-  private ArrayList<ArrayList<Integer>> srcToDst;
-  private ArrayList<ArrayList<Integer>> dstToSrc;
+  private ArrayList<ArrayList<Integer>> forwardAdjLists;
+  private ArrayList<ArrayList<Integer>> reverseAdjLists;
 
   public Graph(int vertexLength) {
-    //TODO: Store vertices in seperate array and ensure none of hte adj lists are empty
-    srcToDst = new ArrayList<>(vertexLength);
-    dstToSrc = new ArrayList<>(vertexLength);
+    //TODO(chathura): Store vertices in seperate array and ensure none of hte adj lists are empty
+    forwardAdjLists = new ArrayList<>(vertexLength);
+    reverseAdjLists = new ArrayList<>(vertexLength);
   }
 
   /**
-   * Creates graph object from given file
+   * Creates a graph object from given file.
    * @param file
-   * @return
+   * @return Graph
    * @throws IOException
    */
   public static Graph getInstance(File file) throws IOException {
 
     GsonBuilder gsonBuilder = new GsonBuilder();
     gsonBuilder.registerTypeAdapter(Graph.class, new Graph.GraphDeserializer());
-
     Gson gson = gsonBuilder.create();
     return gson.fromJson(new BufferedReader(new FileReader(file)), Graph.class);
   }
@@ -50,67 +49,66 @@ public class Graph {
    * Adds a reference to array of destination/source indices for the given vertex.
    * @param vertexIndex
    * @param adjList
-   * @param isSrcToDst
+   * @param isForward
    * @throws ArrayIndexOutOfBoundsException
    */
-  public void setAdjacencyList(int vertexIndex, ArrayList<Integer> adjList, boolean isSrcToDst) throws ArrayIndexOutOfBoundsException{
+  public void setAdjacencyList(int vertexIndex, ArrayList<Integer> adjList, boolean isForward) throws ArrayIndexOutOfBoundsException{
 
-    if(isSrcToDst) {
-      srcToDst.add(vertexIndex,adjList);
+    if(isForward) {
+      forwardAdjLists.add(vertexIndex,adjList);
     } else {
-      dstToSrc.add(vertexIndex,adjList);
+      reverseAdjLists.add(vertexIndex,adjList);
     }
 
   }
 
   /**
-   * Returns array of destination/source indices for the given vertex.
+   * Returns an array of destination/source indices for the given vertex.
    * @param vertexIndex
+   * @param isForward
    * @return ArrayList<Integer>
    * @throws ArrayIndexOutOfBoundsException
    */
-  public ArrayList<Integer> getAdjacencyList(int vertexIndex, boolean isSrcToDst) throws ArrayIndexOutOfBoundsException {
+  public ArrayList<Integer> getAdjacencyList(int vertexIndex, boolean isForward) throws ArrayIndexOutOfBoundsException {
 
-    if(isSrcToDst) {
-      return srcToDst.get(vertexIndex);
+    if(isForward) {
+      return forwardAdjLists.get(vertexIndex);
     } else {
-      return dstToSrc.get(vertexIndex);
+      return reverseAdjLists.get(vertexIndex);
     }
-
   }
 
-
   /**
-   * Returns number of srcToDst in graph.
-   * @return
+   * Returns the number of forwardAdjLists in graph.
+   * @return int
    */
   public int getVertexCount() {
-    return srcToDst.size();
+    return forwardAdjLists.size();
   }
 
   /**
-   * Returns the srcToDst adj. list if srcToDst is True, else returns dstToSrc adj. list.
-   * @param srcToDst
-   * @return
+   * Returns the forwardAdjLists adjacency list if forwardAdjLists is True,
+   *  else returns reverseAdjLists adjacency list.
+   * @param isForward
+   * @return ArrayList<ArrayList<Integer>>
    */
-  public ArrayList<ArrayList<Integer>> getVertices(Boolean srcToDst) {
-    if(srcToDst) {
-      return this.srcToDst;
-    } else {
-      return this.dstToSrc;
-    }
+  public ArrayList<ArrayList<Integer>> getVertices(boolean isForward) {
 
+    if(isForward) {
+      return this.forwardAdjLists;
+    } else {
+      return this.reverseAdjLists;
+    }
   }
 
-
   /**
-   * Convert graph to string.
-   * @return
+   * Convert the graph to a string.
+   * @return String
    */
   @Override
   public String toString() {
-    StringBuilder graph = new StringBuilder();
 
+    StringBuilder graph = new StringBuilder();
     int index = 0;
     for(ArrayList<Integer> adjList: this.getVertices(true)) {
       graph.append(index+" :");
@@ -120,6 +118,7 @@ public class Graph {
       graph.append("\n");
       index++;
     }
+
     index = 0;
     for(ArrayList<Integer> adjList: this.getVertices(false)) {
       graph.append(index+" :");
@@ -138,30 +137,33 @@ public class Graph {
    */
   private static class GraphDeserializer implements JsonDeserializer<Graph> {
 
+    private static final String EDGES = "edges";
+    private static final String VERTICES = "vertices";
+    private static final String SOURCE = "src";
+    private static final String DESTINATION = "dst";
     /**
      * Gets the root of a json object and returns a graph object populated with data.
      * @param json
      * @param typeOfT
      * @param context
-     * @return
+     * @return Graph
      * @throws JsonParseException
      */
     @Override
     public Graph deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
       JsonObject rawGraph = json.getAsJsonObject();
-      JsonArray edges = rawGraph.get("edges").getAsJsonArray();
-      int vertices = rawGraph.get("vertices").getAsInt();
-
+      JsonArray edges = rawGraph.get(GraphDeserializer.EDGES).getAsJsonArray();
+      int vertices = rawGraph.get(GraphDeserializer.VERTICES).getAsInt();
       Graph graph = new Graph(vertices);
-
       //find the sizes of the adjacency lists in order to minimize initial sizes
       int[] edgeLengths = new int[vertices];
       int[] edgeLengthsReversed = new int[vertices];
+
       for (JsonElement edge : edges) {
         JsonObject edgeObj = edge.getAsJsonObject();
-        edgeLengths[edgeObj.get("src").getAsInt()]++;
-        edgeLengthsReversed[edgeObj.get("dst").getAsInt()]++;
+        edgeLengths[edgeObj.get(GraphDeserializer.SOURCE).getAsInt()]++;
+        edgeLengthsReversed[edgeObj.get(GraphDeserializer.DESTINATION).getAsInt()]++;
       }
 
       for (int i=0; i<vertices; i++) {
@@ -169,12 +171,12 @@ public class Graph {
         ArrayList<Integer> adjListReversed = new ArrayList<>(edgeLengthsReversed[i]);
         for (JsonElement edge : edges) {
           JsonObject edgeObj = edge.getAsJsonObject();
-          if(edgeObj.get("src").getAsInt() == i) {
-            adjList.add(edgeObj.get("dst").getAsInt());
+          if(edgeObj.get(GraphDeserializer.SOURCE).getAsInt() == i) {
+            adjList.add(edgeObj.get(GraphDeserializer.DESTINATION).getAsInt());
           }
 
-          if(edgeObj.get("dst").getAsInt() == i) {
-            adjListReversed.add(edgeObj.get("src").getAsInt());
+          if(edgeObj.get(GraphDeserializer.DESTINATION).getAsInt() == i) {
+            adjListReversed.add(edgeObj.get(GraphDeserializer.SOURCE).getAsInt());
           }
         }
         graph.setAdjacencyList(i, adjList, true);

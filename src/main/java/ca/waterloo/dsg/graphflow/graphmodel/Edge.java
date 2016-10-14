@@ -2,7 +2,7 @@ package ca.waterloo.dsg.graphflow.graphmodel;
 
 /**
  * Represents an edge in the graph
- * TODO: Use this class to return individual edges
+ * TODO(chathura): Use this class to return individual edges
  */
 public class Edge {
 
@@ -13,14 +13,11 @@ public class Edge {
   public Edge() {
   }
 
-  public Edge(Vertex fromVertex,
-              Vertex toVertex,
-              Double weight) {
+  public Edge(Vertex fromVertex, Vertex toVertex, Double weight) {
     this.fromVertex = fromVertex;
     this.toVertex = toVertex;
     this.weight = weight;
   }
-
 
   @Override
   public String toString() {

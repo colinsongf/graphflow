@@ -1,6 +1,6 @@
 grammar Graphflow;
 
-cypher : sp? statement sp? ( ';' sp? statement )* ( sp? ';' )? sp? ;
+graphflow : sp? statement sp? ( ';' sp? statement )* ( sp? ';' )? sp? ;
 
 statement : query ;
 
@@ -9,32 +9,32 @@ query : match
        | delete
        ;
 
-match : MATCH sp matchpattern ;
+match : MATCH sp matchPattern ;
 
-create : CREATE sp createpattern ;
+create : CREATE sp createPattern ;
 
-delete : DELETE sp deletepattern ;
+delete : DELETE sp deletePattern ;
 
-matchpattern: variableexpression ( sp? ',' sp? variableexpression )* ;
+matchPattern: variableExpression ( sp? ',' sp? variableExpression )* ;
 
-deletepattern : variableexpression ( sp? ',' sp? variableexpression )* ;
+deletePattern : variableExpression ( sp? ',' sp? variableExpression )* ;
 
-createpattern : digitsexpression ( sp? ',' sp? digitsexpression )* ;
+createPattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
 
-digitsexpression : '(' sp? leftdigit sp? ')' sp? dash rightArrowHead '(' sp? rightdigit? sp? ')' ;
+digitsExpression : '(' sp? leftDigit sp? ')' sp? dash rightArrowHead '(' sp? rightDigit? sp? ')' ;
 
-variableexpression: '(' sp? leftvariable sp? ')' sp? dash rightArrowHead '(' sp? rightvariable sp? ')'
-                  | '(' sp? ')' sp? dash rightArrowHead '(' sp? rightvariable sp? ')'
-                  | '(' sp? leftvariable sp? ')' sp? dash rightArrowHead '(' sp? ')'
+variableExpression: '(' sp? leftVariable sp? ')' sp? dash rightArrowHead '(' sp? rightVariable sp? ')'
+                  | '(' sp? ')' sp? dash rightArrowHead '(' sp? rightVariable sp? ')'
+                  | '(' sp? leftVariable sp? ')' sp? dash rightArrowHead '(' sp? ')'
                   ;
 
-leftdigit : Digits ;
+leftDigit : Digits ;
 
-rightdigit : Digits ;
+rightDigit : Digits ;
 
-leftvariable : variable ;
+leftVariable : variable ;
 
-rightvariable : variable ;
+rightVariable : variable ;
 
 variable : Digits
          | Characters

@@ -22,7 +22,7 @@ public class GraphflowParser {
             new ca.waterloo.dsg.graphflow.grammar.GraphflowParser(tokens);
         parser.removeErrorListeners();
         parser.addErrorListener(ThrowingErrorListener.INSTANCE);
-        ParseTree tree = parser.cypher();
+        ParseTree tree = parser.graphflow();
 
         GraphflowVisitor visitor = new GraphflowVisitor();
         InflightData operations = visitor.visit(tree);

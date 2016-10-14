@@ -10,7 +10,7 @@ import ca.waterloo.dsg.graphflow.grammar.GraphflowParser;
 public class GraphflowVisitor extends GraphflowBaseVisitor<InflightData> {
 
     @Override
-    public InflightData visitCypher(GraphflowParser.CypherContext ctx) {
+    public InflightData visitGraphflow(GraphflowParser.GraphflowContext ctx) {
         InflightData operations = new InflightData();
         for(int i = 0; i < ctx.statement().size(); i++) {
             operations.addToAllOperations(visit(ctx.statement(i)));
@@ -19,59 +19,59 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<InflightData> {
     }
 
     @Override
-    public InflightData visitDeletepattern(GraphflowParser.DeletepatternContext ctx) {
-        InflightData edges = visit(ctx.variableexpression(0));
+    public InflightData visitDeletePattern(GraphflowParser.DeletePatternContext ctx) {
+        InflightData edges = visit(ctx.variableExpression(0));
         edges.setOperation(InflightData.Operation.DELETE);
-        for (int i = 1; i < ctx.variableexpression().size(); i++) {
-            InflightData tmpedge = visit(ctx.variableexpression(i));
+        for (int i = 1; i < ctx.variableExpression().size(); i++) {
+            InflightData tmpedge = visit(ctx.variableExpression(i));
             edges.addVertex(tmpedge.getVertices().get(0));
         }
         return edges;
     }
 
     @Override
-    public InflightData visitMatchpattern(GraphflowParser.MatchpatternContext ctx) {
-        InflightData edges = visit(ctx.variableexpression(0));
+    public InflightData visitMatchPattern(GraphflowParser.MatchPatternContext ctx) {
+        InflightData edges = visit(ctx.variableExpression(0));
         edges.setOperation(InflightData.Operation.MATCH);
-        for (int i = 1; i < ctx.variableexpression().size(); i++) {
-            InflightData tmpedge = visit(ctx.variableexpression(i));
+        for (int i = 1; i < ctx.variableExpression().size(); i++) {
+            InflightData tmpedge = visit(ctx.variableExpression(i));
             edges.addVertex(tmpedge.getVertices().get(0));
         }
         return edges;
     }
 
     @Override
-    public InflightData visitCreatepattern(GraphflowParser.CreatepatternContext ctx) {
-        InflightData edges = visit(ctx.digitsexpression(0));
+    public InflightData visitCreatePattern(GraphflowParser.CreatePatternContext ctx) {
+        InflightData edges = visit(ctx.digitsExpression(0));
         edges.setOperation(InflightData.Operation.CREATE);
-        for (int i = 1; i < ctx.digitsexpression().size(); i++) {
-            InflightData tmpedge = visit(ctx.digitsexpression(i));
+        for (int i = 1; i < ctx.digitsExpression().size(); i++) {
+            InflightData tmpedge = visit(ctx.digitsExpression(i));
             edges.addVertex(tmpedge.getVertices().get(0));
         }
         return edges;
     }
 
     @Override
-    public InflightData visitVariableexpression(GraphflowParser.VariableexpressionContext ctx) {
+    public InflightData visitVariableExpression(GraphflowParser.VariableExpressionContext ctx) {
         InflightData edge = new InflightData();
         String[] vertex = {"", ""};
-        if(ctx.leftvariable() != null) {
-            vertex[0] = ctx.leftvariable().getText();
+        if(ctx.leftVariable() != null) {
+            vertex[0] = ctx.leftVariable().getText();
         }
-        if(ctx.rightvariable() != null) {
-            vertex[1] = ctx.rightvariable().getText();
+        if(ctx.rightVariable() != null) {
+            vertex[1] = ctx.rightVariable().getText();
         }
         edge.addVertex(vertex);
         return edge;
     }
 
     @Override
-    public InflightData visitDigitsexpression(GraphflowParser.DigitsexpressionContext ctx) {
+    public InflightData visitDigitsExpression(GraphflowParser.DigitsExpressionContext ctx) {
         InflightData edge = new InflightData();
         String[] vertex = {"", ""};
-        vertex[0] = ctx.leftdigit().getText();
-        if(ctx.rightdigit() != null) {
-            vertex[1] = ctx.rightdigit().getText();
+        vertex[0] = ctx.leftDigit().getText();
+        if(ctx.rightDigit() != null) {
+            vertex[1] = ctx.rightDigit().getText();
         }
         edge.addVertex(vertex);
         return edge;

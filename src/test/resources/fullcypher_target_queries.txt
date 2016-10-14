@@ -13,7 +13,7 @@ TODO: MATCH DELETE
 
 MATCH (n) OPTIONAL MATCH (n)-[r1]-() DELETE n,r1
 
-CREATE:
+TODO: CREATE:
 
 CREATE (A:Person {name:'A'})
 CREATE (B:Person {name:'B'})
@@ -35,3 +35,6 @@ CREATE
  (E)-[:KNOWS {relation:'knows'}]->(G),
  (F)-[:KNOWS {relation:'knows'}]->(H),
  (G)-[:KNOWS {relation:'knows'}]->(H)
+
+CREATE (I:Person:MatrixHuman {name:'Mr. Anderson', address:'I live here'}),(J:Person {name:'Agent Smith'})
+CREATE (A{relation:'fights'})-[:FRENEMY {relation:'fights'}]->(B)

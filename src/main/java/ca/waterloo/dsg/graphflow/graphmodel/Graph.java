@@ -1,6 +1,7 @@
 package ca.waterloo.dsg.graphflow.graphmodel;
 
 
+import ca.waterloo.dsg.graphflow.util.IntArrayList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
@@ -22,13 +23,13 @@ import java.util.ArrayList;
 public class Graph {
 
 
-  private ArrayList<ArrayList<Integer>> forwardAdjLists;
-  private ArrayList<ArrayList<Integer>> reverseAdjLists;
+  private IntArrayList[] forwardAdjLists;
+  private IntArrayList[] reverseAdjLists;
 
   public Graph(int vertexLength) {
     //TODO(chathura): Store vertices in seperate array and ensure none of hte adj lists are empty.
-    forwardAdjLists = new ArrayList<>(vertexLength);
-    reverseAdjLists = new ArrayList<>(vertexLength);
+    forwardAdjLists = new IntArrayList[vertexLength];
+    reverseAdjLists = new IntArrayList[vertexLength];
   }
 
   /**
@@ -52,12 +53,12 @@ public class Graph {
    * @param isForward
    * @throws ArrayIndexOutOfBoundsException
    */
-  public void setAdjacencyList(int vertexIndex, ArrayList<Integer> adjList, boolean isForward) throws ArrayIndexOutOfBoundsException{
+  public void setAdjacencyList(int vertexIndex, IntArrayList adjList, boolean isForward) throws ArrayIndexOutOfBoundsException{
 
     if(isForward) {
-      forwardAdjLists.add(vertexIndex,adjList);
+      forwardAdjLists[vertexIndex] = adjList;
     } else {
-      reverseAdjLists.add(vertexIndex,adjList);
+      reverseAdjLists[vertexIndex] = adjList;
     }
 
   }
@@ -66,15 +67,15 @@ public class Graph {
    * Returns an array of destination/source indices for the given vertex.
    * @param vertexIndex
    * @param isForward
-   * @return ArrayList<Integer>
+   * @return IntArrayList
    * @throws ArrayIndexOutOfBoundsException
    */
-  public ArrayList<Integer> getAdjacencyList(int vertexIndex, boolean isForward) throws ArrayIndexOutOfBoundsException {
+  public IntArrayList getAdjacencyList(int vertexIndex, boolean isForward) throws ArrayIndexOutOfBoundsException {
 
     if(isForward) {
-      return forwardAdjLists.get(vertexIndex);
+      return forwardAdjLists[vertexIndex];
     } else {
-      return reverseAdjLists.get(vertexIndex);
+      return reverseAdjLists[vertexIndex];
     }
   }
 
@@ -83,16 +84,16 @@ public class Graph {
    * @return int
    */
   public int getVertexCount() {
-    return forwardAdjLists.size();
+    return forwardAdjLists.length;
   }
 
   /**
    * Returns the forwardAdjLists adjacency list if forwardAdjLists is True,
    *  else returns reverseAdjLists adjacency list.
    * @param isForward
-   * @return ArrayList<ArrayList<Integer>>
+   * @return IntArrayList[]
    */
-  public ArrayList<ArrayList<Integer>> getVertices(boolean isForward) {
+  public IntArrayList[] getVertices(boolean isForward) {
 
     if(isForward) {
       return this.forwardAdjLists;
@@ -110,21 +111,17 @@ public class Graph {
 
     StringBuilder graph = new StringBuilder();
     int index = 0;
-    for(ArrayList<Integer> adjList: this.getVertices(true)) {
+    for(IntArrayList adjList: this.getVertices(true)) {
       graph.append(index+" :");
-      for(Integer i : adjList) {
-        graph.append(i+", ");
-      }
+      graph.append(adjList.toString());
       graph.append("\n");
       index++;
     }
 
     index = 0;
-    for(ArrayList<Integer> adjList: this.getVertices(false)) {
+    for(IntArrayList adjList: this.getVertices(false)) {
       graph.append(index+" :");
-      for(Integer i : adjList) {
-        graph.append(i+", ");
-      }
+      graph.append(adjList.toString());
       graph.append("\n");
       index++;
     }
@@ -167,8 +164,8 @@ public class Graph {
       }
 
       for (int i=0; i<vertices; i++) {
-        ArrayList<Integer> adjList = new ArrayList<>(edgeLengths[i]);
-        ArrayList<Integer> adjListReversed = new ArrayList<>(edgeLengthsReversed[i]);
+        IntArrayList adjList = new IntArrayList(edgeLengths[i]);
+        IntArrayList adjListReversed = new IntArrayList(edgeLengthsReversed[i]);
         for (JsonElement edge : edges) {
           JsonObject edgeObj = edge.getAsJsonObject();
           if(edgeObj.get(GraphDeserializer.SOURCE).getAsInt() == i) {

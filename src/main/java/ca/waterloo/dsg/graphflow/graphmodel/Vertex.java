@@ -2,7 +2,7 @@ package ca.waterloo.dsg.graphflow.graphmodel;
 
 /**
  * Represents a vertex in the graph.
- * TODO(chathura): Use this to return a single vertex from graph
+ * TODO(chathura): Use this to return a single vertex from graph.
  */
 public class Vertex implements Comparable<Vertex> {
   private String label;

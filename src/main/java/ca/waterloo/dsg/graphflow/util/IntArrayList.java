@@ -68,13 +68,22 @@ public class IntArrayList implements IntList {
       while((j > 0) && (temp < data[j-1])) {
         data[j] = data[j-1];
         j--;
-        System.out.println(data[j]);
       }
       data[j] = temp;
     }
 
   }
 
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("[");
+    for(int i=0; i < size - 1; i++) {
+      builder.append(data[i] + ", ");
+    }
+    builder.append(data[size-1] + "]");
+    return builder.toString();
+  }
   /**
    * Checks if current capacity exceeds size and increases capacity if it doesn't.
    *

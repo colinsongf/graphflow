@@ -26,7 +26,7 @@ public class Graph {
   private ArrayList<ArrayList<Integer>> reverseAdjLists;
 
   public Graph(int vertexLength) {
-    //TODO(chathura): Store vertices in seperate array and ensure none of hte adj lists are empty
+    //TODO(chathura): Store vertices in seperate array and ensure none of hte adj lists are empty.
     forwardAdjLists = new ArrayList<>(vertexLength);
     reverseAdjLists = new ArrayList<>(vertexLength);
   }

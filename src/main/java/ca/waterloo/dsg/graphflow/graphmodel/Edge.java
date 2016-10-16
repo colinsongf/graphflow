@@ -1,8 +1,8 @@
 package ca.waterloo.dsg.graphflow.graphmodel;
 
 /**
- * Represents an edge in the graph
- * TODO(chathura): Use this class to return individual edges
+ * Represents an edge in the graph.
+ * TODO(chathura): Use this class to return individual edges.
  */
 public class Edge {
 

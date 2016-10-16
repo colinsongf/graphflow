@@ -23,6 +23,7 @@ public class IntArrayList implements IntList {
   public boolean add(int i) {
     ensure_capacity(size+1);
     data[size++] = i;
+    this.sort();
     return true;
   }
 
@@ -37,16 +38,19 @@ public class IntArrayList implements IntList {
     ensure_capacity(size+numnew);
     System.arraycopy(i, 0, data, size, numnew);
     size += numnew;
+    this.sort();
     return true;
   }
 
   @Override
   public int remove(int index) throws ArrayIndexOutOfBoundsException {
     int numMoved = size - index - 1;
+    int valueToBeRemoved = data[index];
       if (numMoved > 0)
         System.arraycopy(data, index+1, data, index, numMoved);
     data[--size] = 0;
-    return 0;
+    this.sort();
+    return valueToBeRemoved;
   }
 
   @Override

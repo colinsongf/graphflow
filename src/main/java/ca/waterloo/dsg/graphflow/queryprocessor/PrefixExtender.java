@@ -106,7 +106,7 @@ public class PrefixExtender {
     IntArrayList[] intersections = new IntArrayList[this.prefixes.length];
     //TODO: use faster method to intersect
     //iterate over prefixes and find matching proposals from each adjacency list
-    if(prefixIndex >=0) {
+    if(prefixIndex >= 0) {
       int counter = 0;
       for (int node: this.getPrefixNodes()) {
         IntArrayList adjList = g.getAdjacencyList(node, isForward);
@@ -123,7 +123,7 @@ public class PrefixExtender {
         intersections[i] = possibleExtensions;
       }
     }
-
+    System.out.println("done with interseciton");
     return intersections;
   }
 

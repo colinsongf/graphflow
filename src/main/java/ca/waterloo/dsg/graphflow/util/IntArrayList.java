@@ -87,7 +87,10 @@ public class IntArrayList implements IntList {
     for(int i=0; i < size - 1; i++) {
       builder.append(data[i] + ", ");
     }
-    builder.append(data[size-1] + "]");
+    if(size > 0) {
+      builder.append(data[size-1]);
+    }
+    builder.append("]");
     return builder.toString();
   }
   /**
@@ -114,15 +117,16 @@ public class IntArrayList implements IntList {
    */
   public int search(int value) {
     int lowindex = 0, highIndex = this.size-1, result = -1;
-    while(lowindex < highIndex) {
+
+    while(lowindex <= highIndex) {
       int mid = (lowindex + highIndex)/2;
       if(data[mid] == value) {
         result = mid;
         break;
       } else if(data[mid] < value) {
-        lowindex = mid;
+        lowindex = mid+1;
       } else {
-        highIndex = mid;
+        highIndex = mid-1;
       }
     }
     return result;
@@ -144,9 +148,10 @@ public class IntArrayList implements IntList {
     }
 
     intersection = new IntArrayList(shorter.size());
-    int longerIndex = 0;
     for(int i=0; i < shorter.size(); i++) {
+      System.out.println(i);
       int resultIndex = longer.search(shorter.get(i));
+
       if(resultIndex >= 0) {
         intersection.add(shorter.get(i));
       }

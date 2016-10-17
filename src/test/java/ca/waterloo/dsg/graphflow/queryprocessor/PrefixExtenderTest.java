@@ -55,7 +55,7 @@ public class PrefixExtenderTest {
   @Test
   public void propose() throws Exception {
     IntArrayList proposals = extender.propose();
-    int[] results = {2,0};
+    int[] results = {0, 2};
     Assert.assertArrayEquals(results, proposals.toArray());
   }
 

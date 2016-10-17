@@ -1,6 +1,8 @@
 package ca.waterloo.dsg.graphflow.queryprocessor;
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
+import ca.waterloo.dsg.graphflow.queryprocessor.outputsink.FileOutputSink;
+import ca.waterloo.dsg.graphflow.queryprocessor.outputsink.OutputSink;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,27 +19,29 @@ public class GenericJoinProcessorTest {
 
   Graph testGraph;
   GenericJoinProcessor processor;
+  OutputSink outputSink;
+  String outputDir;
 
   @Before
   public void setUp() throws Exception {
     String testFile = "src/test/Fixtures/graph.json";
     File file = new File(testFile);
     testGraph = Graph.getInstance(file);
-
+    outputDir = "src/test/Fixtures/generated";
     processor = new GenericJoinProcessor(testGraph);
   }
 
   @Test
   public void processTriangles() throws Exception {
-    ArrayList<ArrayList<Integer>> triangles =  processor.processTriangles();
-    System.out.println(triangles.toString());
-    Assert.assertEquals(3, triangles.size());
+    String name = "triangles.out";
+    outputSink = new FileOutputSink(new File(outputDir), name);
+    processor.processTriangles(outputSink);
   }
 
   @Test
   public void processSquares() throws Exception {
-    ArrayList<ArrayList<Integer>> squares = processor.processSquares();
-    System.out.println(squares.toString());
-    Assert.assertEquals(4,squares.size());
+    String name = "squares.out";
+    outputSink = new FileOutputSink(new File(outputDir), name);
+    processor.processSquares(outputSink);
   }
 }

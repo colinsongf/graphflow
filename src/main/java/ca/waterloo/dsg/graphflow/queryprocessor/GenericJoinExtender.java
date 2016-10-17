@@ -1,6 +1,8 @@
 package ca.waterloo.dsg.graphflow.queryprocessor;
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
+import ca.waterloo.dsg.graphflow.queryprocessor.outputsink.OutputSink;
+import ca.waterloo.dsg.graphflow.util.IntArrayList;
 
 import java.util.ArrayList;
 
@@ -8,67 +10,92 @@ import java.util.ArrayList;
  * Represents a single iteration of the Generic Join algorithm.
  */
 public class GenericJoinExtender {
+  public static final int PREFIXES_PER_TURN = 2;
 
-  ArrayList<ArrayList<Integer>> prefixInstances;
-  ArrayList<PrefixExtender> prefixExtenders;
+  ArrayList<ArrayList<PrefixExtender>> stages;
   private final Graph queryGraph;
+  private OutputSink outputSink;
 
-  public GenericJoinExtender(ArrayList<ArrayList<Integer>> prefixInstances, ArrayList<PrefixExtender> extenders, Graph queryGraph) {
-    this.prefixInstances = prefixInstances;
-    this.prefixExtenders = extenders;
+  public GenericJoinExtender(ArrayList<ArrayList<PrefixExtender>> stages, OutputSink outputSink, Graph queryGraph) {
+    this.stages = stages;
+    this.outputSink = outputSink;
     this.queryGraph = queryGraph;
   }
 
   /**
-   * Returns a list of tuples which have been extended by one member.
-   *
-   * @return ArrayList<ArrayList<Integer>>
+   * Recursively extends the given prefixes according to the correct query plan stage
+   *  and writes the output to the output sink
    */
-  public ArrayList<ArrayList<Integer>> extend() {
+  public void extend(IntArrayList[] prefixes, int stageIndex) {
+
+    ArrayList<PrefixExtender> prefixExtenders = this.stages.get(stageIndex);
     PrefixExtender lowestExtender = null;
     int count = Integer.MAX_VALUE;
-    for (PrefixExtender extender : this.prefixExtenders) {
+    int lowestExtenderIndex = -1;
+    int counter = 0;
+    for (PrefixExtender extender : prefixExtenders) {
+      extender.setPrefixes(prefixes);
       if (extender.count() < count) {
         count = extender.count();
         lowestExtender = extender;
+        lowestExtenderIndex = counter;
       }
+      counter++;
     }
 
     //TODO: write exception for the possible nullpointer exception here
-    ArrayList<Integer> proposals = lowestExtender.propose();
+    IntArrayList proposals = lowestExtender.propose();
     System.out.println("Proposals");
     System.out.println(proposals);
-    ArrayList<ArrayList<Integer>> extensions = null;
+    IntArrayList[] extensions = null;
 
-    //each prefixExtender takes the intersection of the extensions provided by previous prefixExtenders
+    //each prefixExtender takes the intersection of the extensions provided by previous stages
     //number of members of intersection results =  number of prefixes
-    for (PrefixExtender extender : this.prefixExtenders) {
+    counter = 0;
+    for (PrefixExtender extender : prefixExtenders) {
+      if(count == lowestExtenderIndex) continue;
+      //a list of possible extensions for each element in a list of prefixes
+      IntArrayList[] extensionStream = extender.intersect(proposals);
       if (extensions == null) {
         extensions = extender.intersect(proposals);
       } else {
-        ArrayList<ArrayList<Integer>> extensionStream = extender.intersect(proposals);
         int prefixCounter = 0;
-        for (ArrayList<Integer> extensionsPerPrefix : extensionStream) {
-
-          extensions.get(prefixCounter).retainAll(extensionsPerPrefix);
+        for (IntArrayList extensionsPerPrefix : extensionStream) {
+          extensions[prefixCounter] = extensions[prefixCounter].getIntersection(extensionsPerPrefix);
           prefixCounter++;
         }
       }
+      counter++;
     }
 
-    ArrayList<ArrayList<Integer>> extendedTuples = new ArrayList<>();
-
+    IntArrayList[] newPrefixes = new IntArrayList[PREFIXES_PER_TURN];
+    int newPrefixCount = 0;
     //create new extended tuples using the extensions per prefix calculated above and
-    //the prefixes themselves
-    for (int i = 0; i < prefixInstances.size(); i++) {
-      for (Integer possibleExtension : extensions.get(i)) {
-        ArrayList<Integer> extendedTuple = (ArrayList<Integer>) prefixInstances.get(i).clone();
-        extendedTuple.add(possibleExtension);
-        extendedTuples.add(extendedTuple);
+    //the prefixes themselves.
+    for (int i = 0; i < prefixes.length; i++) {
+      for (int j = 0; j< extensions[i].size(); j++) {
+        int possibleExtension = extensions[i].get(j);
+        newPrefixes[newPrefixCount] = new IntArrayList();
+        newPrefixes[newPrefixCount].addAll(prefixes[i].toArray());
+        newPrefixes[newPrefixCount].add(possibleExtension);
+
+        if(++newPrefixCount >= PREFIXES_PER_TURN) {
+          //if this is the last stage output results, else do recursion.
+          if(stageIndex == (stages.size()-1)) {
+            outputSink.append(prefixes);
+          }  else {
+            this.extend(newPrefixes, ++stageIndex);
+          }
+          newPrefixes = new IntArrayList[PREFIXES_PER_TURN];
+          newPrefixCount = 0;
+        }
       }
     }
-
-  return extendedTuples;
-}
-
+    //do recursion or output for the last remaining results
+    if(stageIndex == (stages.size()-1)) {
+      outputSink.append(prefixes);
+    }  else {
+      this.extend(newPrefixes, ++stageIndex);
+    }
+  }
 }

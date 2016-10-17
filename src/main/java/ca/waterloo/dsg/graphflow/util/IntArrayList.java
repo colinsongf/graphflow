@@ -1,6 +1,8 @@
 package ca.waterloo.dsg.graphflow.util;
 
 import java.util.Arrays;
+import java.util.PrimitiveIterator;
+import java.util.function.IntConsumer;
 
 /**
  * A list of int primitives represented by an array
@@ -102,5 +104,53 @@ public class IntArrayList implements IntList {
         newCapacity = minCapacity;
       data = Arrays.copyOf(data, newCapacity);
     }
+  }
+
+  /**
+   * Searches for the given value in the array and returns the index.
+   *  Return value negative if value not found.
+   * @param value
+   * @return
+   */
+  public int search(int value) {
+    int lowindex = 0, highIndex = this.size-1, result = -1;
+    while(lowindex < highIndex) {
+      int mid = (lowindex + highIndex)/2;
+      if(data[mid] == value) {
+        result = mid;
+        break;
+      } else if(data[mid] < value) {
+        lowindex = mid;
+      } else {
+        highIndex = mid;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Returns the intersection of sorted IntArrayLists this and newList as a new IntArrayList.
+   * @param newList
+   * @return
+   */
+  public IntArrayList getIntersection(IntArrayList newList) {
+    IntArrayList shorter, longer, intersection;
+    if( this.size() > newList.size()) {
+      shorter = newList;
+      longer = this;
+    }  else {
+      shorter = this;
+      longer = newList;
+    }
+
+    intersection = new IntArrayList(shorter.size());
+    int longerIndex = 0;
+    for(int i=0; i < shorter.size(); i++) {
+      int resultIndex = longer.search(shorter.get(i));
+      if(resultIndex >= 0) {
+        intersection.add(shorter.get(i));
+      }
+    }
+    return intersection;
   }
 }

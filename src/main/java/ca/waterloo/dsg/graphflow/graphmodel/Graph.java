@@ -15,7 +15,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 
 /**
  * Encapsulates the Graph representation and provides utility methods.
@@ -93,7 +92,7 @@ public class Graph {
    * @param isForward
    * @return IntArrayList[]
    */
-  public IntArrayList[] getVertices(boolean isForward) {
+  public IntArrayList[] getAllAdjLists(boolean isForward) {
 
     if(isForward) {
       return this.forwardAdjLists;
@@ -103,6 +102,25 @@ public class Graph {
   }
 
   /**
+   * Returns the vertices which have outgoing edges in the given direction.
+   * @param isForward
+   * @return IntArrayList
+   */
+  public IntArrayList getVertices(boolean isForward) {
+    IntArrayList[] adjLists = isForward? forwardAdjLists: reverseAdjLists;
+    IntArrayList vertices = new IntArrayList(this.getVertexCount());
+    for(int j = 0; j < adjLists.length; j++) {
+      IntArrayList adjList = adjLists[j];
+      for(int i=0; i<adjList.size(); i++) {
+        int vertex = adjList.get(i);
+        if(vertices.search(vertex) < 0) {
+          vertices.add(vertex);
+        }
+      }
+    }
+    return vertices;
+  }
+  /**
    * Convert the graph to a string.
    * @return String
    */
@@ -111,7 +129,7 @@ public class Graph {
 
     StringBuilder graph = new StringBuilder();
     int index = 0;
-    for(IntArrayList adjList: this.getVertices(true)) {
+    for(IntArrayList adjList: this.getAllAdjLists(true)) {
       graph.append(index+" :");
       graph.append(adjList.toString());
       graph.append("\n");
@@ -119,7 +137,7 @@ public class Graph {
     }
 
     index = 0;
-    for(IntArrayList adjList: this.getVertices(false)) {
+    for(IntArrayList adjList: this.getAllAdjLists(false)) {
       graph.append(index+" :");
       graph.append(adjList.toString());
       graph.append("\n");

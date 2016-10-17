@@ -11,6 +11,16 @@ import static org.junit.Assert.*;
 public class IntArrayListTest {
 
   @Test
+  public void search() throws Exception {
+
+  }
+
+  @Test
+  public void getIntersection() throws Exception {
+
+  }
+
+  @Test
   public void sort() throws Exception {
 
     int[] unsortedList = {4, 7, 23, 76, 2, 56, 23, 78, 45};

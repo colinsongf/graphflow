@@ -2,8 +2,8 @@ package ca.waterloo.dsg.graphflow.queryprocessor;
 
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
-import java.util.ArrayList;
-import java.util.Arrays;
+import ca.waterloo.dsg.graphflow.util.IntArrayList;
+
 import java.util.stream.IntStream;
 
 
@@ -12,18 +12,31 @@ import java.util.stream.IntStream;
  */
 public class PrefixExtender {
 
-
-  private final ArrayList<ArrayList<Integer>> prefixes;
+  private IntArrayList[] prefixes;
   private final int prefixIndex;
-  private final boolean isSrcToDst;
+  private final boolean isForward;
   private final Graph g;
   int[] prefixNodes;
 
-  public PrefixExtender(ArrayList<ArrayList<Integer>> prefixes, int prefixIndex, boolean isSrcToDst, Graph g) {
+  public PrefixExtender(int prefixIndex, boolean isForward, Graph g) {
+    this.prefixIndex = prefixIndex;
+    this.isForward = isForward;
+    this.g = g;
+  }
+
+  public PrefixExtender(IntArrayList[] prefixes, int prefixIndex, boolean isForward, Graph g) {
     this.prefixes = prefixes;
     this.prefixIndex = prefixIndex;
-    this.isSrcToDst = isSrcToDst;
+    this.isForward = isForward;
     this.g = g;
+  }
+
+  /**
+   * Sets the prefixes that this extender will use
+   * @param prefixes
+   */
+  public void setPrefixes(IntArrayList[] prefixes) {
+    this.prefixes = prefixes;
   }
 
   /**
@@ -35,10 +48,10 @@ public class PrefixExtender {
     if(prefixNodes == null) {
 
       if(prefixes != null && prefixIndex>=0) {
-        prefixNodes = new int[prefixes.size()];
+        prefixNodes = new int[prefixes.length];
 
-        for(int i=0; i< prefixes.size();i++) {
-          prefixNodes[i] =prefixes.get(i).get(prefixIndex);
+        for(int i=0; i< prefixes.length;i++) {
+          prefixNodes[i] =prefixes[i].get(prefixIndex);
         }
       } else if (prefixIndex <0) {
         //if no prefix is given return all possible vertices, ensuring the largest possible selection of proposals
@@ -57,7 +70,7 @@ public class PrefixExtender {
 
     int count = 0;
     for(int node : getPrefixNodes()) {
-      if(g.getAdjacencyList(node, this.isSrcToDst).size()>0) {
+      if(g.getAdjacencyList(node, this.isForward).size()>0) {
         count++;
       }
     }
@@ -66,14 +79,14 @@ public class PrefixExtender {
 
   /**
    * Returns the possible extensions counted earlier.
-   * @return ArrayList<Integer>
+   * @return IntArrayList
    */
-  public ArrayList<Integer> propose() {
+  public IntArrayList propose() {
 
-    ArrayList<Integer> proposals = new ArrayList<>();
+    IntArrayList proposals = new IntArrayList();
     for(int node : this.getPrefixNodes()) {
-      //System.out.println(node+ ": "+g.getAdjacencyList(node, this.isSrcToDst));
-        proposals.addAll(g.getAdjacencyList(node, this.isSrcToDst));
+      //System.out.println(node+ ": "+g.getAdjacencyList(node, this.isForward));
+        proposals.addAll(g.getAdjacencyList(node, this.isForward).toArray());
       }
 
     return proposals;
@@ -81,38 +94,33 @@ public class PrefixExtender {
 
   /**
    * Returns the intersection of the given proposals and possible proposals from this relation.
-   * @return ArrayList<Integer>
+   * @param proposals
+   * @return IntArrayList[]
    */
-  public ArrayList<ArrayList<Integer>> intersect(ArrayList<Integer> proposals) {
+  public IntArrayList[] intersect(IntArrayList proposals) {
 
     //the problem with extensions where b in b,c is being asked to be selected based on b in a,b
     //is that we don't know what b is. the best guess are the proposals. So if u intersect the proposals
     //with all the b vertices (all the vertices in the adj. lists of a reverse graph) u should get the contrbutions
     //from that relation. and they are the same for each prefix
-    ArrayList<ArrayList<Integer>> intersections = new ArrayList<>();
+    IntArrayList[] intersections = new IntArrayList[this.prefixes.length];
     //TODO: use faster method to intersect
     //iterate over prefixes and find matching proposals from each adjacency list
     if(prefixIndex >=0) {
+      int counter = 0;
       for (int node: this.getPrefixNodes()) {
-        ArrayList<Integer> adjList = g.getAdjacencyList(node, isSrcToDst);
-        ArrayList<Integer> intersectNodes = (ArrayList<Integer>)adjList.clone();
-        intersectNodes.retainAll(proposals);
-        intersections.add(intersectNodes);
+        IntArrayList adjList = g.getAdjacencyList(node, isForward);
+        IntArrayList intersectNodes = adjList.getIntersection(proposals);
+        intersections[counter] = intersectNodes;
+        counter++;
         //look at using streams here
       }
     } else {
-      ArrayList<Integer> possibleExtensions = new ArrayList<>();
-      for(ArrayList<Integer> adjList: g.getVertices(isSrcToDst)) {
-        for(Integer vertex : adjList) {
-          if(!possibleExtensions.contains(vertex)) {
-            possibleExtensions.add(vertex);
-          }
-        }
-      }
-      possibleExtensions = (ArrayList<Integer>)possibleExtensions.clone();
-      possibleExtensions.retainAll(proposals);
-      for(int i=0; i< this.prefixes.size(); i++) {
-        intersections.add(possibleExtensions);
+      //the case where one side of the relation is unbounded
+      IntArrayList possibleExtensions = g.getVertices(isForward);
+      possibleExtensions = possibleExtensions.getIntersection(proposals);
+      for(int i=0; i< this.prefixes.length; i++) {
+        intersections[i] = possibleExtensions;
       }
     }
 

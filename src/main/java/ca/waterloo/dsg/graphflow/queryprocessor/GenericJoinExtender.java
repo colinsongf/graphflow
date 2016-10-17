@@ -27,7 +27,7 @@ public class GenericJoinExtender {
    *  and writes the output to the output sink
    */
   public void extend(IntArrayList[] prefixes, int stageIndex) {
-
+    System.out.println("Starting new recursion. Stage: "+stageIndex);
     ArrayList<PrefixExtender> prefixExtenders = this.stages.get(stageIndex);
     PrefixExtender lowestExtender = null;
     int count = Integer.MAX_VALUE;
@@ -55,8 +55,10 @@ public class GenericJoinExtender {
     for (PrefixExtender extender : prefixExtenders) {
       if(count == lowestExtenderIndex) continue;
       //a list of possible extensions for each element in a list of prefixes
+      System.out.println("before intersection");
       IntArrayList[] extensionStream = extender.intersect(proposals);
       if (extensions == null) {
+
         extensions = extender.intersect(proposals);
       } else {
         int prefixCounter = 0;
@@ -65,13 +67,15 @@ public class GenericJoinExtender {
           prefixCounter++;
         }
       }
+      System.out.println(counter);
       counter++;
     }
-
+    System.out.println("escaped extensions");
     IntArrayList[] newPrefixes = new IntArrayList[PREFIXES_PER_TURN];
     int newPrefixCount = 0;
     //create new extended tuples using the extensions per prefix calculated above and
     //the prefixes themselves.
+    System.out.println("Got a set of extensions "+extensions);
     for (int i = 0; i < prefixes.length; i++) {
       for (int j = 0; j< extensions[i].size(); j++) {
         int possibleExtension = extensions[i].get(j);

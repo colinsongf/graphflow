@@ -25,14 +25,12 @@ public class GraphflowParser {
         ParseTree tree = parser.graphflow();
 
         GraphflowVisitor visitor = new GraphflowVisitor();
-        InflightData operations = visitor.visit(tree);
+        StructuredQuery operation = visitor.visit(tree);
 
-        for (InflightData operation : operations.getAllOperations()) {
-            System.out.println("\nOperation: " + operation.getOperation());
-            System.out.println("Vertices:");
-            for (String[] vertex : operation.getVertices()) {
-                System.out.println("From: '" + vertex[0] + "', To: '" + vertex[1] + "'");
-            }
+        System.out.println("\nOperation: " + operation.getOperation());
+        System.out.println("Vertices:");
+        for (String[] vertex : operation.getEdges()) {
+            System.out.println("From: '" + vertex[0] + "', To: '" + vertex[1] + "'");
         }
     }
 }

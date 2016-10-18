@@ -1,6 +1,6 @@
 grammar Graphflow;
 
-graphflow : sp? statement sp? ( ';' sp? statement )* ( sp? ';' )? sp? ;
+graphflow : sp? statement sp? ( ';'  sp?)? ;
 
 statement : query ;
 
@@ -23,10 +23,7 @@ createPattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
 
 digitsExpression : '(' sp? leftDigit sp? ')' sp? dash rightArrowHead '(' sp? rightDigit? sp? ')' ;
 
-variableExpression: '(' sp? leftVariable sp? ')' sp? dash rightArrowHead '(' sp? rightVariable sp? ')'
-                  | '(' sp? ')' sp? dash rightArrowHead '(' sp? rightVariable sp? ')'
-                  | '(' sp? leftVariable sp? ')' sp? dash rightArrowHead '(' sp? ')'
-                  ;
+variableExpression: '(' sp? leftVariable sp? ')' sp? dash rightArrowHead '(' sp? rightVariable sp? ')' ;
 
 leftDigit : Digits ;
 

@@ -16,7 +16,8 @@ public class GenericJoinExtender {
   private final Graph queryGraph;
   private OutputSink outputSink;
 
-  public GenericJoinExtender(ArrayList<ArrayList<PrefixExtender>> stages, OutputSink outputSink, Graph queryGraph) {
+  public GenericJoinExtender(ArrayList<ArrayList<PrefixExtender>> stages,
+                             OutputSink outputSink, Graph queryGraph) {
     this.stages = stages;
     this.outputSink = outputSink;
     this.queryGraph = queryGraph;
@@ -24,7 +25,7 @@ public class GenericJoinExtender {
 
   /**
    * Recursively extends the given prefixes according to the correct query plan stage
-   *  and writes the output to the output sink
+   *  and writes the output to the output sink.
    */
   public void extend(IntArrayList[] prefixes, int stageIndex) {
     System.out.println("Starting new recursion. Stage: "+stageIndex);

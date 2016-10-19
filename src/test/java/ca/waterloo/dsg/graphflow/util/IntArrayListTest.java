@@ -5,7 +5,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * Tests the IntArrayList class
+ * Tests the IntArrayList class.
  */
 public class IntArrayListTest {
 
@@ -28,15 +28,15 @@ public class IntArrayListTest {
 
   @Test
   public void getIntersection() throws Exception {
-//    int[] sortedList = {2, 4, 7, 23, 23, 45, 56, 76, 78};
-//    IntArrayList testList = new IntArrayList();
-//    testList.addAll(sortedList);
-//    int[] otherList = {4, 23, 456, 56, 43, 76};
-//    IntArrayList testList2 = new IntArrayList();
-//    testList2.addAll(otherList);
-//    IntArrayList intersection = testList.getIntersection(testList2);
-//    int[] results = {4, 23, 56, 76};
-//    Assert.assertArrayEquals(results, intersection.toArray());
+    int[] sortedList = {2, 4, 7, 23, 23, 45, 56, 76, 78};
+    IntArrayList testList = new IntArrayList();
+    testList.addAll(sortedList);
+    int[] otherList = {4, 23, 456, 56, 43, 76};
+    IntArrayList testList2 = new IntArrayList();
+    testList2.addAll(otherList);
+    IntArrayList intersection = testList.getIntersection(testList2);
+    int[] results = {4, 23, 56, 76};
+    Assert.assertArrayEquals(results, intersection.toArray());
   }
 
   @Test

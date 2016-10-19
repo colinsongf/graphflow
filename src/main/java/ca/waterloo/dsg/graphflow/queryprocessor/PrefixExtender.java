@@ -32,7 +32,7 @@ public class PrefixExtender {
   }
 
   /**
-   * Sets the prefixes that this extender will use
+   * Sets the prefixes that this extender will use.
    * @param prefixes
    */
   public void setPrefixes(IntArrayList[] prefixes) {
@@ -44,7 +44,6 @@ public class PrefixExtender {
    * @return int[]
    */
   public int[] getPrefixNodes() {
-
     if(prefixNodes == null) {
 
       if(prefixes != null && prefixIndex>=0) {
@@ -67,7 +66,6 @@ public class PrefixExtender {
    * @return int
    */
   public int count() {
-
     int count = 0;
     for(int node : getPrefixNodes()) {
       if(g.getAdjacencyList(node, this.isForward).size()>0) {
@@ -82,7 +80,6 @@ public class PrefixExtender {
    * @return IntArrayList
    */
   public IntArrayList propose() {
-
     IntArrayList proposals = new IntArrayList();
     for(int node : this.getPrefixNodes()) {
       //System.out.println(node+ ": "+g.getAdjacencyList(node, this.isForward));
@@ -99,10 +96,6 @@ public class PrefixExtender {
    */
   public IntArrayList[] intersect(IntArrayList proposals) {
 
-    //the problem with extensions where b in b,c is being asked to be selected based on b in a,b
-    //is that we don't know what b is. the best guess are the proposals. So if u intersect the proposals
-    //with all the b vertices (all the vertices in the adj. lists of a reverse graph) u should get the contrbutions
-    //from that relation. and they are the same for each prefix
     IntArrayList[] intersections = new IntArrayList[this.prefixes.length];
     //TODO: use faster method to intersect
     //iterate over prefixes and find matching proposals from each adjacency list
@@ -126,6 +119,4 @@ public class PrefixExtender {
     System.out.println("done with interseciton");
     return intersections;
   }
-
-
 }

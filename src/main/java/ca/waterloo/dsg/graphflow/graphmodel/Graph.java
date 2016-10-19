@@ -38,7 +38,6 @@ public class Graph {
    * @throws IOException
    */
   public static Graph getInstance(File file) throws IOException {
-
     GsonBuilder gsonBuilder = new GsonBuilder();
     gsonBuilder.registerTypeAdapter(Graph.class, new Graph.GraphDeserializer());
     Gson gson = gsonBuilder.create();
@@ -52,14 +51,13 @@ public class Graph {
    * @param isForward
    * @throws ArrayIndexOutOfBoundsException
    */
-  public void setAdjacencyList(int vertexIndex, IntArrayList adjList, boolean isForward) throws ArrayIndexOutOfBoundsException{
-
+  public void setAdjacencyList(int vertexIndex, IntArrayList adjList, boolean isForward)
+          throws ArrayIndexOutOfBoundsException{
     if(isForward) {
       forwardAdjLists[vertexIndex] = adjList;
     } else {
       reverseAdjLists[vertexIndex] = adjList;
     }
-
   }
 
   /**
@@ -69,8 +67,8 @@ public class Graph {
    * @return IntArrayList
    * @throws ArrayIndexOutOfBoundsException
    */
-  public IntArrayList getAdjacencyList(int vertexIndex, boolean isForward) throws ArrayIndexOutOfBoundsException {
-
+  public IntArrayList getAdjacencyList(int vertexIndex, boolean isForward)
+          throws ArrayIndexOutOfBoundsException {
     if(isForward) {
       return forwardAdjLists[vertexIndex];
     } else {
@@ -93,7 +91,6 @@ public class Graph {
    * @return IntArrayList[]
    */
   public IntArrayList[] getAllAdjLists(boolean isForward) {
-
     if(isForward) {
       return this.forwardAdjLists;
     } else {
@@ -126,7 +123,6 @@ public class Graph {
    */
   @Override
   public String toString() {
-
     StringBuilder graph = new StringBuilder();
     int index = 0;
     for(IntArrayList adjList: this.getAllAdjLists(true)) {
@@ -156,6 +152,7 @@ public class Graph {
     private static final String VERTICES = "vertices";
     private static final String SOURCE = "src";
     private static final String DESTINATION = "dst";
+
     /**
      * Gets the root of a json object and returns a graph object populated with data.
      * @param json
@@ -165,8 +162,8 @@ public class Graph {
      * @throws JsonParseException
      */
     @Override
-    public Graph deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-
+    public Graph deserialize(JsonElement json, Type typeOfT,
+                             JsonDeserializationContext context) throws JsonParseException {
       JsonObject rawGraph = json.getAsJsonObject();
       JsonArray edges = rawGraph.get(GraphDeserializer.EDGES).getAsJsonArray();
       int vertices = rawGraph.get(GraphDeserializer.VERTICES).getAsInt();

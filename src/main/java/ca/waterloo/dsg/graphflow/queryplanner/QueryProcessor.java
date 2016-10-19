@@ -17,7 +17,7 @@ public class QueryProcessor {
         StructuredQueryParser parser = new StructuredQueryParser();
         StructuredQuery structuredQuery = parser.parse(query);
 
-        if(structuredQuery.getOperation() == StructuredQuery.Operation.ERROR) {
+        if (structuredQuery.getOperation() == StructuredQuery.Operation.ERROR) {
             this.result = "ERROR parsing: " + structuredQuery.getErrorMessage();
             return result;
         }
@@ -25,7 +25,7 @@ public class QueryProcessor {
         QueryPlanner queryPlanner = new QueryPlanner();
         QueryPlan queryPlan = queryPlanner.plan(structuredQuery);
 
-        if(queryPlan == null) {
+        if (queryPlan == null) {
             this.result = "ERROR executing query: No appropriate operation found";
             return result;
         }

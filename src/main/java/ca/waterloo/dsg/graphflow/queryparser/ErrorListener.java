@@ -35,20 +35,20 @@ public class ErrorListener extends BaseErrorListener {
     }
 
     @Override
-    public void reportContextSensitivity(Parser recognizer, DFA dfa, int startIndex,
-                                         int stopIndex, int prediction,
-                                         ATNConfigSet configs)
-        throws ParseCancellationException {
-        throw new ParseCancellationException("ContextSensitivity Exception startIndex:stopIndex="
-            + startIndex + ":" + stopIndex);
-    }
-
-    @Override
     public void reportAttemptingFullContext(Parser recognizer, DFA dfa, int startIndex,
                                             int stopIndex, BitSet conflictingAlts,
                                             ATNConfigSet configs)
         throws ParseCancellationException {
         throw new ParseCancellationException("AttemptingFullContext Exception startIndex:stopIndex="
+            + startIndex + ":" + stopIndex);
+    }
+
+    @Override
+    public void reportContextSensitivity(Parser recognizer, DFA dfa, int startIndex,
+                                         int stopIndex, int prediction,
+                                         ATNConfigSet configs)
+        throws ParseCancellationException {
+        throw new ParseCancellationException("ContextSensitivity Exception startIndex:stopIndex="
             + startIndex + ":" + stopIndex);
     }
 }

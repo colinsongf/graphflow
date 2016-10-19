@@ -18,13 +18,13 @@ import java.util.logging.Logger;
  * Client side command line interface implementation.
  * It uses grpc to communicate with the server.
  */
-public class GraphflowCLI {
+public class GraphflowCli {
 
     private final ManagedChannel channel;
     private final GraphflowQueryGrpc.GraphflowQueryBlockingStub blockingStub;
 
     // Construct client connecting to server at {@code host:port}.
-    public GraphflowCLI(String host, int port) {
+    public GraphflowCli(String host, int port) {
         // Turn off logs to supress debug messages from netty.
         Logger.getLogger("io.grpc.internal").setLevel(Level.OFF);
         channel = ManagedChannelBuilder.forAddress(host, port)
@@ -33,35 +33,44 @@ public class GraphflowCLI {
         blockingStub = GraphflowQueryGrpc.newBlockingStub(channel);
     }
 
+    public static void main(String[] args) throws Exception {
+        GraphflowCli cli = new GraphflowCli("localhost", 8080);
+        try {
+            cli.startCLI(args);
+        } finally {
+            cli.shutdown();
+        }
+    }
+
     public void shutdown() throws InterruptedException {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 
     public void startCLI(String[] args) throws FileNotFoundException {
         Scanner cliInput;
-        if(args.length > 0) {
+        if (args.length > 0) {
             File file = new File(args[0]);
             cliInput = new Scanner(file);
         } else {
             cliInput = new Scanner(System.in);
         }
-        while(true) {
+        while (true) {
             System.out.print("graphflow> ");
-            if(!cliInput.hasNext()) {
+            if (!cliInput.hasNext()) {
                 break;
             }
             String query = cliInput.nextLine().trim();
-            if(query.isEmpty()) {
+            if (query.isEmpty()) {
                 continue;
             }
-            if(query.charAt(query.length() - 1) != ';') {
+            if (query.charAt(query.length() - 1) != ';') {
                 System.out.println("ERROR: Needs a semicolon at the end.");
                 continue;
             }
             System.out.println("Your query: " + query);
             String result = this.queryServer(query);
             System.out.println("Result:\n" + result);
-            if(query == "exit;") {
+            if (query == "exit;") {
                 break;
             }
         }
@@ -72,20 +81,11 @@ public class GraphflowCLI {
         QueryString request = QueryString.newBuilder().setMessage(query).build();
         QueryResult result;
         try {
-            result = blockingStub.query(request);
+            result = blockingStub.executeQuery(request);
         } catch (StatusRuntimeException e) {
             return "ERROR: " + e.getMessage();
         }
         return result.getMessage();
-    }
-
-    public static void main(String[] args) throws Exception {
-        GraphflowCLI cli = new GraphflowCLI("localhost", 8080);
-        try {
-            cli.startCLI(args);
-        } finally {
-            cli.shutdown();
-        }
     }
 
 }

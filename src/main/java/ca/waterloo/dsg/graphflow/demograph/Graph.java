@@ -19,20 +19,20 @@ public class Graph {
         int fromVertex = Integer.parseInt(edge.getFromVertex());
         int toVertex = Integer.parseInt(edge.getToVertex());
 
-        if(this.forwardVertexMap.containsKey(fromVertex)) {
+        if (this.forwardVertexMap.containsKey(fromVertex)) {
             this.forwardVertexMap.get(fromVertex).add(toVertex);
         } else {
             Set<Integer> toVertices = new HashSet<>();
             toVertices.add(toVertex);
-            this.forwardVertexMap.put(fromVertex,toVertices);
+            this.forwardVertexMap.put(fromVertex, toVertices);
         }
 
-        if(this.reverseVertexMap.containsKey(toVertex)) {
+        if (this.reverseVertexMap.containsKey(toVertex)) {
             this.reverseVertexMap.get(toVertex).add(fromVertex);
         } else {
             Set<Integer> fromVertices = new HashSet<>();
             fromVertices.add(fromVertex);
-            this.reverseVertexMap.put(toVertex,fromVertices);
+            this.reverseVertexMap.put(toVertex, fromVertices);
         }
     }
 
@@ -40,16 +40,16 @@ public class Graph {
         int fromVertex = Integer.parseInt(edge.getFromVertex());
         int toVertex = Integer.parseInt(edge.getToVertex());
 
-        if(this.forwardVertexMap.containsKey(fromVertex)) {
+        if (this.forwardVertexMap.containsKey(fromVertex)) {
             this.forwardVertexMap.get(fromVertex).remove(toVertex);
-            if(this.forwardVertexMap.get(fromVertex).isEmpty()) {
+            if (this.forwardVertexMap.get(fromVertex).isEmpty()) {
                 this.forwardVertexMap.remove(fromVertex);
             }
         }
 
-        if(this.reverseVertexMap.containsKey(toVertex)) {
+        if (this.reverseVertexMap.containsKey(toVertex)) {
             this.reverseVertexMap.get(toVertex).remove(fromVertex);
-            if(this.reverseVertexMap.get(toVertex).isEmpty()) {
+            if (this.reverseVertexMap.get(toVertex).isEmpty()) {
                 this.reverseVertexMap.remove(toVertex);
             }
         }
@@ -57,8 +57,8 @@ public class Graph {
 
     public String getGraphString() {
         String graph = "";
-        for(int fromVertex : this.forwardVertexMap.keySet()) {
-            for(int toVertex : this.forwardVertexMap.get(fromVertex)) {
+        for (int fromVertex : this.forwardVertexMap.keySet()) {
+            for (int toVertex : this.forwardVertexMap.get(fromVertex)) {
                 graph += fromVertex + " -> " + toVertex + "\n";
             }
         }

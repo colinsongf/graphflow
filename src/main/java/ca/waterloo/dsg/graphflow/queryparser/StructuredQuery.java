@@ -8,16 +8,16 @@ import java.util.List;
  */
 public class StructuredQuery {
 
+    private List<Edge> edges;
+    private Operation operation;
+    private String errorMessage;
+
     public enum Operation {
         CREATE,
         MATCH,
         DELETE,
         ERROR
     }
-
-    private List<Edge> edges;
-    private Operation operation;
-    private String errorMessage;
 
     public StructuredQuery() {
         this.edges = new ArrayList<>();

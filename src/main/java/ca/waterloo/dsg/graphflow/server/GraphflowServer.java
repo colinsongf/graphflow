@@ -12,6 +12,15 @@ public class GraphflowServer {
     private int port = 8080;
     private Server server;
 
+    /**
+     * Main launches the server from the command line.
+     */
+    public static void main(String[] args) throws IOException, InterruptedException {
+        final GraphflowServer server = new GraphflowServer();
+        server.start();
+        server.blockUntilShutdown();
+    }
+
     private void start() throws IOException {
         server = ServerBuilder.forPort(port)
             .addService(new GraphflowQueryImpl())
@@ -20,9 +29,9 @@ public class GraphflowServer {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                System.err.println("*** shutting down gRPC server since JVM is shutting down");
-                GraphflowServer.this.stop();
-                System.err.println("*** server shut down");
+            System.err.println("*** shutting down gRPC server since JVM is shutting down");
+            GraphflowServer.this.stop();
+            System.err.println("*** server shut down");
             }
         });
     }
@@ -42,21 +51,12 @@ public class GraphflowServer {
         }
     }
 
-    /**
-     * Main launches the server from the command line.
-     */
-    public static void main(String[] args) throws IOException, InterruptedException {
-        final GraphflowServer server = new GraphflowServer();
-        server.start();
-        server.blockUntilShutdown();
-    }
-
     private class GraphflowQueryImpl extends GraphflowQueryGrpc.GraphflowQueryImplBase {
 
         QueryProcessor processor = new QueryProcessor();
 
         @Override
-        public void query(QueryString request, StreamObserver<QueryResult> responseObserver) {
+        public void executeQuery(QueryString request, StreamObserver<QueryResult> responseObserver) {
             String result = processor.process(request.getMessage());
             QueryResult queryResult = QueryResult.newBuilder().setMessage(result).build();
             responseObserver.onNext(queryResult);

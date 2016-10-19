@@ -1,4 +1,4 @@
+CREATE (1)->(2), (2)->(3), (2)->(4), (4)->(8);
 MATCH (a)->(b);
-DELETE (a)->(b), (2)->();
-IMPORT "graph.txt";
-CREATE (1)->(2), (2)->(3), (4)->();
+DELETE (2)->(3);
+IMPORT "graph.txt"; // TODO

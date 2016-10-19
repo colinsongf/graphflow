@@ -17,11 +17,11 @@ delete : DELETE sp deletePattern ;
 
 matchPattern: variableExpression ( sp? ',' sp? variableExpression )* ;
 
-deletePattern : variableExpression ( sp? ',' sp? variableExpression )* ;
+deletePattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
 
 createPattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
 
-digitsExpression : '(' sp? leftDigit sp? ')' sp? dash rightArrowHead '(' sp? rightDigit? sp? ')' ;
+digitsExpression : '(' sp? leftDigit sp? ')' sp? dash rightArrowHead '(' sp? rightDigit sp? ')' ;
 
 variableExpression: '(' sp? leftVariable sp? ')' sp? dash rightArrowHead '(' sp? rightVariable sp? ')' ;
 

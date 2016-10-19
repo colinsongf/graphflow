@@ -58,7 +58,7 @@ public class IntArrayList implements IntList {
 
   @Override
   public int[] toArray() {
-    return data;
+    return Arrays.copyOfRange(data, 0, size);
   }
 
   /**

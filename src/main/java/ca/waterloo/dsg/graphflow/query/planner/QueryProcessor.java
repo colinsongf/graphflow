@@ -1,8 +1,9 @@
-package ca.waterloo.dsg.graphflow.queryplanner;
+package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.demograph.Graph;
-import ca.waterloo.dsg.graphflow.queryparser.StructuredQuery;
-import ca.waterloo.dsg.graphflow.queryparser.StructuredQueryParser;
+import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
+import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 
 public class QueryProcessor {
 
@@ -22,7 +23,7 @@ public class QueryProcessor {
             return result;
         }
 
-        QueryPlanner queryPlanner = new QueryPlanner();
+        QueryPlanBuilder queryPlanner = new QueryPlanBuilder();
         QueryPlan queryPlan = queryPlanner.plan(structuredQuery);
 
         if (queryPlan == null) {

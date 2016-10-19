@@ -1,8 +1,7 @@
-package ca.waterloo.dsg.graphflow.queryplanner.operations.match;
+package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.demograph.Graph;
-import ca.waterloo.dsg.graphflow.queryparser.StructuredQuery;
-import ca.waterloo.dsg.graphflow.queryplanner.QueryPlan;
+import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
 
 public class MatchQueryPlan extends QueryPlan {
 

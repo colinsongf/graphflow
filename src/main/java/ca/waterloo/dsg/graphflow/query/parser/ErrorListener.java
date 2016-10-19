@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.queryparser;
+package ca.waterloo.dsg.graphflow.query.parser;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.Parser;

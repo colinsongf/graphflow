@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.demograph;
 
-import ca.waterloo.dsg.graphflow.queryparser.Edge;
+import ca.waterloo.dsg.graphflow.query.parser.Edge;
 
 import java.util.HashMap;
 import java.util.HashSet;

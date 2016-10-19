@@ -4,15 +4,15 @@ option java_multiple_files = true;
 option java_package = "ca.waterloo.dsg.graphflow.server";
 option java_outer_classname = "GraphflowServerProto";
 
-service GraphflowQuery {
-    rpc ExecuteQuery (QueryString) returns (QueryResult) {
+service GraphflowServerQuery {
+    rpc ExecuteQuery (ServerQueryString) returns (ServerQueryResult) {
     }
 }
 
-message QueryString {
+message ServerQueryString {
     string message = 1;
 }
 
-message QueryResult {
+message ServerQueryResult {
     string message = 1;
 }

@@ -1,8 +1,8 @@
 package ca.waterloo.dsg.graphflow.cli;
 
-import ca.waterloo.dsg.graphflow.server.GraphflowQueryGrpc;
-import ca.waterloo.dsg.graphflow.server.QueryResult;
-import ca.waterloo.dsg.graphflow.server.QueryString;
+import ca.waterloo.dsg.graphflow.server.GraphflowServerQueryGrpc;
+import ca.waterloo.dsg.graphflow.server.ServerQueryResult;
+import ca.waterloo.dsg.graphflow.server.ServerQueryString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 public class GraphflowCli {
 
     private final ManagedChannel channel;
-    private final GraphflowQueryGrpc.GraphflowQueryBlockingStub blockingStub;
+    private final GraphflowServerQueryGrpc.GraphflowServerQueryBlockingStub blockingStub;
 
     // Construct client connecting to server at {@code host:port}.
     public GraphflowCli(String host, int port) {
@@ -30,7 +30,7 @@ public class GraphflowCli {
         channel = ManagedChannelBuilder.forAddress(host, port)
             .usePlaintext(true)
             .build();
-        blockingStub = GraphflowQueryGrpc.newBlockingStub(channel);
+        blockingStub = GraphflowServerQueryGrpc.newBlockingStub(channel);
     }
 
     public static void main(String[] args) throws Exception {
@@ -78,8 +78,8 @@ public class GraphflowCli {
     }
 
     public String queryServer(String query) {
-        QueryString request = QueryString.newBuilder().setMessage(query).build();
-        QueryResult result;
+        ServerQueryString request = ServerQueryString.newBuilder().setMessage(query).build();
+        ServerQueryResult result;
         try {
             result = blockingStub.executeQuery(request);
         } catch (StatusRuntimeException e) {

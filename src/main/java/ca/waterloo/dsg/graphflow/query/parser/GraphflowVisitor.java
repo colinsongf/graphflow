@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.queryparser;
+package ca.waterloo.dsg.graphflow.query.parser;
 
 import ca.waterloo.dsg.graphflow.grammar.GraphflowBaseVisitor;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser;

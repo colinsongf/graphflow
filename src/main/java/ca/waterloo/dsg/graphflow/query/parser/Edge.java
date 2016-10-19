@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.queryparser;
+package ca.waterloo.dsg.graphflow.query.parser;
 
 /**
  * Simple edge representation used by StructuredQuery.

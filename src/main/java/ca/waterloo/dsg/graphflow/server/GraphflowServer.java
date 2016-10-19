@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.server;
 
-import ca.waterloo.dsg.graphflow.queryplanner.QueryProcessor;
+import ca.waterloo.dsg.graphflow.query.planner.QueryProcessor;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -51,14 +51,14 @@ public class GraphflowServer {
         }
     }
 
-    private class GraphflowQueryImpl extends GraphflowQueryGrpc.GraphflowQueryImplBase {
+    private class GraphflowQueryImpl extends GraphflowServerQueryGrpc.GraphflowServerQueryImplBase {
 
         QueryProcessor processor = new QueryProcessor();
 
         @Override
-        public void executeQuery(QueryString request, StreamObserver<QueryResult> responseObserver) {
+        public void executeQuery(ServerQueryString request, StreamObserver<ServerQueryResult> responseObserver) {
             String result = processor.process(request.getMessage());
-            QueryResult queryResult = QueryResult.newBuilder().setMessage(result).build();
+            ServerQueryResult queryResult = ServerQueryResult.newBuilder().setMessage(result).build();
             responseObserver.onNext(queryResult);
             responseObserver.onCompleted();
         }

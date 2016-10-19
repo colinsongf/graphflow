@@ -1,11 +1,9 @@
-package ca.waterloo.dsg.graphflow.queryplanner;
+package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.queryparser.StructuredQuery;
-import ca.waterloo.dsg.graphflow.queryplanner.operations.create.CreateQueryPlanner;
-import ca.waterloo.dsg.graphflow.queryplanner.operations.delete.DeleteQueryPlanner;
-import ca.waterloo.dsg.graphflow.queryplanner.operations.match.MatchQueryPlanner;
+import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 
-public class QueryPlanner {
+public class QueryPlanBuilder {
 
     IQueryPlanner planner;
     QueryPlan queryPlan;

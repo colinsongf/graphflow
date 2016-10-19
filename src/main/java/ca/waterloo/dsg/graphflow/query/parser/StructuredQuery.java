@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.queryparser;
+package ca.waterloo.dsg.graphflow.query.parser;
 
 import java.util.ArrayList;
 import java.util.List;

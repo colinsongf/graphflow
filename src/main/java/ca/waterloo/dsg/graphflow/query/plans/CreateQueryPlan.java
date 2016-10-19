@@ -1,9 +1,8 @@
-package ca.waterloo.dsg.graphflow.queryplanner.operations.create;
+package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.demograph.Graph;
-import ca.waterloo.dsg.graphflow.queryparser.Edge;
-import ca.waterloo.dsg.graphflow.queryparser.StructuredQuery;
-import ca.waterloo.dsg.graphflow.queryplanner.QueryPlan;
+import ca.waterloo.dsg.graphflow.query.parser.Edge;
+import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
 
 public class CreateQueryPlan extends QueryPlan {
 

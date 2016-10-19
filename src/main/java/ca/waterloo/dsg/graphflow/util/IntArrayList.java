@@ -1,11 +1,9 @@
 package ca.waterloo.dsg.graphflow.util;
 
 import java.util.Arrays;
-import java.util.PrimitiveIterator;
-import java.util.function.IntConsumer;
 
 /**
- * A list of int primitives represented by an array
+ * A list of int primitives represented by an array.
  */
 public class IntArrayList implements IntList {
 
@@ -64,7 +62,7 @@ public class IntArrayList implements IntList {
   }
 
   /**
-   * Sorts the underlying array inplace
+   * Sorts the underlying array inplace.
    */
   public void sort() {
     for(int i = 1; i < size; i++) {

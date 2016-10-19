@@ -85,5 +85,4 @@ public class PrefixExtenderTest {
       Assert.assertEquals(3, intersection.size());
     }
   }
-
 }

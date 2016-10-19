@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.parser;
+package ca.waterloo.dsg.graphflow.queryparser;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.Parser;
@@ -13,21 +13,23 @@ import java.util.BitSet;
 /**
  * This class is used to throw parse exceptions.
  */
-public class ThrowingErrorListener extends BaseErrorListener {
+public class ErrorListener extends BaseErrorListener {
 
-    public static final ThrowingErrorListener INSTANCE = new ThrowingErrorListener();
+    public static final ErrorListener INSTANCE = new ErrorListener();
 
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
                             int line, int charPositionInLine,
-                            String msg, RecognitionException e) throws ParseCancellationException {
+                            String msg, RecognitionException e)
+        throws ParseCancellationException {
         throw new ParseCancellationException("line " + line + ":" + charPositionInLine + " " + msg);
     }
 
     @Override
     public void reportAmbiguity(Parser recognizer, DFA dfa, int startIndex,
                                 int stopIndex, boolean exact, BitSet ambigAlts,
-                                ATNConfigSet configs) throws ParseCancellationException {
+                                ATNConfigSet configs)
+        throws ParseCancellationException {
         throw new ParseCancellationException("Ambiguity Exception startIndex:stopIndex="
             + startIndex + ":" + stopIndex);
     }
@@ -35,7 +37,8 @@ public class ThrowingErrorListener extends BaseErrorListener {
     @Override
     public void reportContextSensitivity(Parser recognizer, DFA dfa, int startIndex,
                                          int stopIndex, int prediction,
-                                         ATNConfigSet configs) throws ParseCancellationException {
+                                         ATNConfigSet configs)
+        throws ParseCancellationException {
         throw new ParseCancellationException("ContextSensitivity Exception startIndex:stopIndex="
             + startIndex + ":" + stopIndex);
     }
@@ -43,8 +46,9 @@ public class ThrowingErrorListener extends BaseErrorListener {
     @Override
     public void reportAttemptingFullContext(Parser recognizer, DFA dfa, int startIndex,
                                             int stopIndex, BitSet conflictingAlts,
-                                            ATNConfigSet configs) throws ParseCancellationException {
-        throw new ParseCancellationException("Attempting Full Context Exception startIndex:stopIndex="
+                                            ATNConfigSet configs)
+        throws ParseCancellationException {
+        throw new ParseCancellationException("AttemptingFullContext Exception startIndex:stopIndex="
             + startIndex + ":" + stopIndex);
     }
 }

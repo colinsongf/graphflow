@@ -35,6 +35,7 @@ public class IntArrayListTest {
     IntArrayList testList2 = new IntArrayList();
     testList2.addAll(otherList);
     IntArrayList intersection = testList.getIntersection(testList2);
+    System.out.println(intersection);
     int[] results = {4, 23, 56, 76};
     Assert.assertArrayEquals(results, intersection.toArray());
   }

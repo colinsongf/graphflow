@@ -3,12 +3,14 @@ Graphflow
 
 Adding support for active queries to graph database.
 
-## Build steps
+## Build and run steps
 
 Gradle is used to parse the ANTLR4 grammar files, generate corresponding
 Java code, and compile them.
 
-$ `./gradlew build`
+* Build code: `./gradlew installDist`
+* Start Graphflow server: `./build/install/graphflow/bin/graphflow-server`
+* Start Graphflow cli: `./build/install/graphflow/bin/graphflow-cli `
 
 ## IntelliJ setup
 

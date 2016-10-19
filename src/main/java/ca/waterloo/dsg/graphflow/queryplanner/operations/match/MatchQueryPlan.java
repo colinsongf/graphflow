@@ -11,8 +11,8 @@ public class MatchQueryPlan extends QueryPlan {
     }
 
     @Override
-    public String execute(Graph g) {
-        message = g.getGraphString();
+    public String execute(Graph graph) {
+        message = graph.getGraphString();
         return message;
     }
 }

@@ -10,19 +10,4 @@ public abstract class QueryPlan {
 
     public abstract String execute(Graph graph);
 
-    public StructuredQuery getStructuredQuery() {
-        return structuredQuery;
-    }
-
-    public void setStructuredQuery(StructuredQuery structuredQuery) {
-        this.structuredQuery = structuredQuery;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
 }

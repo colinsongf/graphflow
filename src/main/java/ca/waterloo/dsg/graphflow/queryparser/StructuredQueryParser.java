@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 /**
- * Converts raw query strings to StructuredQuery objects.
+ * Converts raw query strings into StructuredQuery objects.
  */
 public class StructuredQueryParser {
 

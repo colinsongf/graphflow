@@ -6,11 +6,11 @@ import ca.waterloo.dsg.graphflow.queryparser.StructuredQueryParser;
 
 public class QueryProcessor {
 
-    Graph g;
+    Graph graph;
     String result;
 
     public QueryProcessor() {
-        this.g = new Graph();
+        this.graph = new Graph();
     }
 
     public String process(String query) {
@@ -30,7 +30,7 @@ public class QueryProcessor {
             return result;
         }
 
-        result = queryPlan.execute(this.g);
+        result = queryPlan.execute(this.graph);
 
         return result;
     }

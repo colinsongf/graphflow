@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 /**
- * This is a test class for the cypher parser.
+ * This is a test class for the graphflow parser.
  */
 public class GraphflowParser {
     public static void main( String[] args) throws Exception {

@@ -16,16 +16,16 @@ import java.util.logging.Logger;
 
 /**
  * Client side command line interface implementation.
- * It used grpc to communicate with the server.
+ * It uses grpc to communicate with the server.
  */
-public class GraphflowCli {
+public class GraphflowCLI {
 
     private final ManagedChannel channel;
     private final GraphflowQueryGrpc.GraphflowQueryBlockingStub blockingStub;
 
-    /** Construct client connecting to server at {@code host:port}. */
-    public GraphflowCli(String host, int port) {
-        // Turn off logs to supress debug messages
+    // Construct client connecting to server at {@code host:port}.
+    public GraphflowCLI(String host, int port) {
+        // Turn off logs to supress debug messages from netty.
         Logger.getLogger("io.grpc.internal").setLevel(Level.OFF);
         channel = ManagedChannelBuilder.forAddress(host, port)
             .usePlaintext(true)
@@ -37,7 +37,7 @@ public class GraphflowCli {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 
-    public void startCli(String[] args) throws FileNotFoundException {
+    public void startCLI(String[] args) throws FileNotFoundException {
         Scanner cliInput;
         if(args.length > 0) {
             File file = new File(args[0]);
@@ -80,9 +80,9 @@ public class GraphflowCli {
     }
 
     public static void main(String[] args) throws Exception {
-        GraphflowCli cli = new GraphflowCli("localhost", 8080);
+        GraphflowCLI cli = new GraphflowCLI("localhost", 8080);
         try {
-            cli.startCli(args);
+            cli.startCLI(args);
         } finally {
             cli.shutdown();
         }

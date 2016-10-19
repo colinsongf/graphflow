@@ -12,9 +12,9 @@ public class CreateQueryPlan extends QueryPlan {
     }
 
     @Override
-    public String execute(Graph g) {
+    public String execute(Graph graph) {
         for (Edge edge : structuredQuery.getEdges()) {
-            g.addEdge(edge);
+            graph.addEdge(edge);
         }
         this.message = structuredQuery.getEdges().size() + " edges created.";
         return this.message;

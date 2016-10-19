@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class encapsulates query structure during the parse tree traversal.
+ * This class encapsulates the query structure formed from parse tree traversal.
  */
 public class StructuredQuery {
 

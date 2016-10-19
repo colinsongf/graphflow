@@ -12,9 +12,9 @@ public class DeleteQueryPlan extends QueryPlan {
     }
 
     @Override
-    public String execute(Graph g) {
+    public String execute(Graph graph) {
         for (Edge edge : structuredQuery.getEdges()) {
-            g.deleteEdge(edge);
+            graph.deleteEdge(edge);
         }
         this.message = structuredQuery.getEdges().size() + " edges deleted.";
         return message;

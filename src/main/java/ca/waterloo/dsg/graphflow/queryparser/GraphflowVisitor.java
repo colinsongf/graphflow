@@ -4,7 +4,7 @@ import ca.waterloo.dsg.graphflow.grammar.GraphflowBaseVisitor;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser;
 
 /**
- * This class implements ANTLR4 methods used to traverse the parse tree
+ * This class implements the ANTLR4 methods used to traverse the parse tree.
  * Query structure is encapsulated within a StructuredQuery object.
  */
 public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {

@@ -29,9 +29,9 @@ public class GraphflowServer {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-            System.err.println("*** shutting down gRPC server since JVM is shutting down");
-            GraphflowServer.this.stop();
-            System.err.println("*** server shut down");
+                System.err.println("*** shutting down gRPC server since JVM is shutting down");
+                GraphflowServer.this.stop();
+                System.err.println("*** server shut down");
             }
         });
     }
@@ -62,6 +62,5 @@ public class GraphflowServer {
             responseObserver.onNext(queryResult);
             responseObserver.onCompleted();
         }
-
     }
 }

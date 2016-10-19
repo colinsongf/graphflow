@@ -9,5 +9,4 @@ public abstract class QueryPlan {
     protected StructuredQuery structuredQuery;
 
     public abstract String execute(Graph graph);
-
 }

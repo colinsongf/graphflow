@@ -21,8 +21,17 @@ import java.lang.reflect.Type;
  */
 public class Graph {
 
+  private static final int DEFAULT_GRAPH_SIZE = 10;
+  public static Graph graph;
+
+  private IntArrayList vertices;
   private IntArrayList[] forwardAdjLists;
   private IntArrayList[] reverseAdjLists;
+
+  public Graph() {
+    forwardAdjLists = new IntArrayList[DEFAULT_GRAPH_SIZE];
+    reverseAdjLists = new IntArrayList[DEFAULT_GRAPH_SIZE];
+  }
 
   public Graph(int vertexLength) {
     //TODO(chathura): Store vertices in seperate array and ensure none of hte adj lists are empty.
@@ -32,15 +41,28 @@ public class Graph {
 
   /**
    * Creates a graph object from given file.
-   * @param file
+   * @param file JSON file with pattern {"vertices": x, "edges" : [("src": 1, "dst": 2),
+   *             ("src": 2, "dst": 3)...]}
    * @return Graph
    * @throws IOException
    */
   public static Graph getInstance(File file) throws IOException {
-    GsonBuilder gsonBuilder = new GsonBuilder();
-    gsonBuilder.registerTypeAdapter(Graph.class, new Graph.GraphDeserializer());
-    Gson gson = gsonBuilder.create();
-    return gson.fromJson(new BufferedReader(new FileReader(file)), Graph.class);
+      GsonBuilder gsonBuilder = new GsonBuilder();
+      gsonBuilder.registerTypeAdapter(Graph.class, new Graph.GraphDeserializer());
+      Gson gson = gsonBuilder.create();
+      graph = gson.fromJson(new BufferedReader(new FileReader(file)), Graph.class);
+    return graph;
+  }
+
+  /**
+   * Returns an already loaded graph or creates and returns an empty graph.
+   * @return Graph
+   */
+  public static Graph getInstance() {
+    if(graph == null) {
+      graph = new Graph();
+    }
+    return graph;
   }
 
   /**
@@ -76,6 +98,22 @@ public class Graph {
   }
 
   /**
+   * Returns the size of the adjacency list for the given vertex in the given direction
+   * @param vertexIndex
+   * @param isForward
+   * @return
+   */
+  public int getAdjacencyListSize(int vertexIndex, boolean isForward) {
+    int result;
+    if(isForward) {
+      result =  forwardAdjLists[vertexIndex].size();
+    } else {
+      result =  reverseAdjLists[vertexIndex].size();
+    }
+    return result;
+  }
+
+  /**
    * Returns the number of forwardAdjLists in graph.
    * @return int
    */
@@ -98,24 +136,19 @@ public class Graph {
   }
 
   /**
-   * Returns the vertices which have outgoing edges in the given direction.
-   * @param isForward
+   * Returns all the vertex indices in the graph as a list
    * @return IntArrayList
    */
-  public IntArrayList getVertices(boolean isForward) {
-    IntArrayList[] adjLists = isForward? forwardAdjLists: reverseAdjLists;
-    IntArrayList vertices = new IntArrayList(this.getVertexCount());
-    for(int j = 0; j < adjLists.length; j++) {
-      IntArrayList adjList = adjLists[j];
-      for(int i=0; i<adjList.size(); i++) {
-        int vertex = adjList.get(i);
-        if(vertices.search(vertex) < 0) {
-          vertices.add(vertex);
-        }
+  public IntArrayList getVertices() {
+    if(this.vertices == null) {
+      vertices = new IntArrayList(getVertexCount());
+      for(int i=0; i < this.getVertexCount(); i++) {
+        vertices.add(i);
       }
     }
     return vertices;
   }
+
   /**
    * Convert the graph to a string.
    * @return String

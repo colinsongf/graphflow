@@ -146,7 +146,6 @@ public class IntArrayList implements IntList {
 
     intersection = new IntArrayList(shorter.size());
     for(int i=0; i < shorter.size(); i++) {
-      System.out.println(i);
       int resultIndex = longer.search(shorter.get(i));
 
       if(resultIndex >= 0) {

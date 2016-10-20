@@ -3,14 +3,10 @@ package ca.waterloo.dsg.graphflow.queryprocessor;
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
 import ca.waterloo.dsg.graphflow.queryprocessor.outputsink.FileOutputSink;
 import ca.waterloo.dsg.graphflow.queryprocessor.outputsink.OutputSink;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.ArrayList;
-
-import static org.junit.Assert.*;
 
 /**
  * Tests for GenericJoinProcessor.
@@ -28,7 +24,8 @@ public class GenericJoinProcessorTest {
     File file = new File(testFile);
     testGraph = Graph.getInstance(file);
     outputDir = "src/test/Fixtures/generated";
-    processor = new GenericJoinProcessor(testGraph);
+    System.out.println(testGraph);
+    processor = new GenericJoinProcessor();
   }
 
   @Test

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.Arrays;
 
 /**
  * outputs query results to a file.
@@ -57,10 +58,10 @@ public class FileOutputSink implements OutputSink{
   }
 
   @Override
-  public void append(IntArrayList[] results) {
+  public void append(int[][] results) {
     try {
-      for (IntArrayList result: results) {
-        this.getWriter().println(result);
+      for (int[] result: results) {
+        this.getWriter().println(Arrays.toString(result));
       }
       this.getWriter().flush();
 

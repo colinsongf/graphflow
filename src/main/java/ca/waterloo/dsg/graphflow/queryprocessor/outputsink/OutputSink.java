@@ -17,5 +17,5 @@ public interface OutputSink {
    * Appends the given results to the output sink.
    * @param results
    */
-  public void append(IntArrayList[] results);
+  public void append(int[][] results);
 }

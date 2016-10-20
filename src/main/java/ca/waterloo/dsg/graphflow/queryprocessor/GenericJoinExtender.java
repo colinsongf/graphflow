@@ -5,6 +5,7 @@ import ca.waterloo.dsg.graphflow.queryprocessor.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Represents a single iteration of the Generic Join algorithm.
@@ -12,95 +13,86 @@ import java.util.ArrayList;
 public class GenericJoinExtender {
   public static final int PREFIXES_PER_TURN = 2;
 
-  ArrayList<ArrayList<PrefixExtender>> stages;
-  private final Graph queryGraph;
+  ArrayList<ArrayList<JoinRule>> stages;
   private OutputSink outputSink;
 
-  public GenericJoinExtender(ArrayList<ArrayList<PrefixExtender>> stages,
-                             OutputSink outputSink, Graph queryGraph) {
+  public GenericJoinExtender(ArrayList<ArrayList<JoinRule>> stages,
+                             OutputSink outputSink) {
     this.stages = stages;
     this.outputSink = outputSink;
-    this.queryGraph = queryGraph;
   }
 
   /**
    * Recursively extends the given prefixes according to the correct query plan stage
    *  and writes the output to the output sink.
    */
-  public void extend(IntArrayList[] prefixes, int stageIndex) {
+  public void extend(int[][] prefixes, int stageIndex) {
     System.out.println("Starting new recursion. Stage: "+stageIndex);
-    ArrayList<PrefixExtender> prefixExtenders = this.stages.get(stageIndex);
-    PrefixExtender lowestExtender = null;
-    int count = Integer.MAX_VALUE;
-    int lowestExtenderIndex = -1;
-    int counter = 0;
-    for (PrefixExtender extender : prefixExtenders) {
-      extender.setPrefixes(prefixes);
-      if (extender.count() < count) {
-        count = extender.count();
-        lowestExtender = extender;
-        lowestExtenderIndex = counter;
-      }
-      counter++;
-    }
-
-    //TODO: write exception for the possible nullpointer exception here
-    IntArrayList proposals = lowestExtender.propose();
-    System.out.println("Proposals");
-    System.out.println(proposals);
-    IntArrayList[] extensions = null;
-
-    //each prefixExtender takes the intersection of the extensions provided by previous stages
-    //number of members of intersection results =  number of prefixes
-    counter = 0;
-    for (PrefixExtender extender : prefixExtenders) {
-      if(count == lowestExtenderIndex) continue;
-      //a list of possible extensions for each element in a list of prefixes
-      System.out.println("before intersection");
-      IntArrayList[] extensionStream = extender.intersect(proposals);
-      if (extensions == null) {
-
-        extensions = extender.intersect(proposals);
-      } else {
-        int prefixCounter = 0;
-        for (IntArrayList extensionsPerPrefix : extensionStream) {
-          extensions[prefixCounter] = extensions[prefixCounter].getIntersection(extensionsPerPrefix);
-          prefixCounter++;
-        }
-      }
-      System.out.println(counter);
-      counter++;
-    }
-    System.out.println("escaped extensions");
-    IntArrayList[] newPrefixes = new IntArrayList[PREFIXES_PER_TURN];
+    ArrayList<JoinRule> joinRules = this.stages.get(stageIndex);
     int newPrefixCount = 0;
-    //create new extended tuples using the extensions per prefix calculated above and
-    //the prefixes themselves.
-    System.out.println("Got a set of extensions "+extensions);
-    for (int i = 0; i < prefixes.length; i++) {
-      for (int j = 0; j< extensions[i].size(); j++) {
-        int possibleExtension = extensions[i].get(j);
-        newPrefixes[newPrefixCount] = new IntArrayList();
-        newPrefixes[newPrefixCount].addAll(prefixes[i].toArray());
-        newPrefixes[newPrefixCount].add(possibleExtension);
+    int[][] newPrefixes = new int[PREFIXES_PER_TURN][];
 
-        if(++newPrefixCount >= PREFIXES_PER_TURN) {
-          //if this is the last stage output results, else do recursion.
+    for (int i = 0; i < prefixes.length; i++) {
+      IntArrayList extensions;
+      JoinRule minCountRule = getMinCountIndex(prefixes[i], joinRules);
+        extensions = Graph.getInstance().getAdjacencyList(
+                prefixes[i][minCountRule.getPrefixIndex()], minCountRule.isForward());
+
+      for (JoinRule rule : joinRules) {
+        if (rule == minCountRule) {//if references point to the same object.
+          continue;
+        }
+        //intersect remaining extensions with the possible extensions from the rule under consideration.
+        extensions = extensions.getIntersection(Graph.getInstance()
+                .getAdjacencyList(prefixes[i][rule.getPrefixIndex()],rule.isForward()));
+      }
+
+      for (int j = 0; j < extensions.size(); j++) {
+        if (extensions.get(j) == prefixes[i][prefixes[i].length-1])
+          continue;
+        int[] newPrefix = new int[prefixes[i].length+1];
+        System.arraycopy(prefixes[i], 0, newPrefix, 0, prefixes[i].length);
+        newPrefix[newPrefix.length-1] = extensions.get(j);
+        newPrefixes[newPrefixCount++] = newPrefix;
+        System.out.println(Arrays.toString(prefixes[i])+" : "+Arrays.toString(newPrefix));
+        if (newPrefixCount >= PREFIXES_PER_TURN) {
           if(stageIndex == (stages.size()-1)) {
-            outputSink.append(prefixes);
+            outputSink.append(newPrefixes);
           }  else {
-            this.extend(newPrefixes, ++stageIndex);
+            this.extend(newPrefixes, stageIndex+1);
           }
-          newPrefixes = new IntArrayList[PREFIXES_PER_TURN];
           newPrefixCount = 0;
+          Arrays.fill(newPrefixes, null);
         }
       }
     }
-    //do recursion or output for the last remaining results
-    if(stageIndex == (stages.size()-1)) {
-      outputSink.append(prefixes);
-    }  else {
-      this.extend(newPrefixes, ++stageIndex);
+
+    if (newPrefixCount > 0) {
+      if (stageIndex == (stages.size()-1)) {
+        outputSink.append(Arrays.copyOfRange(newPrefixes, 0, newPrefixCount));
+      }  else {
+        this.extend(Arrays.copyOfRange(newPrefixes, 0, newPrefixCount), stageIndex+1);
+      }
     }
   }
+
+  /**
+   * Returns the JoinRule with the lowest number of possible extensions for the given prefix
+   * @param prefix A list of number representing a partial solution to the query
+   * @param joinRules A list of relations in Generic Join
+   * @return JoinRule
+   */
+  private JoinRule getMinCountIndex(int[] prefix,ArrayList<JoinRule> joinRules) {
+    JoinRule minJoinRule = null;
+    int minCount = Integer.MAX_VALUE;
+    for (JoinRule rule: joinRules) {
+      int extensionCount = Graph.getInstance().getAdjacencyListSize(prefix[rule.getPrefixIndex()], rule.isForward());
+      if (extensionCount < minCount) {
+        minCount = extensionCount;
+        minJoinRule = rule;
+      }
+    }
+    return minJoinRule;
+  }
+
 }

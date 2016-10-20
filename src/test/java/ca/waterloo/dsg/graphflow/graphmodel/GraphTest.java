@@ -31,7 +31,7 @@ public class GraphTest {
     File file = new File(testFile);
 
     Graph g = Graph.getInstance(file);
-    IntArrayList vertices = g.getVertices(true);
+    IntArrayList vertices = g.getVertices();
     Assert.assertEquals(6, vertices.size());
   }
 }

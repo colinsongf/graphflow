@@ -30,11 +30,10 @@ public class FileOutputSinkTest {
 
   @Test
   public void append() throws Exception {
-    IntArrayList[] test = new IntArrayList[1];
-    IntArrayList testArrayList = new IntArrayList();
+    int[][] test = new int[1][];
+
     int[] testArray = {1, 2, 3, 4, 5, 6};
-    testArrayList.addAll(testArray);
-    test[0] = testArrayList;
+    test[0] = testArray;
     outputSink.append(test);
   }
 

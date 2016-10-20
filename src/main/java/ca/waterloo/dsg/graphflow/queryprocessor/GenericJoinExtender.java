@@ -33,9 +33,8 @@ public class GenericJoinExtender {
     int[][] newPrefixes = new int[PREFIXES_PER_TURN][];
 
     for (int i = 0; i < prefixes.length; i++) {
-      IntArrayList extensions;
       JoinRule minCountRule = getMinCountIndex(prefixes[i], joinRules);
-        extensions = Graph.getInstance().getAdjacencyList(
+      IntArrayList extensions = Graph.getInstance().getAdjacencyList(
                 prefixes[i][minCountRule.getPrefixIndex()], minCountRule.isForward());
 
       for (JoinRule rule : joinRules) {
@@ -48,8 +47,6 @@ public class GenericJoinExtender {
       }
 
       for (int j = 0; j < extensions.size(); j++) {
-        if (extensions.get(j) == prefixes[i][prefixes[i].length-1])
-          continue;
         int[] newPrefix = new int[prefixes[i].length+1];
         System.arraycopy(prefixes[i], 0, newPrefix, 0, prefixes[i].length);
         newPrefix[newPrefix.length-1] = extensions.get(j);
@@ -62,7 +59,7 @@ public class GenericJoinExtender {
             this.extend(newPrefixes, stageIndex+1);
           }
           newPrefixCount = 0;
-          Arrays.fill(newPrefixes, null);
+          // Arrays.fill(newPrefixes, null);
         }
       }
     }

@@ -13,7 +13,7 @@ import java.util.Arrays;
 public class GenericJoinExtender {
     public static final int PREFIXES_PER_TURN = 2;
 
-    ArrayList<ArrayList<JoinRule>> stages;
+    private ArrayList<ArrayList<JoinRule>> stages;
     private OutputSink outputSink;
 
     public GenericJoinExtender(ArrayList<ArrayList<JoinRule>> stages,

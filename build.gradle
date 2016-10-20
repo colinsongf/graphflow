@@ -21,7 +21,6 @@ dependencies {
 }
 
 // ANTLR4 configuration.
-
 generateGrammarSource {
     maxHeapSize = "64m"
     arguments += [
@@ -31,8 +30,7 @@ generateGrammarSource {
     ]
 }
 
-// grpc configuration.
-
+// gRPC configuration.
 buildscript {
     repositories {
         mavenCentral()
@@ -41,7 +39,6 @@ buildscript {
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.0'
     }
 }
-
 protobuf {
     protoc {
         // The version of protoc must match protobuf-java.
@@ -61,37 +58,30 @@ protobuf {
 }
 
 // Define specific gradle version.
-
 task wrapper(type: Wrapper) {
     gradleVersion = '3.1'
 }
 
 // Enable additional compile time warnings.
-
 compileJava {
     options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
 }
 
 // Create convenience executables.
-
 apply plugin: 'application'
-
 startScripts.enabled = false
-
 task graphflowServer(type: CreateStartScripts) {
     mainClassName = 'ca.waterloo.dsg.graphflow.server.GraphflowServer'
     applicationName = 'graphflow-server'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtime
 }
-
 task graphflowClient(type: CreateStartScripts) {
     mainClassName = 'ca.waterloo.dsg.graphflow.cli.GraphflowCli'
     applicationName = 'graphflow-cli'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtime
 }
-
 applicationDistribution.into('bin') {
     from(graphflowServer)
     from(graphflowClient)

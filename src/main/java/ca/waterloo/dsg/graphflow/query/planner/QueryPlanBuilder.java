@@ -5,24 +5,21 @@ import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 
 public class QueryPlanBuilder {
 
-    IQueryPlanner planner;
-    QueryPlan queryPlan;
-
     public QueryPlan plan(StructuredQuery query) {
+        IQueryPlanner planner = null;
         switch (query.getOperation()) {
             case CREATE:
-                this.planner = new CreateQueryPlanner();
+                planner = new CreateQueryPlanner();
                 break;
             case DELETE:
-                this.planner = new DeleteQueryPlanner();
+                planner = new DeleteQueryPlanner();
                 break;
             case MATCH:
-                this.planner = new MatchQueryPlanner();
+                planner = new MatchQueryPlanner();
                 break;
             default:
                 break;
         }
-        this.queryPlan = this.planner.plan(query);
-        return this.queryPlan;
+        return planner.plan(query);
     }
 }

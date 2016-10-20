@@ -8,7 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Simple graph representation used to demo graph queries.
+ * Simple graph representation used to demo cli graph queries.
+ * TODO: Replace with actual graph implementation
  */
 public class Graph {
 
@@ -19,20 +20,20 @@ public class Graph {
         int fromVertex = Integer.parseInt(edge.getFromVertex());
         int toVertex = Integer.parseInt(edge.getToVertex());
 
-        if (this.forwardVertexMap.containsKey(fromVertex)) {
-            this.forwardVertexMap.get(fromVertex).add(toVertex);
+        if (forwardVertexMap.containsKey(fromVertex)) {
+            forwardVertexMap.get(fromVertex).add(toVertex);
         } else {
             Set<Integer> toVertices = new HashSet<>();
             toVertices.add(toVertex);
-            this.forwardVertexMap.put(fromVertex, toVertices);
+            forwardVertexMap.put(fromVertex, toVertices);
         }
 
-        if (this.reverseVertexMap.containsKey(toVertex)) {
-            this.reverseVertexMap.get(toVertex).add(fromVertex);
+        if (reverseVertexMap.containsKey(toVertex)) {
+            reverseVertexMap.get(toVertex).add(fromVertex);
         } else {
             Set<Integer> fromVertices = new HashSet<>();
             fromVertices.add(fromVertex);
-            this.reverseVertexMap.put(toVertex, fromVertices);
+            reverseVertexMap.put(toVertex, fromVertices);
         }
     }
 
@@ -40,32 +41,28 @@ public class Graph {
         int fromVertex = Integer.parseInt(edge.getFromVertex());
         int toVertex = Integer.parseInt(edge.getToVertex());
 
-        if (this.forwardVertexMap.containsKey(fromVertex)) {
-            this.forwardVertexMap.get(fromVertex).remove(toVertex);
-            if (this.forwardVertexMap.get(fromVertex).isEmpty()) {
-                this.forwardVertexMap.remove(fromVertex);
+        if (forwardVertexMap.containsKey(fromVertex)) {
+            forwardVertexMap.get(fromVertex).remove(toVertex);
+            if (forwardVertexMap.get(fromVertex).isEmpty()) {
+                forwardVertexMap.remove(fromVertex);
             }
         }
 
-        if (this.reverseVertexMap.containsKey(toVertex)) {
-            this.reverseVertexMap.get(toVertex).remove(fromVertex);
-            if (this.reverseVertexMap.get(toVertex).isEmpty()) {
-                this.reverseVertexMap.remove(toVertex);
+        if (reverseVertexMap.containsKey(toVertex)) {
+            reverseVertexMap.get(toVertex).remove(fromVertex);
+            if (reverseVertexMap.get(toVertex).isEmpty()) {
+                reverseVertexMap.remove(toVertex);
             }
         }
     }
 
     public String getGraphString() {
         String graph = "";
-        for (int fromVertex : this.forwardVertexMap.keySet()) {
-            for (int toVertex : this.forwardVertexMap.get(fromVertex)) {
+        for (int fromVertex : forwardVertexMap.keySet()) {
+            for (int toVertex : forwardVertexMap.get(fromVertex)) {
                 graph += fromVertex + " -> " + toVertex + "\n";
             }
         }
         return graph;
-    }
-
-    public void printGraph() {
-        System.out.println(this.getGraphString());
     }
 }

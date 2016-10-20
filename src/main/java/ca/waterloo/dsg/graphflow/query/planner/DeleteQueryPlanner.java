@@ -6,11 +6,8 @@ import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 
 public class DeleteQueryPlanner implements IQueryPlanner {
 
-    DeleteQueryPlan deleteQueryPlan;
-
     @Override
     public QueryPlan plan(StructuredQuery query) {
-        this.deleteQueryPlan = new DeleteQueryPlan(query);
-        return this.deleteQueryPlan;
+        return new DeleteQueryPlan(query);
     }
 }

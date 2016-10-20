@@ -6,12 +6,12 @@ import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
 public class MatchQueryPlan extends QueryPlan {
 
     public MatchQueryPlan(StructuredQuery structuredQuery) {
-        this.structuredQuery = structuredQuery;
+        super(structuredQuery);
     }
 
     @Override
     public String execute(Graph graph) {
-        message = graph.getGraphString();
-        return message;
+        //TODO: perform actual generic join query
+        return graph.getGraphString();
     }
 }

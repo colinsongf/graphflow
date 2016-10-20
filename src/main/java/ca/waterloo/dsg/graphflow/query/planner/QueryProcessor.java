@@ -7,32 +7,20 @@ import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 
 public class QueryProcessor {
 
-    Graph graph;
-    String result;
+    private Graph graph;
 
     public QueryProcessor() {
         this.graph = new Graph();
     }
 
     public String process(String query) {
-        StructuredQueryParser parser = new StructuredQueryParser();
-        StructuredQuery structuredQuery = parser.parse(query);
+        StructuredQuery structuredQuery = new StructuredQueryParser().parse(query);
 
         if (structuredQuery.getOperation() == StructuredQuery.Operation.ERROR) {
-            this.result = "ERROR parsing: " + structuredQuery.getErrorMessage();
-            return result;
+            return "ERROR parsing: " + structuredQuery.getErrorMessage();
         }
 
-        QueryPlanBuilder queryPlanner = new QueryPlanBuilder();
-        QueryPlan queryPlan = queryPlanner.plan(structuredQuery);
-
-        if (queryPlan == null) {
-            this.result = "ERROR executing query: No appropriate operation found";
-            return result;
-        }
-
-        result = queryPlan.execute(this.graph);
-
-        return result;
+        QueryPlan queryPlan = new QueryPlanBuilder().plan(structuredQuery);
+        return queryPlan.execute(graph);
     }
 }

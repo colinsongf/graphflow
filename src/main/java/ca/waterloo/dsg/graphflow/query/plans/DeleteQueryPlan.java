@@ -7,7 +7,7 @@ import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
 public class DeleteQueryPlan extends QueryPlan {
 
     public DeleteQueryPlan(StructuredQuery structuredQuery) {
-        this.structuredQuery = structuredQuery;
+        super(structuredQuery);
     }
 
     @Override
@@ -15,7 +15,6 @@ public class DeleteQueryPlan extends QueryPlan {
         for (Edge edge : structuredQuery.getEdges()) {
             graph.deleteEdge(edge);
         }
-        this.message = structuredQuery.getEdges().size() + " edges deleted.";
-        return message;
+        return structuredQuery.getEdges().size() + " edges deleted.";
     }
 }

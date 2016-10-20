@@ -16,20 +16,18 @@ import java.util.logging.Logger;
 
 /**
  * Client side command line interface implementation.
- * It uses grpc to communicate with the server.
+ * It uses gRPC to communicate with the server.
  */
 public class GraphflowCli {
 
     private final ManagedChannel channel;
     private final GraphflowServerQueryGrpc.GraphflowServerQueryBlockingStub blockingStub;
 
-    // Construct client connecting to server at {@code host:port}.
+    // Construct a client connecting to a server at {@code host:port}.
     public GraphflowCli(String host, int port) {
-        // Turn off logs to supress debug messages from netty.
+        // Turn off logs to suppress debug messages from netty.
         Logger.getLogger("io.grpc.internal").setLevel(Level.OFF);
-        channel = ManagedChannelBuilder.forAddress(host, port)
-            .usePlaintext(true)
-            .build();
+        channel = ManagedChannelBuilder.forAddress(host, port) .usePlaintext(true) .build();
         blockingStub = GraphflowServerQueryGrpc.newBlockingStub(channel);
     }
 
@@ -42,10 +40,6 @@ public class GraphflowCli {
         }
     }
 
-    public void shutdown() throws InterruptedException {
-        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-    }
-
     public void startCLI(String[] args) throws FileNotFoundException {
         Scanner cliInput;
         if (args.length > 0) {
@@ -54,6 +48,7 @@ public class GraphflowCli {
         } else {
             cliInput = new Scanner(System.in);
         }
+
         while (true) {
             System.out.print("graphflow> ");
             if (!cliInput.hasNext()) {
@@ -67,12 +62,12 @@ public class GraphflowCli {
                 System.out.println("ERROR: Needs a semicolon at the end.");
                 continue;
             }
-            System.out.println("Your query: " + query);
-            String result = this.queryServer(query);
-            System.out.println("Result:\n" + result);
             if (query == "exit;") {
                 break;
             }
+            System.out.println("Your query: " + query);
+            String result = queryServer(query);
+            System.out.println("Result:\n" + result);
         }
         System.out.println("May the flow be with you!");
     }
@@ -86,5 +81,9 @@ public class GraphflowCli {
             return "ERROR: " + e.getMessage();
         }
         return result.getMessage();
+    }
+
+    public void shutdown() throws InterruptedException {
+        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 }

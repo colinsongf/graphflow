@@ -6,10 +6,7 @@ import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 
 public class MatchQueryPlanner implements IQueryPlanner {
 
-    MatchQueryPlan matchQueryPlan;
-
     public QueryPlan plan(StructuredQuery query) {
-        this.matchQueryPlan = new MatchQueryPlan(query);
-        return this.matchQueryPlan;
+        return new MatchQueryPlan(query);
     }
 }

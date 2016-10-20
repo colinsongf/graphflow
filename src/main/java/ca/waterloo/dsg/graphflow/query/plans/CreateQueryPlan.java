@@ -7,7 +7,7 @@ import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
 public class CreateQueryPlan extends QueryPlan {
 
     public CreateQueryPlan(StructuredQuery structuredQuery) {
-        this.structuredQuery = structuredQuery;
+        super(structuredQuery);
     }
 
     @Override
@@ -15,7 +15,6 @@ public class CreateQueryPlan extends QueryPlan {
         for (Edge edge : structuredQuery.getEdges()) {
             graph.addEdge(edge);
         }
-        this.message = structuredQuery.getEdges().size() + " edges created.";
-        return this.message;
+        return structuredQuery.getEdges().size() + " edges created.";
     }
 }

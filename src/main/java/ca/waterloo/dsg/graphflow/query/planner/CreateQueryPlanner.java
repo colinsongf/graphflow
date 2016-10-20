@@ -6,11 +6,8 @@ import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 
 public class CreateQueryPlanner implements IQueryPlanner {
 
-    CreateQueryPlan createQueryPlan;
-
     @Override
     public QueryPlan plan(StructuredQuery query) {
-        this.createQueryPlan = new CreateQueryPlan(query);
-        return this.createQueryPlan;
+        return new CreateQueryPlan(query);
     }
 }

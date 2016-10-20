@@ -9,58 +9,63 @@ import java.io.IOException;
 
 public class GraphflowServer {
 
-    private int port = 8080;
-    private Server server;
+    private static int PORT = 8080;
+    private Server grpcServer;
 
     /**
-     * Main launches the server from the command line.
+     * Main launches the {@code grpcServer} from the command line.
      */
     public static void main(String[] args) throws IOException, InterruptedException {
-        final GraphflowServer server = new GraphflowServer();
-        server.start();
-        server.blockUntilShutdown();
+        final GraphflowServer graphflowServer = new GraphflowServer();
+        graphflowServer.start();
+        graphflowServer.blockUntilShutdown();
     }
 
     private void start() throws IOException {
-        server = ServerBuilder.forPort(port)
+        grpcServer = ServerBuilder
+            .forPort(PORT)
             .addService(new GraphflowQueryImpl())
             .build()
             .start();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                System.err.println("*** shutting down gRPC server since JVM is shutting down");
+                System.err.println("*** shutting down gRPC grpcServer since JVM is shutting down");
                 GraphflowServer.this.stop();
-                System.err.println("*** server shut down");
+                System.err.println("*** grpcServer shut down");
             }
         });
     }
 
     private void stop() {
-        if (server != null) {
-            server.shutdown();
+        if (grpcServer != null) {
+            grpcServer.shutdown();
         }
     }
 
     /**
-     * Await termination on the main thread since the grpc library uses daemon threads.
+     * Await termination on the main thread since the gRPC library uses daemon threads.
      */
     private void blockUntilShutdown() throws InterruptedException {
-        if (server != null) {
-            server.awaitTermination();
+        if (grpcServer != null) {
+            grpcServer.awaitTermination();
         }
     }
 
     private class GraphflowQueryImpl extends GraphflowServerQueryGrpc.GraphflowServerQueryImplBase {
 
-        QueryProcessor processor = new QueryProcessor();
+        private QueryProcessor processor = new QueryProcessor();
 
         @Override
-        public void executeQuery(ServerQueryString request, StreamObserver<ServerQueryResult> responseObserver) {
+        public void executeQuery(ServerQueryString request,
+                                 StreamObserver<ServerQueryResult> responseObserver) {
             String result = processor.process(request.getMessage());
-            ServerQueryResult queryResult = ServerQueryResult.newBuilder().setMessage(result).build();
-            responseObserver.onNext(queryResult);
-            responseObserver.onCompleted();
+            ServerQueryResult queryResult = ServerQueryResult
+                .newBuilder()
+                .setMessage(result)
+                .build();
+            responseObserver.onNext(queryResult);   // get next {@code queryResult} from the stream.
+            responseObserver.onCompleted();         // mark the stream as done.
         }
     }
 }

@@ -21,7 +21,6 @@ import java.lang.reflect.Type;
  */
 public class Graph {
 
-
   private IntArrayList[] forwardAdjLists;
   private IntArrayList[] reverseAdjLists;
 
@@ -197,5 +196,7 @@ public class Graph {
 
       return graph;
     }
+
+    //TODO: serialize function to write human readable graph
   }
 }

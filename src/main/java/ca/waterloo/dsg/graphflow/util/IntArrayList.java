@@ -75,7 +75,6 @@ public class IntArrayList implements IntList {
       }
       data[j] = temp;
     }
-
   }
 
   @Override
@@ -137,10 +136,10 @@ public class IntArrayList implements IntList {
    */
   public IntArrayList getIntersection(IntArrayList newList) {
     IntArrayList shorter, longer, intersection;
-    if( this.size() > newList.size()) {
+    if (this.size() > newList.size()) {
       shorter = newList;
       longer = this;
-    }  else {
+    } else {
       shorter = this;
       longer = newList;
     }

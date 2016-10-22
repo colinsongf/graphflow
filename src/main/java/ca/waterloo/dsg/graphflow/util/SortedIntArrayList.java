@@ -67,15 +67,7 @@ public class SortedIntArrayList implements IntList {
      * Sorts the underlying array in place.
      */
     private void sort() {
-        for (int i = 1; i < size; i++) {
-            int temp = data[i];
-            int j = i;
-            while ((j > 0) && (temp < data[j - 1])) {
-                data[j] = data[j - 1];
-                j--;
-            }
-            data[j] = temp;
-        }
+        Arrays.sort(this.data, 0, size-1);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.graphmodel;
 
-import ca.waterloo.dsg.graphflow.util.IntArrayList;
+import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
@@ -24,25 +24,25 @@ public class Graph {
     private static final int DEFAULT_GRAPH_SIZE = 10;
     public static Graph graph;
 
-    private IntArrayList vertices;
-    private IntArrayList[] forwardAdjLists;
-    private IntArrayList[] reverseAdjLists;
+    private SortedIntArrayList vertices;
+    private SortedIntArrayList[] forwardAdjLists;
+    private SortedIntArrayList[] reverseAdjLists;
 
     public Graph() {
-        forwardAdjLists = new IntArrayList[DEFAULT_GRAPH_SIZE];
-        reverseAdjLists = new IntArrayList[DEFAULT_GRAPH_SIZE];
+        forwardAdjLists = new SortedIntArrayList[DEFAULT_GRAPH_SIZE];
+        reverseAdjLists = new SortedIntArrayList[DEFAULT_GRAPH_SIZE];
     }
 
     public Graph(int vertexLength) {
         //TODO(chathura): Store vertices in seperate array and ensure none of hte adj lists are empty.
-        forwardAdjLists = new IntArrayList[vertexLength];
-        reverseAdjLists = new IntArrayList[vertexLength];
+        forwardAdjLists = new SortedIntArrayList[vertexLength];
+        reverseAdjLists = new SortedIntArrayList[vertexLength];
     }
 
     /**
      * Creates a graph object from given file.
      *
-     * @param file JSON file with pattern {"vertices": x, "edges" : [("src": 1, "dst": 2),
+     * @param file JSON file with pattern {"num-vertices": x, "edges" : [("src": 1, "dst": 2),
      *             ("src": 2, "dst": 3)...]}
      * @return Graph
      * @throws IOException
@@ -75,7 +75,7 @@ public class Graph {
      * @param isForward
      * @throws ArrayIndexOutOfBoundsException
      */
-    public void setAdjacencyList(int vertexIndex, IntArrayList adjList, boolean isForward)
+    public void setAdjacencyList(int vertexIndex, SortedIntArrayList adjList, boolean isForward)
         throws ArrayIndexOutOfBoundsException {
         if (isForward) {
             forwardAdjLists[vertexIndex] = adjList;
@@ -89,10 +89,10 @@ public class Graph {
      *
      * @param vertexIndex
      * @param isForward
-     * @return IntArrayList
+     * @return SortedIntArrayList
      * @throws ArrayIndexOutOfBoundsException
      */
-    public IntArrayList getAdjacencyList(int vertexIndex, boolean isForward)
+    public SortedIntArrayList getAdjacencyList(int vertexIndex, boolean isForward)
         throws ArrayIndexOutOfBoundsException {
         if (isForward) {
             return forwardAdjLists[vertexIndex];
@@ -132,9 +132,9 @@ public class Graph {
      * else returns reverseAdjLists adjacency list.
      *
      * @param isForward
-     * @return IntArrayList[]
+     * @return SortedIntArrayList[]
      */
-    public IntArrayList[] getAllAdjLists(boolean isForward) {
+    public SortedIntArrayList[] getAllAdjLists(boolean isForward) {
         if (isForward) {
             return this.forwardAdjLists;
         } else {
@@ -145,11 +145,11 @@ public class Graph {
     /**
      * Returns all the vertex indices in the graph as a list
      *
-     * @return IntArrayList
+     * @return SortedIntArrayList
      */
-    public IntArrayList getVertices() {
+    public SortedIntArrayList getVertices() {
         if (this.vertices == null) {
-            vertices = new IntArrayList(getVertexCount());
+            vertices = new SortedIntArrayList(getVertexCount());
             for (int i = 0; i < this.getVertexCount(); i++) {
                 vertices.add(i);
             }
@@ -166,7 +166,7 @@ public class Graph {
     public String toString() {
         StringBuilder graph = new StringBuilder();
         int index = 0;
-        for (IntArrayList adjList : this.getAllAdjLists(true)) {
+        for (SortedIntArrayList adjList : this.getAllAdjLists(true)) {
             graph.append(index + " :");
             graph.append(adjList.toString());
             graph.append("\n");
@@ -174,7 +174,7 @@ public class Graph {
         }
 
         index = 0;
-        for (IntArrayList adjList : this.getAllAdjLists(false)) {
+        for (SortedIntArrayList adjList : this.getAllAdjLists(false)) {
             graph.append(index + " :");
             graph.append(adjList.toString());
             graph.append("\n");
@@ -190,14 +190,14 @@ public class Graph {
     private static class GraphDeserializer implements JsonDeserializer<Graph> {
 
         private static final String EDGES = "edges";
-        private static final String VERTICES = "vertices";
+        private static final String VERTICES = "num-vertices";
         private static final String SOURCE = "src";
         private static final String DESTINATION = "dst";
 
         /**
          * Gets the root of a json object and returns a graph object populated with data.
          *
-         * @param json
+         * @param json handle to the root element of the json file.
          * @param typeOfT
          * @param context
          * @return Graph
@@ -221,8 +221,8 @@ public class Graph {
             }
 
             for (int i = 0; i < vertices; i++) {
-                IntArrayList adjList = new IntArrayList(edgeLengths[i]);
-                IntArrayList adjListReversed = new IntArrayList(edgeLengthsReversed[i]);
+                SortedIntArrayList adjList = new SortedIntArrayList(edgeLengths[i]);
+                SortedIntArrayList adjListReversed = new SortedIntArrayList(edgeLengthsReversed[i]);
                 for (JsonElement edge : edges) {
                     JsonObject edgeObj = edge.getAsJsonObject();
                     if (edgeObj.get(GraphDeserializer.SOURCE).getAsInt() == i) {

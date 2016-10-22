@@ -1,55 +1,35 @@
 package ca.waterloo.dsg.graphflow.queryprocessor.outputsink;
 
-import ca.waterloo.dsg.graphflow.util.IntArrayList;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.util.Arrays;
 
 /**
- * outputs query results to a file.
+ * Outputs query results to a file.
  */
 public class FileOutputSink implements OutputSink {
 
     private String name;
-    private File location;
+    private File directory;
     private PrintWriter writer;
 
     public FileOutputSink(File location, String name) {
-
-        this.setLocation(location);
+        this.setDirectory(location);
         this.name = name;
     }
 
     /**
-     * Returns a writer to the file specified by location and name
-     *
-     * @return PrintWriter
-     * @throws IOException
+     * Creates the output file at the given directory.
+     * @param directory
      */
-    private PrintWriter getWriter() throws IOException {
-        if (this.writer == null) {
-            this.writer = new PrintWriter(
-                new BufferedWriter(new FileWriter(new File(this.location, this.name), true))
-            );
-        }
-        return this.writer;
-    }
-
-    /**
-     * Creates the output file at the given location.
-     * @param location
-     */
-    public void setLocation(File location) {
-        if (location.isDirectory()) {
-            this.location = location;
+    public void setDirectory(File directory) {
+        if (directory.isDirectory()) {
+            this.directory = directory;
         } else {
-            this.location = location.getParentFile();
+            this.directory = directory.getParentFile();
         }
     }
 
@@ -69,5 +49,20 @@ public class FileOutputSink implements OutputSink {
             //TODO: write these to error log
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Returns a writer to the file specified by directory and name.
+     *  Initializes the writer first if necessary.
+     *
+     * @return PrintWriter
+     * @throws IOException
+     */
+    private PrintWriter getWriter() throws IOException {
+        if (this.writer == null) {
+            this.writer = new PrintWriter(new BufferedWriter(
+                new FileWriter(new File(this.directory, this.name), true)));
+        }
+        return this.writer;
     }
 }

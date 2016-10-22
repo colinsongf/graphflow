@@ -2,17 +2,16 @@ package ca.waterloo.dsg.graphflow.util;
 
 import org.junit.Assert;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
- * Tests the IntArrayList class.
+ * Tests the @code{SortedIntArrayList} class.
  */
-public class IntArrayListTest {
+public class SortedIntArrayListTest {
 
   @Test
-  public void search() throws Exception {
+  public void testSearch() throws Exception {
     int[] sortedList = {2, 4, 7, 23, 23, 45, 56, 76, 78};
-    IntArrayList testList = new IntArrayList();
+    SortedIntArrayList testList = new SortedIntArrayList();
     testList.addAll(sortedList);
     int index = testList.search(7);
     Assert.assertEquals(2, index);
@@ -20,36 +19,22 @@ public class IntArrayListTest {
     Assert.assertEquals(-1, index);
     index = testList.search(-750);
     Assert.assertEquals(-1, index);
-
-    testList = new IntArrayList();
+    testList = new SortedIntArrayList();
     index = testList.search(7);
     Assert.assertEquals(-1, index);
   }
 
   @Test
-  public void getIntersection() throws Exception {
+  public void testGetIntersection() throws Exception {
     int[] sortedList = {2, 4, 7, 23, 23, 45, 56, 76, 78};
-    IntArrayList testList = new IntArrayList();
+    SortedIntArrayList testList = new SortedIntArrayList();
     testList.addAll(sortedList);
     int[] otherList = {4, 23, 456, 56, 43, 76};
-    IntArrayList testList2 = new IntArrayList();
+    SortedIntArrayList testList2 = new SortedIntArrayList();
     testList2.addAll(otherList);
-    IntArrayList intersection = testList.getIntersection(testList2);
+    SortedIntArrayList intersection = testList.getIntersection(testList2);
     System.out.println(intersection);
     int[] results = {4, 23, 56, 76};
     Assert.assertArrayEquals(results, intersection.toArray());
   }
-
-  @Test
-  public void sort() throws Exception {
-
-    int[] unsortedList = {4, 7, 23, 76, 2, 56, 23, 78, 45};
-    IntArrayList testList = new IntArrayList();
-    testList.addAll(unsortedList);
-    testList.sort();
-    int[] sortedList = {2, 4, 7, 23, 23, 45, 56, 76, 78};
-
-    Assert.assertArrayEquals(sortedList, testList.toArray());
-  }
-
 }

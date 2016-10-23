@@ -3,6 +3,9 @@ package ca.waterloo.dsg.graphflow.query.planner;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 
+/**
+ * Class for building the corresponding {@code QueryPlan} of the input operation.
+ */
 public class QueryPlanBuilder {
 
     public QueryPlan plan(StructuredQuery query) {

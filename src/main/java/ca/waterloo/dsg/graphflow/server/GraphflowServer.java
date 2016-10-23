@@ -7,32 +7,28 @@ import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
 
+/**
+ * gRPC server to handle incoming queries and pass them on to the {@code QueryProcessor}.
+ */
 public class GraphflowServer {
 
     private static int PORT = 8080;
     private Server grpcServer;
 
-    /**
-     * Main launches the {@code grpcServer} from the command line.
-     */
-    public static void main(String[] args) throws IOException, InterruptedException {
-        final GraphflowServer graphflowServer = new GraphflowServer();
-        graphflowServer.start();
-        graphflowServer.blockUntilShutdown();
-    }
-
     private void start() throws IOException {
+        System.err.println("*** starting gRPC server...");
         grpcServer = ServerBuilder
             .forPort(PORT)
             .addService(new GraphflowQueryImpl())
             .build()
             .start();
+        System.err.println("*** gRPC server running.");
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                System.err.println("*** shutting down gRPC grpcServer since JVM is shutting down");
+                System.err.println("*** shutting down gRPC grpcServer...");
                 GraphflowServer.this.stop();
-                System.err.println("*** grpcServer shut down");
+                System.err.println("*** grpcServer shut down.");
             }
         });
     }
@@ -58,14 +54,21 @@ public class GraphflowServer {
 
         @Override
         public void executeQuery(ServerQueryString request,
-                                 StreamObserver<ServerQueryResult> responseObserver) {
+            StreamObserver<ServerQueryResult> responseObserver) {
             String result = processor.process(request.getMessage());
-            ServerQueryResult queryResult = ServerQueryResult
-                .newBuilder()
-                .setMessage(result)
-                .build();
+            ServerQueryResult queryResult = ServerQueryResult.newBuilder().setMessage(result)
+                                                             .build();
             responseObserver.onNext(queryResult);   // get next {@code queryResult} from the stream.
             responseObserver.onCompleted();         // mark the stream as done.
         }
+    }
+
+    /**
+     * Launches the {@code grpcServer} from the command line.
+     */
+    public static void main(String[] args) throws IOException, InterruptedException {
+        final GraphflowServer graphflowServer = new GraphflowServer();
+        graphflowServer.start();
+        graphflowServer.blockUntilShutdown();
     }
 }

@@ -4,6 +4,9 @@ import ca.waterloo.dsg.graphflow.demograph.Graph;
 import ca.waterloo.dsg.graphflow.query.parser.Edge;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
 
+/**
+ * Class representing plan for a CREATE operation.
+ */
 public class CreateQueryPlan extends QueryPlan {
 
     public CreateQueryPlan(StructuredQuery structuredQuery) {

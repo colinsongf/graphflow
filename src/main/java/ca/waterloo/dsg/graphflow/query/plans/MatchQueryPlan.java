@@ -3,6 +3,9 @@ package ca.waterloo.dsg.graphflow.query.plans;
 import ca.waterloo.dsg.graphflow.demograph.Graph;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
 
+/**
+ * Class representing plan for a MATCH operation.
+ */
 public class MatchQueryPlan extends QueryPlan {
 
     public MatchQueryPlan(StructuredQuery structuredQuery) {

@@ -10,13 +10,11 @@ public class StructuredQuery {
 
     private List<Edge> edges;
     private Operation operation;
-    private String errorMessage;
 
     public enum Operation {
         CREATE,
         MATCH,
-        DELETE,
-        ERROR
+        DELETE
     }
 
     public StructuredQuery() {
@@ -41,13 +39,5 @@ public class StructuredQuery {
 
     public void setOperation(Operation operation) {
         this.operation = operation;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
     }
 }

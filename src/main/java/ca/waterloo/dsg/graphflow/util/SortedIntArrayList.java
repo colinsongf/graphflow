@@ -64,6 +64,7 @@ public class SortedIntArrayList {
         Arrays.sort(this.data, 0, size - 1);
     }
 
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("[");
@@ -78,7 +79,7 @@ public class SortedIntArrayList {
     }
 
     /**
-     * Checks if the current capacity exceeds size and increases the capacity if it doesn't.     *
+     * Checks if the current capacity exceeds size and increases the capacity if it doesn't.
      * @param minCapacity
      */
     private void ensure_capacity(int minCapacity) {

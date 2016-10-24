@@ -33,7 +33,10 @@ public class FileOutputSink implements OutputSink {
         }
     }
 
-
+    /**
+     * Sets the given name as the filename of the output sink.
+     * @param name
+     */
     public void setFileName(String name) {
         this.name = name;
     }

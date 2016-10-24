@@ -8,7 +8,7 @@ import org.junit.Test;
 import java.io.File;
 
 /**
- * Tests graphmodel.Graph class.
+ * Tests @code{Graph} class.
  */
 public class GraphTest {
   @Before

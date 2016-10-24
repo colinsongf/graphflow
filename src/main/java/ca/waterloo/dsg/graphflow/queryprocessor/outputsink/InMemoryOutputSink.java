@@ -3,7 +3,7 @@ package ca.waterloo.dsg.graphflow.queryprocessor.outputsink;
 import java.util.ArrayList;
 
 /**
- * Keeps output from a query as an in memory data structure
+ * Keeps output from a query as an in memory data structure.
  */
 public class InMemoryOutputSink implements OutputSink{
 

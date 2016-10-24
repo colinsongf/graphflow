@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * A list of int primitives implemented using an array.
  */
-public class SortedIntArrayList implements IntList {
+public class SortedIntArrayList {
 
     private static final int INITIAL_CAPACITY = 2;
     private int[] data;
@@ -19,7 +19,6 @@ public class SortedIntArrayList implements IntList {
         data = new int[capacity];
     }
 
-    @Override
     public boolean add(int i) {
         ensure_capacity(size + 1);
         data[size++] = i;
@@ -27,12 +26,10 @@ public class SortedIntArrayList implements IntList {
         return true;
     }
 
-    @Override
     public int get(int index) throws ArrayIndexOutOfBoundsException {
         return data[index];
     }
 
-    @Override
     public boolean addAll(int[] i) {
         int numnew = i.length;
         ensure_capacity(size + numnew);
@@ -42,7 +39,6 @@ public class SortedIntArrayList implements IntList {
         return true;
     }
 
-    @Override
     public int remove(int index) throws ArrayIndexOutOfBoundsException {
         int numMoved = size - index - 1;
         int valueToBeRemoved = data[index];
@@ -53,12 +49,10 @@ public class SortedIntArrayList implements IntList {
         return valueToBeRemoved;
     }
 
-    @Override
     public int size() {
         return size;
     }
 
-    @Override
     public int[] toArray() {
         return Arrays.copyOfRange(data, 0, size);
     }
@@ -70,7 +64,6 @@ public class SortedIntArrayList implements IntList {
         Arrays.sort(this.data, 0, size-1);
     }
 
-    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("[");

@@ -1,51 +1,118 @@
 grammar Graphflow;
 
-cypherQuery : MATCH matchquery (',' matchquery)* RETURN returnquery;
-matchquery : vertex LEFTEDGE? '-[:' edge ']-' RIGHTEDGE? vertex;
-vertex  : '(' variable (':' type)? ')';
+graphflow : sp? statement sp? ( ';'  sp?)? ;
 
-returnquery :  variable ( ',' variable )*;
+statement : query ;
 
-edge : CHARS;
-variable : CHARS;
-type : CHARS;
+query : match
+       | create
+       | delete
+       ;
 
-LEFTEDGE: '<';
-RIGHTEDGE: '>';
-CHARS: [a-z]+;
-MATCH : 'MATCH';
-RETURN : 'RETURN';
-WS  : [ \t\r\n]+ -> skip ;
+match : MATCH sp matchPattern ;
 
-/* MATCH
-   (m:Person)-[:KNOWS]->(n:Person)-[:KNOWS]->(o:Person),
-   (m)-[:KNOWS]->(p:Person)-[:KNOWS]->(o)
-   return m,n,o,p
+create : CREATE sp createPattern ;
 
-   MATCH (n) OPTIONAL MATCH (n)-[r1]-() DELETE n,r1
+delete : DELETE sp deletePattern ;
 
-   MATCH (n) RETURN n
+matchPattern: variableExpression ( sp? ',' sp? variableExpression )* ;
 
-   MATCH (m)-[:label]->(m) RETURN m
+deletePattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
 
-   CREATE (A:Person {name:'A'})
-   CREATE (B:Person {name:'B'})
-   CREATE (C:Person {name:'C'})
-   CREATE (D:Person {name:'D'})
-   CREATE (E:Person {name:'E'})
-   CREATE (F:Person {name:'F'})
-   CREATE (G:Person {name:'G'})
-   CREATE (H:Person {name:'H'})
-   CREATE (I:Person {name:'I'})
-   CREATE
-     (A)-[:KNOWS {relation:'knows'}]->(B),
-     (A)-[:KNOWS {relation:'knows'}]->(C),
-     (B)-[:KNOWS {relation:'knows'}]->(D),
-     (C)-[:KNOWS {relation:'knows'}]->(D),
-     (C)-[:KNOWS {relation:'knows'}]->(I),
-     (I)-[:KNOWS {relation:'knows'}]->(E),
-     (E)-[:KNOWS {relation:'knows'}]->(F),
-     (E)-[:KNOWS {relation:'knows'}]->(G),
-     (F)-[:KNOWS {relation:'knows'}]->(H),
-     (G)-[:KNOWS {relation:'knows'}]->(H)
-   */
+createPattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
+
+digitsExpression : '(' sp? leftDigit sp? ')' sp? dash rightArrowHead '(' sp? rightDigit sp? ')' ;
+
+variableExpression: '(' sp? leftVariable sp? ')' sp? dash rightArrowHead '(' sp? rightVariable sp? ')' ;
+
+leftDigit : Digits ;
+
+rightDigit : Digits ;
+
+leftVariable : variable ;
+
+rightVariable : variable ;
+
+variable : Digits
+         | Characters
+         ;
+
+Digits : ( Digit )+ ;
+
+Digit : '0'
+      | '1'
+      | '2'
+      | '3'
+      | '4'
+      | '5'
+      | '6'
+      | '7'
+      | '8'
+      | '9'
+      ;
+
+Characters : ( Character )+ ;
+
+Character : [a-z] ;
+
+MATCH : ( 'M' | 'm' ) ( 'A' | 'a' ) ( 'T' | 't' ) ( 'C' | 'c' ) ( 'H' | 'h' )  ;
+
+CREATE : ( 'C' | 'c' ) ( 'R' | 'r' ) ( 'E' | 'e' ) ( 'A' | 'a' ) ( 'T' | 't' ) ( 'E' | 'e' )  ;
+
+DELETE : ( 'D' | 'd' ) ( 'E' | 'e' ) ( 'L' | 'l' ) ( 'E' | 'e' ) ( 'T' | 't' ) ( 'E' | 'e' )  ;
+
+sp : ( WHITESPACE )+ ;
+
+WHITESPACE : SPACE
+           | TAB
+           | LF
+           | VT
+           | FF
+           | CR
+           | FS
+           | GS
+           | RS
+           | US
+           | '\n'
+           | Comment
+           ;
+
+Comment : ( '/*' ( Comment_0 | ( '*' Comment_1 ) )* '*/' )
+        | ( '//' Comment_2 CR? ( LF | EOF ) )
+        ;
+
+rightArrowHead : '>' ;
+
+dash : '-' ;
+
+L_0X : ( '0' | '0' ) ( 'X' | 'x' )  ;
+
+fragment FF : [\f] ;
+
+fragment EscapedSymbolicName_0 : [\u0000-_a-\uFFFF] ;
+
+fragment RS : [\u001E] ;
+
+fragment Comment_1 : [\u0000-.0-\uFFFF] ;
+
+fragment Comment_0 : [\u0000-)+-\uFFFF] ;
+
+fragment StringLiteral_1 : [\u0000-&(-\[\]-\uFFFF] ;
+
+fragment Comment_2 : [\u0000-\t\u000B-\f\u000E-\uFFFF] ;
+
+fragment GS : [\u001D] ;
+
+fragment FS : [\u001C] ;
+
+fragment CR : [\r] ;
+
+fragment SPACE : [ ] ;
+
+fragment TAB : [\t] ;
+
+fragment LF : [\n] ;
+
+fragment VT : [\u000B] ;
+
+fragment US : [\u001F] ;

@@ -21,7 +21,7 @@ public class GenericJoinProcessor {
     private Graph graph;
 
     public GenericJoinProcessor(ArrayList<ArrayList<GenericJoinIntersectionRule>> stages,
-                                OutputSink outputSink, Graph graph) {
+        OutputSink outputSink, Graph graph) {
         this.stages = stages;
         this.outputSink = outputSink;
         this.graph = graph;
@@ -96,7 +96,7 @@ public class GenericJoinProcessor {
      * @return GenericJoinIntersectionRule
      */
     private GenericJoinIntersectionRule getMinCountIndex(int[] prefix,
-                                                         ArrayList<GenericJoinIntersectionRule> genericJoinIntersectionRules) {
+        ArrayList<GenericJoinIntersectionRule> genericJoinIntersectionRules) {
         GenericJoinIntersectionRule minGenericJoinIntersectionRule = null;
         int minCount = Integer.MAX_VALUE;
         for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {

@@ -193,7 +193,7 @@ public class Graph {
          */
         @Override
         public Graph deserialize(JsonElement json, Type typeOfT,
-                                 JsonDeserializationContext context) throws JsonParseException {
+            JsonDeserializationContext context) throws JsonParseException {
             JsonObject rawGraph = json.getAsJsonObject();
             JsonArray edges = rawGraph.get(GraphDeserializer.EDGES).getAsJsonArray();
             int numVertices = rawGraph.get(GraphDeserializer.NUM_VERTICES).getAsInt();

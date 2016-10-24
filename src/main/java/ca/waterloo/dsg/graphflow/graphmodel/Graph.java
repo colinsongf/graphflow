@@ -42,7 +42,7 @@ public class Graph {
     /**
      * Creates a graph object from given file.
      * @param file JSON file with pattern {"num-vertices": x, "edges" : [("src": 1, "dst": 2),
-     *             ("src": 2, "dst": 3)...]}
+     *             ("src": 2, "dst": 3)...]}. Vertex indices are assumed to start from 0.
      * @return Graph
      * @throws IOException
      */

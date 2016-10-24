@@ -1,0 +1,4 @@
+CREATE (1)->(2), (2)->(3), (2)->(4), (4)->(8);
+MATCH (a)->(b);
+DELETE (2)->(3);
+IMPORT "graph.txt"; // TODO

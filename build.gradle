@@ -3,22 +3,87 @@ version '0.1'
 
 apply plugin: 'java'
 apply plugin: 'antlr'
+apply plugin: 'com.google.protobuf'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    // ANTLR4
     antlr "org.antlr:antlr4:4.5"
-    compile 'com.google.code.gson:gson:2.7'
+    // gRPC
+    compile 'io.grpc:grpc-netty:1.0.1'
+    compile 'io.grpc:grpc-protobuf:1.0.1'
+    compile 'io.grpc:grpc-stub:1.0.1'
+    // jUnit
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
+// ANTLR4 configuration.
 generateGrammarSource {
     maxHeapSize = "64m"
-    arguments += ["-visitor", "-long-messages", "-package", "ca.waterloo.dsg.graphflow.grammar"]
+    arguments += [
+        "-long-messages",                                   // show exception details
+        "-visitor",                                         // generate parse tree visitor classes
+        "-package", "ca.waterloo.dsg.graphflow.grammar"     // specify package for generated classes
+    ]
 }
 
+// gRPC configuration.
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.0'
+    }
+}
+protobuf {
+    protoc {
+        // The version of protoc must match protobuf-java.
+        artifact = "com.google.protobuf:protoc:3.0.2"
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.0.1'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+    generatedFilesBaseDir = "$buildDir/generated-src/proto"
+}
+
+// Define specific gradle version.
 task wrapper(type: Wrapper) {
     gradleVersion = '3.1'
+}
+
+// Enable additional compile time warnings.
+compileJava {
+    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+}
+
+// Create convenience executables.
+apply plugin: 'application'
+startScripts.enabled = false
+task graphflowServer(type: CreateStartScripts) {
+    mainClassName = 'ca.waterloo.dsg.graphflow.server.GraphflowServerRunner'
+    applicationName = 'graphflow-server'
+    outputDir = new File(project.buildDir, 'tmp')   // temporary location for the start scripts
+    classpath = jar.outputs.files + project.configurations.runtime
+}
+task graphflowClient(type: CreateStartScripts) {
+    mainClassName = 'ca.waterloo.dsg.graphflow.cli.GraphflowCli'
+    applicationName = 'graphflow-cli'
+    outputDir = new File(project.buildDir, 'tmp')   // temporary location for the start scripts
+    classpath = jar.outputs.files + project.configurations.runtime
+}
+applicationDistribution.into('bin') {               // move the start scripts to final location
+    from(graphflowServer)
+    from(graphflowClient)
+    fileMode = 0755
 }

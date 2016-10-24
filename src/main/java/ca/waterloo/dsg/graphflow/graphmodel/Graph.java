@@ -41,7 +41,6 @@ public class Graph {
 
     /**
      * Creates a graph object from given file.
-     *
      * @param file JSON file with pattern {"num-vertices": x, "edges" : [("src": 1, "dst": 2),
      *             ("src": 2, "dst": 3)...]}
      * @return Graph
@@ -57,7 +56,6 @@ public class Graph {
 
     /**
      * Returns an already loaded graph or creates and returns an empty graph.
-     *
      * @return Graph
      */
     public static Graph getInstance() {
@@ -69,7 +67,6 @@ public class Graph {
 
     /**
      * Adds a reference to array of destination/source indices for the given vertex.
-     *
      * @param vertexIndex
      * @param adjList
      * @param isForward
@@ -86,7 +83,6 @@ public class Graph {
 
     /**
      * Returns an array of destination/source indices for the given vertex.
-     *
      * @param vertexIndex
      * @param isForward
      * @return SortedIntArrayList
@@ -102,8 +98,7 @@ public class Graph {
     }
 
     /**
-     * Returns the size of the adjacency list for the given vertex in the given direction
-     *
+     * Returns the size of the adjacency list for the given vertex in the given direction.
      * @param vertexIndex
      * @param isForward
      * @return
@@ -120,7 +115,6 @@ public class Graph {
 
     /**
      * Returns the number of forwardAdjLists in graph.
-     *
      * @return int
      */
     public int getVertexCount() {
@@ -130,7 +124,6 @@ public class Graph {
     /**
      * Returns the forwardAdjLists adjacency list if forwardAdjLists is True,
      * else returns reverseAdjLists adjacency list.
-     *
      * @param isForward
      * @return SortedIntArrayList[]
      */
@@ -143,8 +136,7 @@ public class Graph {
     }
 
     /**
-     * Returns all the vertex indices in the graph as a list
-     *
+     * Returns all the vertex indices in the graph as a list.
      * @return SortedIntArrayList
      */
     public SortedIntArrayList getVertices() {
@@ -159,7 +151,6 @@ public class Graph {
 
     /**
      * Convert the graph to a string.
-     *
      * @return String
      */
     @Override
@@ -196,7 +187,6 @@ public class Graph {
 
         /**
          * Gets the root of a json object and returns a graph object populated with data.
-         *
          * @param json handle to the root element of the json file.
          * @param typeOfT
          * @param context

@@ -4,7 +4,7 @@ package ca.waterloo.dsg.graphflow.queryprocessor;
  * Represents a generic join rule consisting of a prefix index and a direction. The rule
  *  will be part of a Generic Join stage and will be used to find possible extensions (new outgoing
  *  or incoming edge ) to a given element (@code{prefixIndex}) of the intermediate
- *  result tuple (prefix)
+ *  result tuple (prefix).
  */
 public class GenericJoinIntersectionRule {
     private int prefixIndex;

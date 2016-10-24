@@ -78,8 +78,7 @@ public class SortedIntArrayList {
     }
 
     /**
-     * Checks if the current capacity exceeds size and increases the capacity if it doesn't.
-     *
+     * Checks if the current capacity exceeds size and increases the capacity if it doesn't.     *
      * @param minCapacity
      */
     private void ensure_capacity(int minCapacity) {
@@ -96,7 +95,7 @@ public class SortedIntArrayList {
     /**
      * Searches for the given value in the list using binary search and returns the index.
      * Returns -1 if value not found.
-     * @param value value to find in list
+     * @param value value to find in list.
      * @return int index of matched value or -1 if value does not exist
      */
     public int search(int value) {

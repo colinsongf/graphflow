@@ -15,13 +15,10 @@ public class GraphflowServer {
     private static int PORT = 8080;
     private Server grpcServer;
 
-    private void start() throws IOException {
+    public void start() throws IOException {
         System.err.println("*** starting gRPC server...");
-        grpcServer = ServerBuilder
-            .forPort(PORT)
-            .addService(new GraphflowQueryImpl())
-            .build()
-            .start();
+        grpcServer = ServerBuilder.forPort(PORT).addService(new GraphflowQueryImpl()).build()
+                                  .start();
         System.err.println("*** gRPC server running.");
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -34,18 +31,14 @@ public class GraphflowServer {
     }
 
     private void stop() {
-        if (grpcServer != null) {
-            grpcServer.shutdown();
-        }
+        grpcServer.shutdown();
     }
 
     /**
      * Await termination on the main thread since the gRPC library uses daemon threads.
      */
-    private void blockUntilShutdown() throws InterruptedException {
-        if (grpcServer != null) {
-            grpcServer.awaitTermination();
-        }
+    public void blockUntilShutdown() throws InterruptedException {
+        grpcServer.awaitTermination();
     }
 
     private class GraphflowQueryImpl extends GraphflowServerQueryGrpc.GraphflowServerQueryImplBase {
@@ -61,14 +54,5 @@ public class GraphflowServer {
             responseObserver.onNext(queryResult);   // get next {@code queryResult} from the stream.
             responseObserver.onCompleted();         // mark the stream as done.
         }
-    }
-
-    /**
-     * Launches the {@code grpcServer} from the command line.
-     */
-    public static void main(String[] args) throws IOException, InterruptedException {
-        final GraphflowServer graphflowServer = new GraphflowServer();
-        graphflowServer.start();
-        graphflowServer.blockUntilShutdown();
     }
 }

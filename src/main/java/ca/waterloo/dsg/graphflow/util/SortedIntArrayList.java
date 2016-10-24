@@ -61,7 +61,7 @@ public class SortedIntArrayList {
      * Sorts the underlying array in place.
      */
     private void sort() {
-        Arrays.sort(this.data, 0, size-1);
+        Arrays.sort(this.data, 0, size - 1);
     }
 
     public String toString() {
@@ -96,7 +96,6 @@ public class SortedIntArrayList {
     /**
      * Searches for the given value in the list using binary search and returns the index.
      * Returns -1 if value not found.
-     *
      * @param value value to find in list
      * @return int index of matched value or -1 if value does not exist
      */
@@ -104,7 +103,6 @@ public class SortedIntArrayList {
         int lowindex = 0,
             highIndex = this.size - 1,
             result = -1;
-
         while (lowindex <= highIndex) {
             int mid = (lowindex + highIndex) / 2;
             if (data[mid] == value) {
@@ -121,10 +119,9 @@ public class SortedIntArrayList {
 
     /**
      * Intersects @code{this} @code{SortedIntArrayList} and the given newList
-     *  and returns the result as @code{SortedIntArrayList}.
-     *
+     * and returns the result as @code{SortedIntArrayList}.
      * @param newList
-     * @return
+     * @return SortedIntArrayList
      */
     public SortedIntArrayList getIntersection(SortedIntArrayList newList) {
         SortedIntArrayList shorter, longer, intersection;

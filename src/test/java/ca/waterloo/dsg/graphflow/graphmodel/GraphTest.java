@@ -12,8 +12,7 @@ import java.io.File;
  */
 public class GraphTest {
   @Before
-  public void setUp() throws Exception {
-  }
+  public void setUp() throws Exception { }
 
   @Test
   public void testGetInstance() throws Exception {

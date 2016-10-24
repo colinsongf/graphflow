@@ -33,8 +33,8 @@ public class FileOutputSink implements OutputSink {
         }
     }
 
-    @Override
-    public void setName(String name) {
+
+    public void setFileName(String name) {
         this.name = name;
     }
 
@@ -53,8 +53,7 @@ public class FileOutputSink implements OutputSink {
 
     /**
      * Returns a writer to the file specified by directory and name.
-     *  Initializes the writer first if necessary.
-     *
+     * Initializes the writer first if necessary.
      * @return PrintWriter
      * @throws IOException
      */

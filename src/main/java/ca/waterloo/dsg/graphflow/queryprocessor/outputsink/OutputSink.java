@@ -6,12 +6,6 @@ package ca.waterloo.dsg.graphflow.queryprocessor.outputsink;
 public interface OutputSink {
 
   /**
-   * Sets a name that will be used to differentiate output sinks where applicable.
-   * @param name
-   */
-  public void setName(String name);
-
-  /**
    * Appends the given results to the output sink.
    * @param results
    */

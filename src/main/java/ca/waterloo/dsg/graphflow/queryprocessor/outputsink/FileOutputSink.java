@@ -12,17 +12,18 @@ import java.util.Arrays;
  */
 public class FileOutputSink implements OutputSink {
 
-    private String name;
+    private String fileName;
     private File directory;
     private PrintWriter writer;
 
-    public FileOutputSink(File location, String name) {
+    public FileOutputSink(File location, String fileName) {
         this.setDirectory(location);
-        this.name = name;
+        this.fileName = fileName;
     }
 
     /**
      * Creates the output file at the given directory.
+     *
      * @param directory
      */
     public void setDirectory(File directory) {
@@ -34,11 +35,12 @@ public class FileOutputSink implements OutputSink {
     }
 
     /**
-     * Sets the given name as the filename of the output sink.
-     * @param name
+     * Sets the given fileName as the filename of the output sink.
+     *
+     * @param fileName
      */
-    public void setFileName(String name) {
-        this.name = name;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     @Override
@@ -55,15 +57,16 @@ public class FileOutputSink implements OutputSink {
     }
 
     /**
-     * Returns a writer to the file specified by directory and name.
+     * Returns a writer to the file specified by directory and fileName.
      * Initializes the writer first if necessary.
+     *
      * @return PrintWriter
      * @throws IOException
      */
     private PrintWriter getWriter() throws IOException {
         if (this.writer == null) {
             this.writer = new PrintWriter(new BufferedWriter(
-                new FileWriter(new File(this.directory, this.name), true)));
+                new FileWriter(new File(this.directory, this.fileName), true)));
         }
         return this.writer;
     }

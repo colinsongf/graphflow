@@ -9,7 +9,8 @@ public class Edge {
     private Vertex fromVertex;
     private Vertex toVertex;
 
-    public Edge() { }
+    public Edge() {
+    }
 
     public Edge(Vertex fromVertex, Vertex toVertex, Double weight) {
         this.fromVertex = fromVertex;
@@ -18,7 +19,7 @@ public class Edge {
 
     @Override
     public String toString() {
-        return fromVertex.getId() +  " to " + toVertex.getId();
+        return fromVertex.getId() + " to " + toVertex.getId();
     }
 
     public Vertex getFromVertex() {

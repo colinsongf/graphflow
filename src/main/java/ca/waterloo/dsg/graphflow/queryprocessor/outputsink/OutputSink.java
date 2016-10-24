@@ -5,9 +5,9 @@ package ca.waterloo.dsg.graphflow.queryprocessor.outputsink;
  */
 public interface OutputSink {
 
-  /**
-   * Appends the given results to the output sink.
-   * @param results
-   */
-  public void append(int[][] results);
+    /**
+     * Appends the given results to the output sink.
+     * @param results
+     */
+    void append(int[][] results);
 }

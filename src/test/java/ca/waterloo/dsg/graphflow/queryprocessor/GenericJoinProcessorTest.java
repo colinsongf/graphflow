@@ -4,6 +4,7 @@ import ca.waterloo.dsg.graphflow.graphmodel.Graph;
 import ca.waterloo.dsg.graphflow.queryprocessor.outputsink.InMemoryOutputSink;
 import org.junit.Assert;
 import org.junit.Test;
+
 import java.util.ArrayList;
 
 /**
@@ -39,8 +40,6 @@ public class GenericJoinProcessorTest {
 
     @Test
     public void testProcessSquares() throws Exception {
-
-
         ArrayList<ArrayList<GenericJoinIntersectionRule>> stages = new ArrayList<>();
         ArrayList<GenericJoinIntersectionRule> firstStage = new ArrayList<>();
         firstStage.add(new GenericJoinIntersectionRule(0, true));

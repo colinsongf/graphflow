@@ -13,7 +13,7 @@ import java.util.Arrays;
  */
 public class GenericJoinProcessor {
 
-    public static final int PREFIXES_PER_TURN = 2;
+    public static final int BATCH_SIZE = 2;
     // Stages represents a Generic Join query plan for a query consisting of particular set of edges
     // and vertices. Each stage is used to expand the result tuples to an additional vertex.
     private ArrayList<ArrayList<GenericJoinIntersectionRule>> stages;
@@ -33,7 +33,7 @@ public class GenericJoinProcessor {
         System.out.println("Starting new recursion. Stage: " + stageIndex);
         ArrayList<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.get(stageIndex);
         int newPrefixCount = 0;
-        int[][] newPrefixes = new int[PREFIXES_PER_TURN][];
+        int[][] newPrefixes = new int[BATCH_SIZE][];
 
         for (int i = 0; i < prefixes.length; i++) {
             // Gets the rule with the minimum of possible extensions for this prefix.
@@ -58,16 +58,16 @@ public class GenericJoinProcessor {
                 newPrefix[newPrefix.length - 1] = extensions.get(j);
                 newPrefixes[newPrefixCount++] = newPrefix;
                 System.out.println(Arrays.toString(prefixes[i]) + " : " + Arrays.toString(newPrefix));
-                // Output is done in batches. Once the array of new prefixes reaches size PREFIXES_PER_TURN
+                // Output is done in batches. Once the array of new prefixes reaches size BATCH_SIZE
                 // they are recursively executed till final results are obtained before proceeding with
                 // the extending process in this stage.
-                if (newPrefixCount >= PREFIXES_PER_TURN) {
+                if (newPrefixCount >= BATCH_SIZE) {
                     if (stageIndex == (stages.size() - 1)) {
                         // Write to output sink if this is the last stage.
                         outputSink.append(newPrefixes);
                     } else {
                         // Recursing to extend to the next stage with a set of prefix results equaling
-                        // PREFIXES_PER_TURN.
+                        // BATCH_SIZE.
                         this.extend(newPrefixes, stageIndex + 1);
                     }
                     newPrefixCount = 0;
@@ -75,7 +75,7 @@ public class GenericJoinProcessor {
             }
         }
 
-        // Handling the last batch fof extended prefixes which did not reach size of PREFIXES_PER_TURN.
+        // Handling the last batch fof extended prefixes which did not reach size of BATCH_SIZE.
         if (newPrefixCount > 0) {
             if (stageIndex == (stages.size() - 1)) {
                 outputSink.append(Arrays.copyOfRange(newPrefixes, 0, newPrefixCount));
@@ -88,12 +88,13 @@ public class GenericJoinProcessor {
     /**
      * Returns the GenericJoinIntersectionRule with the lowest number of possible extensions for the
      * given prefix.
-     * @param prefix    A list of number representing a partial solution to the query.
+     *
+     * @param prefix                       A list of number representing a partial solution to the query.
      * @param genericJoinIntersectionRules A list of relations in Generic Join.
      * @return GenericJoinIntersectionRule
      */
     private GenericJoinIntersectionRule getMinCountIndex(int[] prefix,
-        ArrayList<GenericJoinIntersectionRule> genericJoinIntersectionRules) {
+                                                         ArrayList<GenericJoinIntersectionRule> genericJoinIntersectionRules) {
         GenericJoinIntersectionRule minGenericJoinIntersectionRule = null;
         int minCount = Integer.MAX_VALUE;
         for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {

@@ -95,8 +95,8 @@ public class SortedIntArrayList {
     }
 
     /**
-     * Searches for the given value in the list using binary search and returns the index.
-     * Returns -1 if value not found.
+     * Searches for the given value in the list using binary search and returns the index of the
+     * value in the list. Returns -1 if value not found.
      *
      * @param value value to find in list.
      * @return int index of matched value or -1 if value does not exist

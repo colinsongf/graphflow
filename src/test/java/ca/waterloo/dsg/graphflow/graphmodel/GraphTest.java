@@ -2,7 +2,6 @@ package ca.waterloo.dsg.graphflow.graphmodel;
 
 import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -12,11 +11,12 @@ import java.io.File;
  */
 public class GraphTest {
 
+
     @Test
-    public void testGetInstance() throws Exception {
+    public void testCreateInstance() throws Exception {
         String testFile = "src/test/Fixtures/graph.json";
         File file = new File(testFile);
-        Graph g = Graph.getInstance(file);
+        Graph g = Graph.createInstance(file);
         Assert.assertEquals(6, g.getVertexCount());
         int[] result = {2};
         Assert.assertArrayEquals(result, g.getAdjacencyList(1, true).toArray());
@@ -26,7 +26,7 @@ public class GraphTest {
     public void testGetVertices() throws Exception {
         String testFile = "src/test/Fixtures/graph.json";
         File file = new File(testFile);
-        Graph g = Graph.getInstance(file);
+        Graph g = Graph.createInstance(file);
         SortedIntArrayList vertices = g.getVertices();
         Assert.assertEquals(6, vertices.size());
     }

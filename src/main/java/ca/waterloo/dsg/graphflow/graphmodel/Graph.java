@@ -47,23 +47,11 @@ public class Graph {
      * @return Graph
      * @throws IOException
      */
-    public static Graph getInstance(File file) throws IOException {
+    public static Graph createInstance(File file) throws IOException {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(Graph.class, new Graph.GraphDeserializer());
         Gson gson = gsonBuilder.create();
         graph = gson.fromJson(new BufferedReader(new FileReader(file)), Graph.class);
-        return graph;
-    }
-
-    /**
-     * Returns an already loaded graph or creates and returns an empty graph.
-     *
-     * @return Graph
-     */
-    public static Graph getInstance() {
-        if (graph == null) {
-            graph = new Graph();
-        }
         return graph;
     }
 

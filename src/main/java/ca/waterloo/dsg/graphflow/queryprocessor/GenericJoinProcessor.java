@@ -18,11 +18,13 @@ public class GenericJoinProcessor {
     // and vertices. Each stage is used to expand the result tuples to an additional vertex.
     private ArrayList<ArrayList<GenericJoinIntersectionRule>> stages;
     private OutputSink outputSink;
+    private Graph graph;
 
     public GenericJoinProcessor(ArrayList<ArrayList<GenericJoinIntersectionRule>> stages,
-                                OutputSink outputSink) {
+                                OutputSink outputSink, Graph graph) {
         this.stages = stages;
         this.outputSink = outputSink;
+        this.graph = graph;
     }
 
     /**
@@ -38,7 +40,7 @@ public class GenericJoinProcessor {
         for (int i = 0; i < prefixes.length; i++) {
             // Gets the rule with the minimum of possible extensions for this prefix.
             GenericJoinIntersectionRule minCountRule = getMinCountIndex(prefixes[i], genericJoinIntersectionRules);
-            SortedIntArrayList extensions = Graph.getInstance().getAdjacencyList(
+            SortedIntArrayList extensions = this.graph.getAdjacencyList(
                 prefixes[i][minCountRule.getPrefixIndex()], minCountRule.isForward());
 
             for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
@@ -47,7 +49,7 @@ public class GenericJoinProcessor {
                     continue;
                 }
                 // Intersect remaining extensions with the possible extensions from the rule under consideration.
-                extensions = extensions.getIntersection(Graph.getInstance()
+                extensions = extensions.getIntersection(this.graph
                     .getAdjacencyList(prefixes[i][rule.getPrefixIndex()], rule.isForward()));
             }
 
@@ -98,7 +100,7 @@ public class GenericJoinProcessor {
         GenericJoinIntersectionRule minGenericJoinIntersectionRule = null;
         int minCount = Integer.MAX_VALUE;
         for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
-            int extensionCount = Graph.getInstance().getAdjacencyListSize(
+            int extensionCount = this.graph.getAdjacencyListSize(
                 prefix[rule.getPrefixIndex()], rule.isForward());
             if (extensionCount < minCount) {
                 minCount = extensionCount;

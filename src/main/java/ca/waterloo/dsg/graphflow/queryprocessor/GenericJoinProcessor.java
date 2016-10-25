@@ -14,9 +14,13 @@ import java.util.Arrays;
 public class GenericJoinProcessor {
 
     public static final int BATCH_SIZE = 2;
-    // Stages represents a Generic Join query plan for a query consisting of particular set of edges
-    // and vertices. Each stage is used to expand the result tuples to an additional vertex.
+
+    /**
+     * Stages represents a Generic Join query plan for a query consisting of particular set of edges
+     * and vertices. Each stage is used to expand the result tuples to an additional vertex.
+     */
     private ArrayList<ArrayList<GenericJoinIntersectionRule>> stages;
+
     private OutputSink outputSink;
     private Graph graph;
 
@@ -33,13 +37,15 @@ public class GenericJoinProcessor {
      */
     public void extend(int[][] prefixes, int stageIndex) {
         System.out.println("Starting new recursion. Stage: " + stageIndex);
-        ArrayList<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.get(stageIndex);
+        ArrayList<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.get(
+            stageIndex);
         int newPrefixCount = 0;
         int[][] newPrefixes = new int[BATCH_SIZE][];
 
         for (int i = 0; i < prefixes.length; i++) {
             // Gets the rule with the minimum of possible extensions for this prefix.
-            GenericJoinIntersectionRule minCountRule = getMinCountIndex(prefixes[i], genericJoinIntersectionRules);
+            GenericJoinIntersectionRule minCountRule = getMinCountIndex(prefixes[i],
+                genericJoinIntersectionRules);
             SortedIntArrayList extensions = this.graph.getAdjacencyList(
                 prefixes[i][minCountRule.getPrefixIndex()], minCountRule.isForward());
 
@@ -48,28 +54,31 @@ public class GenericJoinProcessor {
                 if (rule == minCountRule) {
                     continue;
                 }
-                // Intersect remaining extensions with the possible extensions from the rule under consideration.
+                // Intersect remaining extensions with the possible extensions from the rule
+                // under consideration.
                 extensions = extensions.getIntersection(this.graph
                     .getAdjacencyList(prefixes[i][rule.getPrefixIndex()], rule.isForward()));
             }
 
             for (int j = 0; j < extensions.size(); j++) {
                 int[] newPrefix = new int[prefixes[i].length + 1];
-                //TODO: Consider storing prefixes and new prefixes as trees so we don't replicate common prefixes.
+                // TODO: Consider storing prefixes and new prefixes as trees so we don't replicate
+                // common prefixes.
                 System.arraycopy(prefixes[i], 0, newPrefix, 0, prefixes[i].length);
                 newPrefix[newPrefix.length - 1] = extensions.get(j);
                 newPrefixes[newPrefixCount++] = newPrefix;
-                System.out.println(Arrays.toString(prefixes[i]) + " : " + Arrays.toString(newPrefix));
+                System.out.println(
+                    Arrays.toString(prefixes[i]) + " : " + Arrays.toString(newPrefix));
                 // Output is done in batches. Once the array of new prefixes reaches size BATCH_SIZE
-                // they are recursively executed till final results are obtained before proceeding with
-                // the extending process in this stage.
+                // they are recursively executed till final results are obtained before
+                // proceeding with the extending process in this stage.
                 if (newPrefixCount >= BATCH_SIZE) {
                     if (stageIndex == (stages.size() - 1)) {
                         // Write to output sink if this is the last stage.
                         outputSink.append(newPrefixes);
                     } else {
-                        // Recursing to extend to the next stage with a set of prefix results equaling
-                        // BATCH_SIZE.
+                        // Recursing to extend to the next stage with a set of prefix results
+                        // equaling BATCH_SIZE.
                         this.extend(newPrefixes, stageIndex + 1);
                     }
                     newPrefixCount = 0;
@@ -100,8 +109,8 @@ public class GenericJoinProcessor {
         GenericJoinIntersectionRule minGenericJoinIntersectionRule = null;
         int minCount = Integer.MAX_VALUE;
         for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
-            int extensionCount = this.graph.getAdjacencyListSize(
-                prefix[rule.getPrefixIndex()], rule.isForward());
+            int extensionCount = this.graph.getAdjacencyListSize(prefix[rule.getPrefixIndex()],
+                rule.isForward());
             if (extensionCount < minCount) {
                 minCount = extensionCount;
                 minGenericJoinIntersectionRule = rule;

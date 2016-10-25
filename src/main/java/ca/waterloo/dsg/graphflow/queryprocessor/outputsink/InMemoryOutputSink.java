@@ -5,7 +5,7 @@ import java.util.ArrayList;
 /**
  * Keeps output from a query as an in memory data structure.
  */
-public class InMemoryOutputSink implements OutputSink{
+public class InMemoryOutputSink implements OutputSink {
 
     private ArrayList<int[]> results;
 
@@ -15,7 +15,7 @@ public class InMemoryOutputSink implements OutputSink{
 
     @Override
     public void append(int[][] results) {
-        for(int[] result : results) {
+        for (int[] result : results) {
             this.results.add(result);
         }
     }

@@ -65,8 +65,8 @@ public class FileOutputSink implements OutputSink {
      */
     private PrintWriter getWriter() throws IOException {
         if (this.writer == null) {
-            this.writer = new PrintWriter(new BufferedWriter(
-                new FileWriter(new File(this.directory, this.fileName), true)));
+            this.writer = new PrintWriter(
+                new BufferedWriter(new FileWriter(new File(this.directory, this.fileName), true)));
         }
         return this.writer;
     }

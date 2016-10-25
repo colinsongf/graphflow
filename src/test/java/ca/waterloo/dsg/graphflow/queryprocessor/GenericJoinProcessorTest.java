@@ -14,10 +14,10 @@ import java.util.ArrayList;
  */
 public class GenericJoinProcessorTest {
 
+    Graph graph;
     private GenericJoinProcessor processor;
     private InMemoryOutputSink outputSink;
 
-    Graph graph;
     @Before
     public void setUp() throws Exception {
         String testFile = "src/test/Fixtures/graph.json";

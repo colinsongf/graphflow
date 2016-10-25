@@ -3,12 +3,12 @@ package ca.waterloo.dsg.graphflow.graphmodel;
 import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonArray;
+import com.google.gson.JsonParseException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -34,7 +34,8 @@ public class Graph {
     }
 
     public Graph(int vertexLength) {
-        //TODO(chathura): Store vertices in seperate array and ensure none of hte adj lists are empty.
+        // TODO(chathura): Store vertices in separate array and ensure none of the adj lists are
+        // empty.
         outgoingAdjLists = new SortedIntArrayList[vertexLength];
         incomingAdjLists = new SortedIntArrayList[vertexLength];
         // Initialize the adjacency lists for each vertex with empty lists.
@@ -48,7 +49,7 @@ public class Graph {
      * Creates a graph object from the given file.
      *
      * @param file JSON file with pattern {"num-vertices": x, "edges" : [("src": 1, "dst": 2),
-     *             ("src": 2, "dst": 3)...]}. Vertex indices are assumed to start from 0.
+     * ("src": 2, "dst": 3)...]}. Vertex indices are assumed to start from 0.
      * @return Graph
      * @throws IOException
      */
@@ -195,15 +196,15 @@ public class Graph {
         /**
          * Gets the root of a json object and returns a graph object populated with data.
          *
-         * @param json    handle to the root element of the json file.
+         * @param json handle to the root element of the json file.
          * @param typeOfT is used when deserializing to a specific Type.
          * @param context
          * @return Graph
          * @throws JsonParseException
          */
         @Override
-        public Graph deserialize(JsonElement json, Type typeOfT,
-                                 JsonDeserializationContext context) throws JsonParseException {
+        public Graph deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+            throws JsonParseException {
             JsonObject rawGraph = json.getAsJsonObject();
             JsonArray edges = rawGraph.get(GraphDeserializer.EDGES).getAsJsonArray();
             int numVertices = rawGraph.get(GraphDeserializer.NUM_VERTICES).getAsInt();

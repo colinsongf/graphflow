@@ -6,7 +6,7 @@ import org.junit.Test;
 import java.io.File;
 
 /**
- * Tests the @code{FileOutputSink} class.
+ * Tests the {@code FileOutputSink} class.
  */
 public class FileOutputSinkTest {
 

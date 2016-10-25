@@ -37,6 +37,11 @@ public class Graph {
         //TODO(chathura): Store vertices in seperate array and ensure none of hte adj lists are empty.
         outgoingAdjLists = new SortedIntArrayList[vertexLength];
         incomingAdjLists = new SortedIntArrayList[vertexLength];
+        // Initialize the adjacency lists for each vertex with empty lists.
+        for (int i = 0; i < vertexLength; i++) {
+            outgoingAdjLists[i] = new SortedIntArrayList();
+            incomingAdjLists[i] = new SortedIntArrayList();
+        }
     }
 
     /**
@@ -153,23 +158,28 @@ public class Graph {
     @Override
     public String toString() {
         StringBuilder graph = new StringBuilder();
-        int index = 0;
-        for (SortedIntArrayList adjList : this.outgoingAdjLists) {
-            graph.append(index + " :");
-            graph.append(adjList.toString());
-            graph.append("\n");
-            index++;
-        }
-
-        index = 0;
-        for (SortedIntArrayList adjList : this.incomingAdjLists) {
-            graph.append(index + " :");
-            graph.append(adjList.toString());
-            graph.append("\n");
-            index++;
-        }
-
+        graph.append(this.convertAdjListsToString(true));
+        graph.append(this.convertAdjListsToString(false));
         return graph.toString();
+    }
+
+    /**
+     * Converts the set of adjacency lists in the given direction to a {@code string}
+     *
+     * @param isForward
+     * @return
+     */
+    private String convertAdjListsToString(boolean isForward) {
+        SortedIntArrayList[] adjLists = isForward ? this.outgoingAdjLists : this.incomingAdjLists;
+        StringBuilder adjString = new StringBuilder();
+        int index = 0;
+        for (SortedIntArrayList adjList : adjLists) {
+            adjString.append(index + " :");
+            adjString.append(adjList.toString());
+            adjString.append("\n");
+            index++;
+        }
+        return adjString.toString();
     }
 
     /**
@@ -193,7 +203,7 @@ public class Graph {
          */
         @Override
         public Graph deserialize(JsonElement json, Type typeOfT,
-            JsonDeserializationContext context) throws JsonParseException {
+                                 JsonDeserializationContext context) throws JsonParseException {
             JsonObject rawGraph = json.getAsJsonObject();
             JsonArray edges = rawGraph.get(GraphDeserializer.EDGES).getAsJsonArray();
             int numVertices = rawGraph.get(GraphDeserializer.NUM_VERTICES).getAsInt();
@@ -205,7 +215,7 @@ public class Graph {
                 int dst = edgeObj.get(GraphDeserializer.DESTINATION).getAsInt();
                 graph.getAdjacencyList(src, true).add(dst);
                 graph.getAdjacencyList(dst, false).add(src);
-            }//
+            }
             return graph;
         }
         //TODO: serialize function to write human readable graph

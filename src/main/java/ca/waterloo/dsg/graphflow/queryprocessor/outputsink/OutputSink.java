@@ -7,6 +7,7 @@ public interface OutputSink {
 
     /**
      * Appends the given results to the output sink.
+     *
      * @param results
      */
     void append(int[][] results);

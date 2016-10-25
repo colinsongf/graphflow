@@ -9,8 +9,7 @@ public class Edge {
     private Vertex fromVertex;
     private Vertex toVertex;
 
-    public Edge() {
-    }
+    public Edge() { }
 
     public Edge(Vertex fromVertex, Vertex toVertex, Double weight) {
         this.fromVertex = fromVertex;

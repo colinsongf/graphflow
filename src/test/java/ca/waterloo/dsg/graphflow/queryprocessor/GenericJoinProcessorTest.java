@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 /**
- * Tests for @code{GenericJoinProcessor}.
+ * Tests for {@code GenericJoinProcessor}.
  */
 public class GenericJoinProcessorTest {
 
@@ -20,7 +20,6 @@ public class GenericJoinProcessorTest {
     Graph graph;
     @Before
     public void setUp() throws Exception {
-
         String testFile = "src/test/Fixtures/graph.json";
         File file = new File(testFile);
         graph = Graph.createInstance(file);

@@ -3,7 +3,7 @@ package ca.waterloo.dsg.graphflow.util;
 import java.util.Arrays;
 
 /**
- * A list of int primitives implemented using an array.
+ * A list of sorted int primitives implemented using an array.
  */
 public class SortedIntArrayList {
 
@@ -102,16 +102,16 @@ public class SortedIntArrayList {
      * @return int index of matched value or -1 if value does not exist
      */
     public int search(int value) {
-        int lowindex = 0,
-            highIndex = this.size - 1,
-            result = -1;
-        while (lowindex <= highIndex) {
-            int mid = (lowindex + highIndex) / 2;
+        int lowIndex = 0;
+        int highIndex = this.size - 1;
+        int result = -1;
+        while (lowIndex <= highIndex) {
+            int mid = (lowIndex + highIndex) / 2;
             if (data[mid] == value) {
                 result = mid;
                 break;
             } else if (data[mid] < value) {
-                lowindex = mid + 1;
+                lowIndex = mid + 1;
             } else {
                 highIndex = mid - 1;
             }
@@ -120,8 +120,8 @@ public class SortedIntArrayList {
     }
 
     /**
-     * Intersects @code{this} @code{SortedIntArrayList} and the given newList
-     * and returns the result as @code{SortedIntArrayList}.
+     * Intersects this {@code SortedIntArrayList} and the given newList
+     * and returns the result as {@code SortedIntArrayList}.
      *
      * @param newList
      * @return SortedIntArrayList
@@ -138,7 +138,6 @@ public class SortedIntArrayList {
         intersection = new SortedIntArrayList(shorter.size());
         for (int i = 0; i < shorter.size(); i++) {
             int resultIndex = longer.search(shorter.get(i));
-
             if (resultIndex >= 0) {
                 intersection.add(shorter.get(i));
             }

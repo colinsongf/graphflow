@@ -7,16 +7,16 @@ import org.junit.Test;
 import java.io.File;
 
 /**
- * Tests @code{Graph} class.
+ * Tests {@code Graph} class.
  */
 public class GraphTest {
-
 
     @Test
     public void testCreateInstance() throws Exception {
         String testFile = "src/test/Fixtures/graph.json";
         File file = new File(testFile);
         Graph g = Graph.createInstance(file);
+        System.out.println(g);
         Assert.assertEquals(6, g.getVertexCount());
         int[] result = {2};
         Assert.assertArrayEquals(result, g.getAdjacencyList(1, true).toArray());

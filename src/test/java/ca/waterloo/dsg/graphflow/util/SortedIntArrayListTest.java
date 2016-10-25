@@ -4,7 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests the @code{SortedIntArrayList} class.
+ * Tests the {@code SortedIntArrayList} class.
  */
 public class SortedIntArrayListTest {
 

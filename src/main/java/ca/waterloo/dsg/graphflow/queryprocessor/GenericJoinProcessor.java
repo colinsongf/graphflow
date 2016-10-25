@@ -77,7 +77,7 @@ public class GenericJoinProcessor {
             }
         }
 
-        // Handling the last batch fof extended prefixes which did not reach size of BATCH_SIZE.
+        // Handling the last batch for extended prefixes which did not reach size of BATCH_SIZE.
         if (newPrefixCount > 0) {
             if (stageIndex == (stages.size() - 1)) {
                 outputSink.append(Arrays.copyOfRange(newPrefixes, 0, newPrefixCount));
@@ -91,7 +91,7 @@ public class GenericJoinProcessor {
      * Returns the GenericJoinIntersectionRule with the lowest number of possible extensions for the
      * given prefix.
      *
-     * @param prefix                       A list of number representing a partial solution to the query.
+     * @param prefix A list of number representing a partial solution to the query.
      * @param genericJoinIntersectionRules A list of relations in Generic Join.
      * @return GenericJoinIntersectionRule
      */

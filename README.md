@@ -16,10 +16,12 @@ Java code, and compile them.
 
 * Import code into a new project -> Select the 'build.gradle' file
 in the root folder (so that IntelliJ identifies this as a Gradle project)
-* Run -> Edit Configurations -> add 'Application'
+* To run/debug the server and cli in IntelliJ, add a run configuration:
+  Run -> Edit Configurations -> add 'Application'
   * Name: Graphflow
-  * Main class: ca.waterloo.dsg.graphflow.Graphflow
-  * Module: graphflow_test
+  * Main class: ca.waterloo.dsg.graphflow.server.GraphflowServer or
+    ca.waterloo.dsg.graphflow.cli.GraphflowCli
+  * Module: graphflow_main
   * Before launch configs:
     * remove 'Make'
-    * add: Run Gradle Task -> Gradle project: graphflow, Tasks: build
+    * add: Run Gradle Task -> Gradle project: graphflow, Tasks: installDist

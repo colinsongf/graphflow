@@ -6,6 +6,8 @@ import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.plans.MatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.util.QueryVertex;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +17,8 @@ import java.util.Map;
  * Create a {@code QueryPlan} for the MATCH operation.
  */
 public class MatchQueryPlanner implements IQueryPlanner {
+
+    private static final Logger logger = LogManager.getLogger(MatchQueryPlanner.class);
 
     Map<String, QueryVertex> queryGraph = new HashMap<>();
 
@@ -28,8 +32,7 @@ public class MatchQueryPlanner implements IQueryPlanner {
             queryGraph.get(toVertex).addNeighbourVertexVariable(fromVertex, true);
             queryGraph.get(fromVertex).addNeighbourVertexVariable(toVertex, false);
         }
-        System.out.println("Query graph:");
-        printQueryGraph();
+        logger.info("Query Graph: \n" + queryGraphToString());
         int highestDegreeCount = -1;
         String vertexVariableWithHighestDegree = "";
         for (String vertexVariable : queryGraph.keySet()) {
@@ -89,7 +92,7 @@ public class MatchQueryPlanner implements IQueryPlanner {
             }
             matchQueryPlan.addStage(stage);
         }
-        System.out.println("Plan: \n" + matchQueryPlan);
+        logger.info("Plan: \n" + matchQueryPlan);
         return matchQueryPlan;
     }
 
@@ -99,13 +102,17 @@ public class MatchQueryPlanner implements IQueryPlanner {
         }
     }
 
-    private void printQueryGraph() {
+    private String queryGraphToString() {
+        String graph = "";
         for (String key : queryGraph.keySet()) {
-            QueryVertex v = queryGraph.get(key);
-            System.out.println(key + " (degree = " + v.getTotalDegree() + ")");
-            v.getNeighbourVertexVariables().forEach((variable, isReverse) -> {
-                System.out.println(isReverse ? (variable + "->" + key) : (key + "->" + variable));
-            });
+            QueryVertex vertex = queryGraph.get(key);
+            graph += key + " (degree = " + vertex.getTotalDegree() + ")\n";
+            for (Map.Entry<String, Boolean> entry : vertex.getNeighbourVertexVariables()
+                                                          .entrySet()) {
+                graph += (entry.getValue() ? (entry.getKey() + "->" + key) : (key + "->" + entry
+                    .getKey())) + "\n";
+            }
         }
+        return graph;
     }
 }

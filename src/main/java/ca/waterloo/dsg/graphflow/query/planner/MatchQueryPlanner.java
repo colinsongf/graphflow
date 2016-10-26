@@ -20,10 +20,13 @@ public class MatchQueryPlanner implements IQueryPlanner {
 
     private static final Logger logger = LogManager.getLogger(MatchQueryPlanner.class);
 
+    // Represents the query graph structure
     Map<String, QueryVertex> queryGraph = new HashMap<>();
 
     public QueryPlan plan(StructuredQuery query) {
         MatchQueryPlan matchQueryPlan = new MatchQueryPlan(query);
+
+        // Initialize {@code queryGraph}
         for (Edge edge : query.getEdges()) {
             String toVertex = edge.getToVertex();
             String fromVertex = edge.getFromVertex();
@@ -33,51 +36,87 @@ public class MatchQueryPlanner implements IQueryPlanner {
             queryGraph.get(fromVertex).addNeighbourVertexVariable(toVertex, false);
         }
         logger.info("Query Graph: \n" + queryGraphToString());
+
+        /**
+         * Find the first vertex considering the following properties:
+         * 1) select vertex with highest degree.
+         * 2) break tie from (1) by selecting vertex with lowest lexicographical rank.
+         */
         int highestDegreeCount = -1;
         String vertexVariableWithHighestDegree = "";
         for (String vertexVariable : queryGraph.keySet()) {
             int vertexDegree = queryGraph.get(vertexVariable).getTotalDegree();
-            if (vertexDegree > highestDegreeCount || (vertexDegree == highestDegreeCount &&
-                vertexVariable
-                .compareTo(vertexVariableWithHighestDegree) < 0)) {
+            if ((vertexDegree > highestDegreeCount)) {
+                // rule (1)
+                highestDegreeCount = vertexDegree;
+                vertexVariableWithHighestDegree = vertexVariable;
+            } else if (((vertexDegree == highestDegreeCount) && (vertexVariable.compareTo(
+                vertexVariableWithHighestDegree) < 0))) {
+                // rule (2)
                 highestDegreeCount = vertexDegree;
                 vertexVariableWithHighestDegree = vertexVariable;
             }
         }
         matchQueryPlan.getOrderedVertexVariables().add(vertexVariableWithHighestDegree);
         queryGraph.get(vertexVariableWithHighestDegree).setVisited(true);
+
+        /**
+         * Select order of the rest of the vertices, considering the following properties:
+         * 1) select vertex with highest number of connections to already covered vertices.
+         * 2) break tie from (1) by selecting vertex with highest degree.
+         * 3) break tie from (2) by selecting vertex with lowest lexicographical rank.
+         */
         for (int i = 0; i < queryGraph.size() - 1; i++) {
             String theChosenOne = "";
             int coveredVariablesDegreeCount = -1;
             highestDegreeCount = -1;
             for (String coveredVariable : matchQueryPlan.getOrderedVertexVariables()) {
+                // loop for all vertices connected to the already covered vertices.
                 for (String neighbourVertex : queryGraph.get(coveredVariable)
                                                         .getNeighbourVertexVariables().keySet()) {
+                    // skip vertices which have already been covered.
                     if (queryGraph.get(neighbourVertex).isVisited()) {
                         continue;
                     }
+
                     int vertexDegree = queryGraph.get(neighbourVertex).getTotalDegree();
-                    int coveredVariablesDegree = 0;
+
+                    // calculate degree of connections of new vertex to already covered vertices.
+                    int degreeCountToCoveredVariables = 0;
                     for (String variable : matchQueryPlan.getOrderedVertexVariables()) {
                         if (queryGraph.get(neighbourVertex).getNeighbourVertexVariables()
                                       .containsKey(variable)) {
-                            coveredVariablesDegree++;
+                            degreeCountToCoveredVariables++;
                         }
                     }
-                    if (coveredVariablesDegree > coveredVariablesDegreeCount ||
-                        (coveredVariablesDegree == coveredVariablesDegreeCount && ((vertexDegree
-                            > highestDegreeCount || (vertexDegree == highestDegreeCount &&
-                            neighbourVertex
-                        .compareTo(theChosenOne) < 0))))) {
+
+                    // see if the new {@code neighbourVertex} should be chosen first
+                    if ((degreeCountToCoveredVariables > coveredVariablesDegreeCount)) {
+                        // rule (1)
                         theChosenOne = neighbourVertex;
                         highestDegreeCount = vertexDegree;
-                        coveredVariablesDegreeCount = coveredVariablesDegree;
+                        coveredVariablesDegreeCount = degreeCountToCoveredVariables;
+                    } else if (degreeCountToCoveredVariables == coveredVariablesDegreeCount) {
+                        if ((vertexDegree > highestDegreeCount)) {
+                            // rule (2)
+                            theChosenOne = neighbourVertex;
+                            highestDegreeCount = vertexDegree;
+                            coveredVariablesDegreeCount = degreeCountToCoveredVariables;
+                        } else if (((vertexDegree == highestDegreeCount) && (neighbourVertex
+                            .compareTo(theChosenOne) < 0))) {
+                            // rule (3)
+                            theChosenOne = neighbourVertex;
+                            highestDegreeCount = vertexDegree;
+                            coveredVariablesDegreeCount = degreeCountToCoveredVariables;
+                        }
                     }
                 }
             }
             matchQueryPlan.getOrderedVertexVariables().add(theChosenOne);
             queryGraph.get(theChosenOne).setVisited(true);
         }
+
+        // finally, create the plan
         for (int i = 1; i < matchQueryPlan.getOrderedVertexVariables().size(); i++) {
             ArrayList<GenericJoinIntersectionRule> stage = new ArrayList<>();
             String variable = matchQueryPlan.getOrderedVertexVariables().get(i);

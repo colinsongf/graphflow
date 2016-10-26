@@ -25,3 +25,9 @@ in the root folder (so that IntelliJ identifies this as a Gradle project)
   * Before launch configs:
     * remove 'Make'
     * add: Run Gradle Task -> Gradle project: graphflow, Tasks: installDist
+
+## Configuring log4j
+
+* Set path to new log4j2 config file: `export GRAPHFLOW_SERVER_OPTS=
+  "-Dlog4j.configurationFile=file:/path/to/log4j2.properties"`
+* Start Graphflow server: `./build/install/graphflow/bin/graphflow-server`

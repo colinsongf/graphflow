@@ -2,6 +2,8 @@ package ca.waterloo.dsg.graphflow.query.parser;
 
 import ca.waterloo.dsg.graphflow.grammar.GraphflowBaseVisitor;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser;
+import ca.waterloo.dsg.graphflow.query.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.StructuredQueryEdge;
 
 /**
  * This class implements the ANTLR4 methods used to traverse the parse tree.
@@ -20,7 +22,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
         structuredQuery.setOperation(StructuredQuery.Operation.MATCH);
         for (int i = 1; i < ctx.variableExpression().size(); i++) {
             StructuredQuery tmpedge = visit(ctx.variableExpression(i));
-            structuredQuery.addEdge(tmpedge.getEdges().get(0));
+            structuredQuery.addEdge(tmpedge.getStructuredQueryEdges().get(0));
         }
         return structuredQuery;
     }
@@ -31,7 +33,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
         structuredQuery.setOperation(StructuredQuery.Operation.DELETE);
         for (int i = 1; i < ctx.digitsExpression().size(); i++) {
             StructuredQuery tmpedge = visit(ctx.digitsExpression(i));
-            structuredQuery.addEdge(tmpedge.getEdges().get(0));
+            structuredQuery.addEdge(tmpedge.getStructuredQueryEdges().get(0));
         }
         return structuredQuery;
     }
@@ -42,7 +44,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
         structuredQuery.setOperation(StructuredQuery.Operation.CREATE);
         for (int i = 1; i < ctx.digitsExpression().size(); i++) {
             StructuredQuery tmpedge = visit(ctx.digitsExpression(i));
-            structuredQuery.addEdge(tmpedge.getEdges().get(0));
+            structuredQuery.addEdge(tmpedge.getStructuredQueryEdges().get(0));
         }
         return structuredQuery;
     }
@@ -50,16 +52,18 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
     @Override
     public StructuredQuery visitDigitsExpression(GraphflowParser.DigitsExpressionContext ctx) {
         StructuredQuery structuredQuery = new StructuredQuery();
-        Edge edge = new Edge(ctx.leftDigit().getText(), ctx.rightDigit().getText());
-        structuredQuery.addEdge(edge);
+        StructuredQueryEdge structuredQueryEdge = new StructuredQueryEdge(ctx.leftDigit().getText(),
+            ctx.rightDigit().getText());
+        structuredQuery.addEdge(structuredQueryEdge);
         return structuredQuery;
     }
 
     @Override
     public StructuredQuery visitVariableExpression(GraphflowParser.VariableExpressionContext ctx) {
         StructuredQuery structuredQuery = new StructuredQuery();
-        Edge edge = new Edge(ctx.leftVariable().getText(), ctx.rightVariable().getText());
-        structuredQuery.addEdge(edge);
+        StructuredQueryEdge structuredQueryEdge = new StructuredQueryEdge(
+            ctx.leftVariable().getText(), ctx.rightVariable().getText());
+        structuredQuery.addEdge(structuredQueryEdge);
         return structuredQuery;
     }
 }

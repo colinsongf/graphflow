@@ -1,16 +1,16 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
-import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.IQueryPlan;
 
 /**
- * Create a {@code QueryPlan} for the CREATE operation.
+ * Create a {@code IQueryPlan} for the CREATE operation.
  */
 public class CreateQueryPlanner implements IQueryPlanner {
 
     @Override
-    public QueryPlan plan(StructuredQuery query) {
+    public IQueryPlan plan(StructuredQuery query) {
         return new CreateQueryPlan(query);
     }
 }

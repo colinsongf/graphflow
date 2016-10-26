@@ -1,9 +1,9 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.demograph.Graph;
-import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
-import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.IQueryPlan;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 /**
@@ -25,7 +25,7 @@ public class QueryProcessor {
             return "ERROR parsing: " + e.getMessage();
         }
 
-        QueryPlan queryPlan = new QueryPlanBuilder().plan(structuredQuery);
+        IQueryPlan queryPlan = new QueryPlanBuilder().plan(structuredQuery);
         return queryPlan.execute(graph);
     }
 }

@@ -2,7 +2,6 @@ package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.demograph.Graph;
 import ca.waterloo.dsg.graphflow.query.genericjoin.GenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,14 +9,10 @@ import java.util.List;
 /**
  * Class representing plan for a MATCH operation.
  */
-public class MatchQueryPlan extends QueryPlan {
+public class MatchQueryPlan implements IQueryPlan {
 
     ArrayList<ArrayList<GenericJoinIntersectionRule>> stages = new ArrayList<>();
-    List<String> orderedVertexVariables = new ArrayList<>();
-
-    public MatchQueryPlan(StructuredQuery structuredQuery) {
-        super(structuredQuery);
-    }
+    List<String> orderedVariables = new ArrayList<>();
 
     @Override
     public String execute(Graph graph) {
@@ -25,12 +20,8 @@ public class MatchQueryPlan extends QueryPlan {
         return graph.getGraphString();
     }
 
-    public List<String> getOrderedVertexVariables() {
-        return orderedVertexVariables;
-    }
-
-    public void addOrderedVertexVariable(String orderedVertexVariable) {
-        orderedVertexVariables.add(orderedVertexVariable);
+    public List<String> getOrderedVariables() {
+        return orderedVariables;
     }
 
     public void addStage(ArrayList<GenericJoinIntersectionRule> stage) {
@@ -38,7 +29,7 @@ public class MatchQueryPlan extends QueryPlan {
     }
 
     public String toString() {
-        String plan = "Variables order: " + String.join(",", orderedVertexVariables);
+        String plan = "Variables order: " + String.join(",", orderedVariables);
         int i = 0;
         for (ArrayList<GenericJoinIntersectionRule> stage : stages) {
             plan += "\nStage: " + i + "\n";

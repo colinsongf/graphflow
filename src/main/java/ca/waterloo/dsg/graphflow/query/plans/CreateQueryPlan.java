@@ -1,23 +1,25 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.demograph.Graph;
-import ca.waterloo.dsg.graphflow.query.parser.Edge;
-import ca.waterloo.dsg.graphflow.query.parser.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.StructuredQueryEdge;
 
 /**
  * Class representing plan for a CREATE operation.
  */
-public class CreateQueryPlan extends QueryPlan {
+public class CreateQueryPlan implements IQueryPlan {
+
+    private StructuredQuery structuredQuery;
 
     public CreateQueryPlan(StructuredQuery structuredQuery) {
-        super(structuredQuery);
+        this.structuredQuery = structuredQuery;
     }
 
     @Override
     public String execute(Graph graph) {
-        for (Edge edge : structuredQuery.getEdges()) {
-            graph.addEdge(edge);
+        for (StructuredQueryEdge structuredQueryEdge : structuredQuery.getStructuredQueryEdges()) {
+            graph.addEdge(structuredQueryEdge);
         }
-        return structuredQuery.getEdges().size() + " edges created.";
+        return structuredQuery.getStructuredQueryEdges().size() + " edges created.";
     }
 }

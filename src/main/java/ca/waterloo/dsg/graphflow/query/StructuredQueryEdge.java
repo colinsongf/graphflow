@@ -1,14 +1,14 @@
-package ca.waterloo.dsg.graphflow.query.parser;
+package ca.waterloo.dsg.graphflow.query;
 
 /**
  * Simple edge representation used by {@code StructuredQuery}.
  */
-public class Edge {
+public class StructuredQueryEdge {
 
     private String fromVertex;
     private String toVertex;
 
-    public Edge(String fromVertex, String toVertex) {
+    public StructuredQueryEdge(String fromVertex, String toVertex) {
         this.fromVertex = fromVertex;
         this.toVertex = toVertex;
     }

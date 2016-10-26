@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.demograph;
 
-import ca.waterloo.dsg.graphflow.query.parser.Edge;
+import ca.waterloo.dsg.graphflow.query.StructuredQueryEdge;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,9 +16,9 @@ public class Graph {
     private Map<Integer, Set<Integer>> forwardVertexMap = new HashMap<>();
     private Map<Integer, Set<Integer>> reverseVertexMap = new HashMap<>();
 
-    public void addEdge(Edge edge) {
-        int fromVertex = Integer.parseInt(edge.getFromVertex());
-        int toVertex = Integer.parseInt(edge.getToVertex());
+    public void addEdge(StructuredQueryEdge structuredQueryEdge) {
+        int fromVertex = Integer.parseInt(structuredQueryEdge.getFromVertex());
+        int toVertex = Integer.parseInt(structuredQueryEdge.getToVertex());
 
         if (forwardVertexMap.containsKey(fromVertex)) {
             forwardVertexMap.get(fromVertex).add(toVertex);
@@ -37,9 +37,9 @@ public class Graph {
         }
     }
 
-    public void deleteEdge(Edge edge) {
-        int fromVertex = Integer.parseInt(edge.getFromVertex());
-        int toVertex = Integer.parseInt(edge.getToVertex());
+    public void deleteEdge(StructuredQueryEdge structuredQueryEdge) {
+        int fromVertex = Integer.parseInt(structuredQueryEdge.getFromVertex());
+        int toVertex = Integer.parseInt(structuredQueryEdge.getToVertex());
 
         if (forwardVertexMap.containsKey(fromVertex)) {
             forwardVertexMap.get(fromVertex).remove(toVertex);

@@ -9,7 +9,6 @@ public class QueryVariable {
         FORWARD,
         REVERSE
     }
-
     private int totalDegree = 0;
     private boolean visited = false;
     private Map<String, Direction> neighborVariables = new HashMap<>();

@@ -8,14 +8,13 @@ import java.util.List;
  */
 public class StructuredQuery {
 
-    private List<StructuredQueryEdge> structuredQueryEdges;
-    private Operation operation;
-
     public enum Operation {
         CREATE,
         MATCH,
         DELETE
     }
+    private List<StructuredQueryEdge> structuredQueryEdges;
+    private Operation operation;
 
     public StructuredQuery() {
         this.structuredQueryEdges = new ArrayList<>();

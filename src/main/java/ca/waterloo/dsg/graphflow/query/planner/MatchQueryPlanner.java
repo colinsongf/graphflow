@@ -40,8 +40,7 @@ public class MatchQueryPlanner implements IQueryPlanner {
         int highestDegreeCount = -1;
         String variableWithHighestDegree = "";
         for (String variable : matchQueryGraph.getQueryGraph().keySet()) {
-            int variableDegree = matchQueryGraph.getQueryVariableData(variable)
-                                              .getTotalDegree();
+            int variableDegree = matchQueryGraph.getQueryVariableData(variable).getTotalDegree();
             if (variableDegree > highestDegreeCount) {
                 // rule (1)
                 highestDegreeCount = variableDegree;
@@ -69,15 +68,14 @@ public class MatchQueryPlanner implements IQueryPlanner {
             for (String coveredVariable : matchQueryPlan.getOrderedVariables()) {
                 // loop for all neighboring vertices of the already covered vertices.
                 for (String neighborVariable : matchQueryGraph.getQueryVariableData(coveredVariable)
-                                                             .getNeighborVariables()
-                                                             .keySet()) {
+                                                              .getNeighborVariables().keySet()) {
                     // skip vertices which have already been covered.
                     if (matchQueryGraph.getQueryVariableData(neighborVariable).isVisited()) {
                         continue;
                     }
 
                     int variableDegree = matchQueryGraph.getQueryVariableData(neighborVariable)
-                                                      .getTotalDegree();
+                                                        .getTotalDegree();
 
                     // calculate number of connections of new variable to already covered vertices.
                     int connectionsCount = 0;

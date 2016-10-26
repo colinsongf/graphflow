@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.queryprocessor;
+package ca.waterloo.dsg.graphflow.query.genericjoin;
 
 /**
  * Represents a generic join rule consisting of a prefix index and a direction. The rule

@@ -1,7 +1,7 @@
-package ca.waterloo.dsg.graphflow.queryprocessor;
+package ca.waterloo.dsg.graphflow.query.genericjoin;
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
-import ca.waterloo.dsg.graphflow.queryprocessor.outputsink.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

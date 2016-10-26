@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.queryprocessor.outputsink;
+package ca.waterloo.dsg.graphflow.outputsink;
 
 /**
  * Interface for outputting query results.

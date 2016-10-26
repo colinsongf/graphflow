@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.queryprocessor.outputsink;
+package ca.waterloo.dsg.graphflow.outputsink;
 
 import java.io.BufferedWriter;
 import java.io.File;

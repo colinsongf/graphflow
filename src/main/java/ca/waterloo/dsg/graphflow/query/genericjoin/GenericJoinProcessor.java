@@ -1,7 +1,7 @@
-package ca.waterloo.dsg.graphflow.queryprocessor;
+package ca.waterloo.dsg.graphflow.query.genericjoin;
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
-import ca.waterloo.dsg.graphflow.queryprocessor.outputsink.OutputSink;
+import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
 
 import java.util.ArrayList;

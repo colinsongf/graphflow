@@ -1,4 +1,5 @@
 CREATE (1)->(2), (2)->(3), (2)->(4), (4)->(8);
-MATCH (a)->(b);
+MATCH (a)->(b),(b)->(c),(c)->(a);
+MATCH (a)->(b),(a)->(c),(c)->(b),(c)->(d),(d)->(b),(e)->(b);
 DELETE (2)->(3);
 IMPORT "graph.txt"; // TODO

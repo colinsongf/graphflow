@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.demograph.Graph;
-import ca.waterloo.dsg.graphflow.query.genericjoin.GenericJoinIntersectionRule;
+import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,8 +11,8 @@ import java.util.List;
  */
 public class MatchQueryPlan implements IQueryPlan {
 
-    ArrayList<ArrayList<GenericJoinIntersectionRule>> stages = new ArrayList<>();
-    List<String> orderedVariables = new ArrayList<>();
+    private ArrayList<ArrayList<GenericJoinIntersectionRule>> stages = new ArrayList<>();
+    private List<String> orderedVariables = new ArrayList<>();
 
     @Override
     public String execute(Graph graph) {
@@ -28,16 +28,18 @@ public class MatchQueryPlan implements IQueryPlan {
         this.stages.add(stage);
     }
 
+    @Override
     public String toString() {
-        String plan = "Variables order: " + String.join(",", orderedVariables);
+        StringBuilder plan = new StringBuilder();
+        plan.append("Variables order: " + String.join(",", orderedVariables));
         int i = 0;
         for (ArrayList<GenericJoinIntersectionRule> stage : stages) {
-            plan += "\nStage: " + i + "\n";
+            plan.append("\nStage: " + i + "\n");
             for (GenericJoinIntersectionRule rule : stage) {
-                plan += rule.getPrefixIndex() + ", " + rule.isForward() + "\n";
+                plan.append(rule.getPrefixIndex() + ", " + rule.isForward() + "\n");
             }
             i++;
         }
-        return plan;
+        return plan.toString();
     }
 }

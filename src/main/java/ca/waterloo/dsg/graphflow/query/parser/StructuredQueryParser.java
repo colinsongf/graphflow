@@ -2,7 +2,7 @@ package ca.waterloo.dsg.graphflow.query.parser;
 
 import ca.waterloo.dsg.graphflow.grammar.GraphflowLexer;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser;
-import ca.waterloo.dsg.graphflow.query.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
@@ -17,11 +17,11 @@ public class StructuredQueryParser {
         StructuredQuery structuredQuery = new StructuredQuery();
 
         GraphflowLexer lexer = new GraphflowLexer(new ANTLRInputStream(query));
-        lexer.removeErrorListeners();   // remove default listeners first
+        lexer.removeErrorListeners();   // Remove default listeners first.
         lexer.addErrorListener(ErrorListener.INSTANCE);
 
         GraphflowParser parser = new GraphflowParser(new CommonTokenStream(lexer));
-        parser.removeErrorListeners();   // remove default listeners first
+        parser.removeErrorListeners();   // Remove default listeners first.
         parser.addErrorListener(ErrorListener.INSTANCE);
 
         try {

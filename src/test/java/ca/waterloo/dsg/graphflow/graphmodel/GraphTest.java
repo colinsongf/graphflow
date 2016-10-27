@@ -13,8 +13,7 @@ public class GraphTest {
 
     @Test
     public void testCreateInstance() throws Exception {
-        String testFile = "src/test/Fixtures/graph.json";
-        File file = new File(testFile);
+        File file = new File(this.getClass().getClassLoader().getResource("graph.json").getPath());
         Graph g = Graph.createInstance(file);
         System.out.println(g);
         Assert.assertEquals(6, g.getVertexCount());
@@ -24,8 +23,7 @@ public class GraphTest {
 
     @Test
     public void testGetVertices() throws Exception {
-        String testFile = "src/test/Fixtures/graph.json";
-        File file = new File(testFile);
+        File file = new File(this.getClass().getClassLoader().getResource("graph.json").getPath());
         Graph g = Graph.createInstance(file);
         SortedIntArrayList vertices = g.getVertices();
         Assert.assertEquals(6, vertices.size());

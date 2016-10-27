@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.query;
+package ca.waterloo.dsg.graphflow.query.utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +13,7 @@ public class StructuredQuery {
         MATCH,
         DELETE
     }
+
     private List<StructuredQueryEdge> structuredQueryEdges;
     private Operation operation;
 

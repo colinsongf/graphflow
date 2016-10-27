@@ -1,9 +1,10 @@
-package ca.waterloo.dsg.graphflow.query.planner;
+package ca.waterloo.dsg.graphflow.query;
 
 import ca.waterloo.dsg.graphflow.demograph.Graph;
-import ca.waterloo.dsg.graphflow.query.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
+import ca.waterloo.dsg.graphflow.query.planner.QueryPlanBuilder;
 import ca.waterloo.dsg.graphflow.query.plans.IQueryPlan;
+import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 /**

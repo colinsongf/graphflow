@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.query.genericjoin;
+package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;

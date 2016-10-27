@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.query.genericjoin;
+package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
@@ -20,8 +20,7 @@ public class GenericJoinProcessorTest {
 
     @Before
     public void setUp() throws Exception {
-        String testFile = "src/test/Fixtures/graph.json";
-        File file = new File(testFile);
+        File file = new File(this.getClass().getClassLoader().getResource("graph.json").getPath());
         graph = Graph.createInstance(file);
     }
 

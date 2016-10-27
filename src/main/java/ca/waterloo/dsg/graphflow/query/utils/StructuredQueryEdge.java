@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.query;
+package ca.waterloo.dsg.graphflow.query.utils;
 
 /**
  * Simple edge representation used by {@code StructuredQuery}.

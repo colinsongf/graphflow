@@ -1,8 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.demograph.Graph;
-import ca.waterloo.dsg.graphflow.query.StructuredQuery;
-import ca.waterloo.dsg.graphflow.query.StructuredQueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 
 /**
  * Class representing plan for a CREATE operation.

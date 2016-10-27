@@ -1,28 +1,22 @@
-package ca.waterloo.dsg.graphflow.query;
+package ca.waterloo.dsg.graphflow.query.utils;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class QueryVariable {
+/**
+ * This represents a query variable and its adjacency list.
+ */
+public class QueryVariableAdjList {
 
     public enum Direction {
         FORWARD,
         REVERSE
     }
-    private int totalDegree = 0;
-    private boolean visited = false;
+
     private Map<String, Direction> neighborVariables = new HashMap<>();
 
     public int getTotalDegree() {
-        return totalDegree;
-    }
-
-    public boolean isVisited() {
-        return visited;
-    }
-
-    public void setVisited(boolean visited) {
-        this.visited = visited;
+        return neighborVariables.size();
     }
 
     public Map<String, Direction> getNeighborVariables() {
@@ -31,6 +25,5 @@ public class QueryVariable {
 
     public void addNeighborVariable(String neighborVariable, Direction direction) {
         neighborVariables.put(neighborVariable, direction);
-        totalDegree++;
     }
 }

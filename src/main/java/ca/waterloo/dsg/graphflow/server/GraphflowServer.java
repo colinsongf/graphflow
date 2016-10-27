@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.server;
 
-import ca.waterloo.dsg.graphflow.query.planner.QueryProcessor;
+import ca.waterloo.dsg.graphflow.query.QueryProcessor;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;

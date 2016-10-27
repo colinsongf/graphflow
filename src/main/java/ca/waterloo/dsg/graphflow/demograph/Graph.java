@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.demograph;
 
-import ca.waterloo.dsg.graphflow.query.StructuredQueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 
 import java.util.HashMap;
 import java.util.HashSet;

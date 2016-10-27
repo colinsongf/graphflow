@@ -1,11 +1,11 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.query.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.plans.DeleteQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.IQueryPlan;
+import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 
 /**
- * Create a {@code IQueryPlan} for the DELETE operation.
+ * Create an {@code IQueryPlan} for the DELETE operation.
  */
 public class DeleteQueryPlanner implements IQueryPlanner {
 

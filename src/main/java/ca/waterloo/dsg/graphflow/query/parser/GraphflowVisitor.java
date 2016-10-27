@@ -2,8 +2,8 @@ package ca.waterloo.dsg.graphflow.query.parser;
 
 import ca.waterloo.dsg.graphflow.grammar.GraphflowBaseVisitor;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser;
-import ca.waterloo.dsg.graphflow.query.StructuredQuery;
-import ca.waterloo.dsg.graphflow.query.StructuredQueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 
 /**
  * This class implements the ANTLR4 methods used to traverse the parse tree.

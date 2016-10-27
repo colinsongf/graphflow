@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.query.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.plans.IQueryPlan;
+import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 
 /**
  * Class for building the corresponding {@code IQueryPlan} of the input operation.

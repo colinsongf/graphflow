@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.plans.IQueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.MatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryGraph;
 import ca.waterloo.dsg.graphflow.query.utils.QueryVariableAdjList;
@@ -15,24 +15,28 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Create an {@code IQueryPlan} for the MATCH operation.
+ * Create an {@link QueryPlan} for the MATCH operation.
  */
-public class MatchQueryPlanner implements IQueryPlanner {
+public class MatchQueryPlanner extends AbstractQueryPlanner {
 
     private static final Logger logger = LogManager.getLogger(MatchQueryPlanner.class);
     private QueryGraph matchQueryGraph = new QueryGraph();
 
-    public IQueryPlan plan(StructuredQuery structuredQuery) {
-        MatchQueryPlan matchQueryPlan = new MatchQueryPlan();
-        Set<String> visitedVariables = new HashSet<>();
+    public MatchQueryPlanner(StructuredQuery structuredQuery) {
+        super(structuredQuery);
 
-        // Initialize {@code matchQueryGraph}.
+        // Initialize {@link matchQueryGraph}.
         for (StructuredQueryEdge structuredQueryEdge : structuredQuery.getStructuredQueryEdges()) {
             String toVariable = structuredQueryEdge.getToVertex();
             String fromVariable = structuredQueryEdge.getFromVertex();
             matchQueryGraph.addEdge(fromVariable, toVariable);
         }
         logger.info("Query Graph: \n" + matchQueryGraph);
+    }
+
+    public QueryPlan plan() {
+        MatchQueryPlan matchQueryPlan = new MatchQueryPlan();
+        Set<String> visitedVariables = new HashSet<>();
 
         /**
          * Find the first variable, considering the following properties:

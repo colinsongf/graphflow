@@ -29,10 +29,6 @@ public class StructuredQuery {
         this.structuredQueryEdges.add(structuredQueryEdge);
     }
 
-    public void addEdge(int pos, StructuredQueryEdge structuredQueryEdge) {
-        this.structuredQueryEdges.add(pos, structuredQueryEdge);
-    }
-
     public Operation getOperation() {
         return operation;
     }

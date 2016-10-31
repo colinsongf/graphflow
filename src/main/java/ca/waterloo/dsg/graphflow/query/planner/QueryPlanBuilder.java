@@ -1,28 +1,28 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.query.plans.IQueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 
 /**
- * Class for building the corresponding {@code IQueryPlan} of the input operation.
+ * Class for building the corresponding {@code QueryPlan} of the input operation.
  */
 public class QueryPlanBuilder {
 
-    public IQueryPlan plan(StructuredQuery query) {
-        IQueryPlanner planner = null;
+    public QueryPlan plan(StructuredQuery query) {
+        QueryPlan plan = null;
         switch (query.getOperation()) {
             case CREATE:
-                planner = new CreateQueryPlanner();
+                plan = new CreateQueryPlanner(query).plan();
                 break;
             case DELETE:
-                planner = new DeleteQueryPlanner();
+                plan = new DeleteQueryPlanner(query).plan();
                 break;
             case MATCH:
-                planner = new MatchQueryPlanner();
+                plan = new MatchQueryPlanner(query).plan();
                 break;
             default:
                 break;
         }
-        return planner.plan(query);
+        return plan;
     }
 }

@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Class representing plan for a MATCH operation.
  */
-public class MatchQueryPlan implements IQueryPlan {
+public class MatchQueryPlan implements QueryPlan {
 
     private ArrayList<ArrayList<GenericJoinIntersectionRule>> stages = new ArrayList<>();
     private List<String> orderedVariables = new ArrayList<>();

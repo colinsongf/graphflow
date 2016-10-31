@@ -7,7 +7,7 @@ import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 /**
  * Class representing plan for a DELETE operation.
  */
-public class DeleteQueryPlan implements IQueryPlan {
+public class DeleteQueryPlan implements QueryPlan {
 
     private StructuredQuery structuredQuery;
 

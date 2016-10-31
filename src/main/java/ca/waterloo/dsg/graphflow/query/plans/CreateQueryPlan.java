@@ -7,7 +7,7 @@ import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 /**
  * Class representing plan for a CREATE operation.
  */
-public class CreateQueryPlan implements IQueryPlan {
+public class CreateQueryPlan implements QueryPlan {
 
     private StructuredQuery structuredQuery;
 

@@ -26,7 +26,7 @@ public class StructuredQueryEdge {
         if (that == null) {     // Null check.
             return false;
         }
-        return (this == that || (this.fromVertex.equals(that.fromVertex) && this.toVertex.equals(that
-            .toVertex)));
+        return (this == that || (this.fromVertex.equals(that.fromVertex) && this.toVertex.equals(
+            that.toVertex)));
     }
 }

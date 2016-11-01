@@ -105,8 +105,8 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
                             selectedVariable = neighborVariable;
                             highestDegreeCount = variableDegree;
                             highestConnectionsCount = connectionsCount;
-                        } else if ((variableDegree == highestDegreeCount) && (neighborVariable
-                            .compareTo(selectedVariable) < 0)) {
+                        } else if ((variableDegree == highestDegreeCount) &&
+                                   (neighborVariable.compareTo(selectedVariable) < 0)) {
                             // Rule (3).
                             selectedVariable = neighborVariable;
                             highestDegreeCount = variableDegree;
@@ -131,8 +131,8 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
                 if (matchQueryGraph.getQueryVariableAdjList(variableFromPreviousStage)
                                    .hasNeighborVariable(variableForCurrentStage)) {
                     boolean isForward = matchQueryGraph.getQueryVariableAdjList(
-                        variableFromPreviousStage).getDirectionTo(
-                        variableForCurrentStage) == QueryVariableAdjList.Direction.FORWARD;
+                        variableFromPreviousStage).getDirectionTo(variableForCurrentStage) ==
+                                        QueryVariableAdjList.Direction.FORWARD;
                     stage.add(new GenericJoinIntersectionRule(j, isForward));
                 }
             }

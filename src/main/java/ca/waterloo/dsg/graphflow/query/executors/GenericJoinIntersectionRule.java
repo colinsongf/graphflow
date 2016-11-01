@@ -27,7 +27,7 @@ public class GenericJoinIntersectionRule {
         if (that == null) {
             return false;
         }
-        return (this == that || (this.prefixIndex == that.prefixIndex && this.isForward == that
-            .isForward));
+        return (this == that ||
+                (this.prefixIndex == that.prefixIndex && this.isForward == that.isForward));
     }
 }

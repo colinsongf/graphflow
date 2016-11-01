@@ -17,7 +17,7 @@ public class MatchQueryPlanTest {
     @Before
     public void setup() {
         ArrayList<GenericJoinIntersectionRule> stage;
-        
+
         obj_equal_1.addOrderedVariable("a");
         obj_equal_1.addOrderedVariable("b");
         obj_equal_1.addOrderedVariable("c");

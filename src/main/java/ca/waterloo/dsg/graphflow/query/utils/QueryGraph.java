@@ -50,9 +50,8 @@ public class QueryGraph {
             for (String neighborVariable : queryVariableAdjList.getAllNeighborVariables()) {
                 QueryVariableAdjList.Direction direction = queryVariableAdjList.getDirectionTo(
                     neighborVariable);
-                graph.append(
-                    (direction == QueryVariableAdjList.Direction.FORWARD ? (key + "->" +
-                        neighborVariable) : (neighborVariable + "->" + key)) + "\n");
+                graph.append((direction == QueryVariableAdjList.Direction.FORWARD ?
+                    (key + "->" + neighborVariable) : (neighborVariable + "->" + key)) + "\n");
             }
         }
         return graph.toString();

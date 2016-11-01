@@ -46,15 +46,15 @@ public class StructuredQuery {
             return true;
         }
 
-        if(this.operation != that.operation) {
+        if (this.operation != that.operation) {
             return false;
         }
 
-        if(this.structuredQueryEdges.size() != that.structuredQueryEdges.size()) {
+        if (this.structuredQueryEdges.size() != that.structuredQueryEdges.size()) {
             return false;
         }
-        for (int i=0;i<this.structuredQueryEdges.size();i++) {
-            if(!this.structuredQueryEdges.get(i).equalsTo(that.structuredQueryEdges.get(i))) {
+        for (int i = 0; i < this.structuredQueryEdges.size(); i++) {
+            if (!this.structuredQueryEdges.get(i).equalsTo(that.structuredQueryEdges.get(i))) {
                 return false;
             }
         }

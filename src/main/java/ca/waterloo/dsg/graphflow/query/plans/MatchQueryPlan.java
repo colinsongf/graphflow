@@ -16,12 +16,6 @@ public class MatchQueryPlan implements QueryPlan {
     private List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
     private List<String> orderedVariables = new ArrayList<>();
 
-    @Override
-    public String execute(Graph graph) {
-        //TODO: perform actual generic join query
-        return graph.getGraphString();
-    }
-
     public Set<String> getAllOrderedVariables() {
         // Return a copy of the list.
         return orderedVariables.stream().collect(Collectors.toSet());
@@ -41,6 +35,12 @@ public class MatchQueryPlan implements QueryPlan {
 
     public void addStage(ArrayList<GenericJoinIntersectionRule> stage) {
         this.stages.add(stage);
+    }
+
+    @Override
+    public String execute(Graph graph) {
+        //TODO: perform actual generic join query
+        return graph.getGraphString();
     }
 
     // Used for unit testing.
@@ -88,7 +88,8 @@ public class MatchQueryPlan implements QueryPlan {
         for (List<GenericJoinIntersectionRule> stage : stages) {
             plan.append("\nStage: ").append(i).append("\n");
             for (GenericJoinIntersectionRule rule : stage) {
-                plan.append(rule.getPrefixIndex()).append(", ").append(rule.isForward()).append("\n");
+                plan.append(rule.getPrefixIndex()).append(", ").append(rule.isForward()).append(
+                    "\n");
             }
             i++;
         }

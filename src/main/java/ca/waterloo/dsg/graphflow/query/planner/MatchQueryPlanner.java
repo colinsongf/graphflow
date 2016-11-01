@@ -1,8 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.MatchQueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryGraph;
 import ca.waterloo.dsg.graphflow.query.utils.QueryVariableAdjList;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Create an {@link QueryPlan} for the MATCH operation.
+ * Create a {@code QueryPlan} for the MATCH operation.
  */
 public class MatchQueryPlanner extends AbstractQueryPlanner {
 
@@ -25,7 +25,7 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
     public MatchQueryPlanner(StructuredQuery structuredQuery) {
         super(structuredQuery);
 
-        // Initialize {@link matchQueryGraph}.
+        // Initialize {@code matchQueryGraph}.
         for (StructuredQueryEdge structuredQueryEdge : structuredQuery.getStructuredQueryEdges()) {
             String toVariable = structuredQueryEdge.getToVertex();
             String fromVariable = structuredQueryEdge.getFromVertex();
@@ -37,6 +37,7 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
     public QueryPlan plan() {
         MatchQueryPlan matchQueryPlan = new MatchQueryPlan();
         Set<String> visitedVariables = new HashSet<>();
+        int variablesLeftToCoverCount = matchQueryGraph.getTotalCount();
 
         /**
          * Find the first variable, considering the following properties:
@@ -58,8 +59,9 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
                 variableWithHighestDegree = variable;
             }
         }
-        matchQueryPlan.getOrderedVariables().add(variableWithHighestDegree);
+        matchQueryPlan.addOrderedVariable(variableWithHighestDegree);
         visitedVariables.add(variableWithHighestDegree);
+        variablesLeftToCoverCount--;
 
         /**
          * Select the order of the rest of the variables, considering the following properties:
@@ -68,26 +70,26 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
          * 2) Break tie from (1) by selecting the variable with highest degree.
          * 3) Break tie from (2) by selecting the variable with lowest lexicographical rank.
          */
-        for (int i = 0; i < matchQueryGraph.getTotalCount() - 1; i++) {
+        while (variablesLeftToCoverCount > 0) {
             String selectedVariable = "";
             int highestConnectionsCount = -1;
             highestDegreeCount = -1;
-            for (String coveredVariable : matchQueryPlan.getOrderedVariables()) {
+            for (String coveredVariable : matchQueryPlan.getAllOrderedVariables()) {
                 // Loop for all neighboring vertices of the already covered vertices.
                 for (String neighborVariable : matchQueryGraph.getQueryVariableAdjList(
-                    coveredVariable).getNeighborVariables().keySet()) {
-                    int variableDegree = matchQueryGraph.getQueryVariableAdjList(neighborVariable)
-                                                        .getTotalDegree();
+                    coveredVariable).getAllNeighborVariables()) {
                     // Skip vertices which have already been covered.
                     if (visitedVariables.contains(neighborVariable)) {
                         continue;
                     }
+                    int variableDegree = matchQueryGraph.getQueryVariableAdjList(neighborVariable)
+                                                        .getTotalDegree();
                     // Calculate the number of connections of the new variable to the already
                     // covered vertices.
                     int connectionsCount = 0;
-                    for (String variable : matchQueryPlan.getOrderedVariables()) {
+                    for (String alreadyCoveredVariable : matchQueryPlan.getAllOrderedVariables()) {
                         if (matchQueryGraph.getQueryVariableAdjList(neighborVariable)
-                                           .getNeighborVariables().containsKey(variable)) {
+                                           .hasNeighborVariable(alreadyCoveredVariable)) {
                             connectionsCount++;
                         }
                     }
@@ -113,21 +115,24 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
                     }
                 }
             }
-            matchQueryPlan.getOrderedVariables().add(selectedVariable);
+            matchQueryPlan.addOrderedVariable(selectedVariable);
             visitedVariables.add(selectedVariable);
+            variablesLeftToCoverCount--;
         }
 
         // Finally, create the plan.
-        for (int i = 1; i < matchQueryPlan.getOrderedVariables().size(); i++) {
+        // Start from the second variable to create the first stage.
+        for (int i = 1; i < matchQueryPlan.getOrderedVariablesCount(); i++) {
+            String variableForCurrentStage = matchQueryPlan.getOrderedVariableAt(i);
             ArrayList<GenericJoinIntersectionRule> stage = new ArrayList<>();
-            String variable = matchQueryPlan.getOrderedVariables().get(i);
+            // Loop across all variables covered in the previous stages.
             for (int j = 0; j < i; j++) {
-                String coveredVariable = matchQueryPlan.getOrderedVariables().get(j);
-                if (matchQueryGraph.getQueryVariableAdjList(variable).getNeighborVariables()
-                                   .containsKey(coveredVariable)) {
-                    boolean isForward = matchQueryGraph.getQueryVariableAdjList(variable)
-                                                       .getNeighborVariables().get(
-                            coveredVariable) == QueryVariableAdjList.Direction.FORWARD;
+                String variableFromPreviousStage = matchQueryPlan.getOrderedVariableAt(j);
+                if (matchQueryGraph.getQueryVariableAdjList(variableFromPreviousStage)
+                                   .hasNeighborVariable(variableForCurrentStage)) {
+                    boolean isForward = matchQueryGraph.getQueryVariableAdjList(
+                        variableFromPreviousStage).getDirectionTo(
+                        variableForCurrentStage) == QueryVariableAdjList.Direction.FORWARD;
                     stage.add(new GenericJoinIntersectionRule(j, isForward));
                 }
             }

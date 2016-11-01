@@ -21,4 +21,13 @@ public class GenericJoinIntersectionRule {
     public boolean isForward() {
         return isForward;
     }
+
+    // Used for unit testing.
+    public boolean equalsTo(GenericJoinIntersectionRule that) {
+        if (that == null) {
+            return false;
+        }
+        return (this == that || (this.prefixIndex == that.prefixIndex && this.isForward == that
+            .isForward));
+    }
 }

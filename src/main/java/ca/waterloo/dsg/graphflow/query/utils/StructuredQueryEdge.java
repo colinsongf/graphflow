@@ -20,4 +20,13 @@ public class StructuredQueryEdge {
     public String getToVertex() {
         return toVertex;
     }
+
+    // Used for unit testing.
+    public boolean equalsTo(StructuredQueryEdge that) {
+        if (that == null) {     // Null check.
+            return false;
+        }
+        return (this == that || (this.fromVertex.equals(that.fromVertex) && this.toVertex.equals(that
+            .toVertex)));
+    }
 }

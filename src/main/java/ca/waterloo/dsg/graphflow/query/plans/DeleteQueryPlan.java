@@ -22,4 +22,9 @@ public class DeleteQueryPlan implements QueryPlan {
         }
         return structuredQuery.getStructuredQueryEdges().size() + " edges deleted.";
     }
+
+    @Override
+    public boolean equalsTo(Object o) {
+        return false;
+    }
 }

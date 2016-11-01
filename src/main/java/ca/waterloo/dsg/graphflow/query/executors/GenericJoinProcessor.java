@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
- * Processes the given query stages for the in-memory grpah using the Generic Join algorithm.
+ * Processes the given query stages for the in-memory graph using the Generic Join algorithm.
  * Processing is done in batches using recursion.
  */
 public class GenericJoinProcessor {
@@ -20,7 +20,6 @@ public class GenericJoinProcessor {
      * and vertices. Each stage is used to expand the result tuples to an additional vertex.
      */
     private ArrayList<ArrayList<GenericJoinIntersectionRule>> stages;
-
     private OutputSink outputSink;
     private Graph graph;
 

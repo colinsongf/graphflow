@@ -7,7 +7,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +35,6 @@ public class GraphflowCli {
     public GraphflowCli(String host, int port) {
         // Turn off logs to suppress debug messages from netty.
         Logger.getLogger("io.grpc.internal").setLevel(Level.OFF);
-
         channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build();
         blockingStub = GraphflowServerQueryGrpc.newBlockingStub(channel);
     }
@@ -71,7 +69,7 @@ public class GraphflowCli {
     /**
      * Send the input {@code query} string to the server.
      */
-    public String queryServer(String query) {
+    private String queryServer(String query) {
         ServerQueryString request = ServerQueryString.newBuilder().setMessage(query).build();
         ServerQueryResult result;
         try {
@@ -87,24 +85,5 @@ public class GraphflowCli {
      */
     public void shutdown() throws InterruptedException {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-    }
-
-    public static void main(String[] args) throws Exception {
-        GraphflowCli cli = new GraphflowCli("localhost", 8080);
-        try {
-            Scanner cliInput;
-            if (args.length > 0) {
-                // If an argument is provided, treat it as a filename to read commands from.
-                // This is used for automated testing.
-                File file = new File(args[0]);
-                cliInput = new Scanner(file);
-            } else {
-                // Read from stdin.
-                cliInput = new Scanner(System.in);
-            }
-            cli.startCLI(cliInput);
-        } finally {
-            cli.shutdown();
-        }
     }
 }

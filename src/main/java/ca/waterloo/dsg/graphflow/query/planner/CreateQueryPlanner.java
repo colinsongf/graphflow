@@ -5,7 +5,7 @@ import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 
 /**
- * Create an {@code QueryPlan} for the CREATE operation.
+ * Create a {@code QueryPlan} for the CREATE operation.
  */
 public class CreateQueryPlanner extends AbstractQueryPlanner {
 

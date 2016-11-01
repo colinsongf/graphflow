@@ -80,7 +80,7 @@ task graphflowServer(type: CreateStartScripts) {
     classpath = jar.outputs.files + project.configurations.runtime
 }
 task graphflowClient(type: CreateStartScripts) {
-    mainClassName = 'ca.waterloo.dsg.graphflow.cli.GraphflowCli'
+    mainClassName = 'ca.waterloo.dsg.graphflow.cli.GraphflowCliRunner'
     applicationName = 'graphflow-cli'
     outputDir = new File(project.buildDir, 'tmp')   // temporary location for the start scripts
     classpath = jar.outputs.files + project.configurations.runtime

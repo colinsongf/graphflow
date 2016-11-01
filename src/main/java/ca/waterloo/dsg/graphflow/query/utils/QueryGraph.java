@@ -47,11 +47,12 @@ public class QueryGraph {
         for (String key : queryGraph.keySet()) {
             QueryVariableAdjList queryVariableAdjList = queryGraph.get(key);
             graph.append(key + " (degree = " + queryVariableAdjList.getTotalDegree() + ")\n");
-            for (Map.Entry<String, QueryVariableAdjList.Direction> entry : queryVariableAdjList
-                .getNeighborVariables().entrySet()) {
-                graph.append((entry
-                    .getValue() == QueryVariableAdjList.Direction.FORWARD ? (key + "->" + entry
-                    .getKey()) : (entry.getKey() + "->" + key)) + "\n");
+            for (String neighborVariable : queryVariableAdjList.getAllNeighborVariables()) {
+                QueryVariableAdjList.Direction direction = queryVariableAdjList.getDirectionTo(
+                    neighborVariable);
+                graph.append(
+                    (direction == QueryVariableAdjList.Direction.FORWARD ? (key + "->" +
+                        neighborVariable) : (neighborVariable + "->" + key)) + "\n");
             }
         }
         return graph.toString();

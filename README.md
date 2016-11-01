@@ -19,12 +19,12 @@ in the root folder (so that IntelliJ identifies this as a Gradle project)
 * To run/debug the server and cli in IntelliJ, add a run configuration:
   Run -> Edit Configurations -> add 'Application'
   * Name: Graphflow
-  * Main class: ca.waterloo.dsg.graphflow.server.GraphflowServer or
-    ca.waterloo.dsg.graphflow.cli.GraphflowCli
+  * Main class: ca.waterloo.dsg.graphflow.server.GraphflowServerRunner or
+    ca.waterloo.dsg.graphflow.cli.GraphflowCliRunner
   * Module: graphflow_main
   * Before launch configs:
     * remove 'Make'
-    * add: Run Gradle Task -> Gradle project: graphflow, Tasks: installDist
+    * add: Run Gradle Task -> Gradle project: graphflow, Tasks: build
 
 ## Configuring log4j
 

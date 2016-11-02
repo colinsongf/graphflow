@@ -18,7 +18,7 @@ public class GraphflowServer {
     public void start() throws IOException {
         System.err.println("*** starting gRPC server...");
         grpcServer = ServerBuilder.forPort(PORT).addService(new GraphflowQueryImpl()).build()
-                                  .start();
+            .start();
         System.err.println("*** gRPC server running.");
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
@@ -50,7 +50,7 @@ public class GraphflowServer {
             StreamObserver<ServerQueryResult> responseObserver) {
             String result = processor.process(request.getMessage());
             ServerQueryResult queryResult = ServerQueryResult.newBuilder().setMessage(result)
-                                                             .build();
+                .build();
             responseObserver.onNext(queryResult);   // get next {@code queryResult} from the stream.
             responseObserver.onCompleted();         // mark the stream as done.
         }

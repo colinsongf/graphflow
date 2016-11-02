@@ -14,24 +14,6 @@ import java.util.stream.Collectors;
 public class MatchQueryPlan implements QueryPlan {
 
     private List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
-    private List<String> orderedVariables = new ArrayList<>();
-
-    public Set<String> getAllOrderedVariables() {
-        // Return a copy of the list.
-        return orderedVariables.stream().collect(Collectors.toSet());
-    }
-
-    public String getOrderedVariableAt(int position) {
-        return orderedVariables.get(position);
-    }
-
-    public void addOrderedVariable(String variable) {
-        orderedVariables.add(variable);
-    }
-
-    public int getOrderedVariablesCount() {
-        return orderedVariables.size();
-    }
 
     public void addStage(ArrayList<GenericJoinIntersectionRule> stage) {
         this.stages.add(stage);
@@ -52,17 +34,7 @@ public class MatchQueryPlan implements QueryPlan {
         if (this == o) {     // Same object check.
             return true;
         }
-
         MatchQueryPlan that = (MatchQueryPlan) o;
-
-        if (this.orderedVariables.size() != that.orderedVariables.size()) {
-            return false;
-        }
-        for (int i = 0; i < this.orderedVariables.size(); i++) {
-            if (!this.orderedVariables.get(i).equals(that.orderedVariables.get(i))) {
-                return false;
-            }
-        }
 
         if (this.stages.size() != that.stages.size()) {
             return false;
@@ -83,13 +55,12 @@ public class MatchQueryPlan implements QueryPlan {
     @Override
     public String toString() {
         StringBuilder plan = new StringBuilder();
-        plan.append("Variables order: ").append(String.join(",", orderedVariables));
         int i = 0;
         for (List<GenericJoinIntersectionRule> stage : stages) {
             plan.append("\nStage: ").append(i).append("\n");
             for (GenericJoinIntersectionRule rule : stage) {
-                plan.append(rule.getPrefixIndex()).append(", ").append(rule.isForward()).append(
-                    "\n");
+                plan.append(rule.getPrefixIndex()).append(", ").append(rule.isForward())
+                    .append("\n");
             }
             i++;
         }

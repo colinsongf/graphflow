@@ -22,9 +22,6 @@ public class MatchQueryPlannerTest {
         QueryPlan matchQueryPlanActual = new MatchQueryPlanner(triangleStructuredQuery).plan();
 
         MatchQueryPlan matchQueryPlanExpected = new MatchQueryPlan();
-        matchQueryPlanExpected.addOrderedVariable("a");
-        matchQueryPlanExpected.addOrderedVariable("b");
-        matchQueryPlanExpected.addOrderedVariable("c");
         ArrayList<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, true));
@@ -33,7 +30,6 @@ public class MatchQueryPlannerTest {
         stage.add(new GenericJoinIntersectionRule(0, false));
         stage.add(new GenericJoinIntersectionRule(1, true));
         matchQueryPlanExpected.addStage(stage);
-
         Assert.assertTrue(matchQueryPlanActual.equalsTo(matchQueryPlanExpected));
     }
 
@@ -51,12 +47,6 @@ public class MatchQueryPlannerTest {
         QueryPlan matchQueryPlanActual = new MatchQueryPlanner(complexStructuredQuery).plan();
 
         MatchQueryPlan matchQueryPlanExpected = new MatchQueryPlan();
-        matchQueryPlanExpected.addOrderedVariable("b");
-        matchQueryPlanExpected.addOrderedVariable("c");
-        matchQueryPlanExpected.addOrderedVariable("d");
-        matchQueryPlanExpected.addOrderedVariable("a");
-        matchQueryPlanExpected.addOrderedVariable("e");
-        matchQueryPlanExpected.addOrderedVariable("f");
         ArrayList<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, false));

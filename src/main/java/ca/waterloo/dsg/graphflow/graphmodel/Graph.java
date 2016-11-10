@@ -21,6 +21,12 @@ import java.lang.reflect.Type;
  */
 public class Graph {
 
+    public enum GraphVersion {
+        OLD,
+        DIFF,
+        LATEST
+    }
+
     private static final int DEFAULT_GRAPH_SIZE = 10;
     public static Graph graph;
 

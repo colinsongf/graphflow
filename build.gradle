@@ -21,15 +21,17 @@ dependencies {
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
     // jUnit
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    //google
+    compile 'com.google.code.gson:gson:2.7'
 }
 
 // ANTLR4 configuration.
 generateGrammarSource {
     maxHeapSize = "64m"
     arguments += [
-        "-long-messages",                                   // show exception details
-        "-visitor",                                         // generate parse tree visitor classes
-        "-package", "ca.waterloo.dsg.graphflow.grammar"     // specify package for generated classes
+            "-long-messages",                                   // show exception details
+            "-visitor",                                         // generate parse tree visitor classes
+            "-package", "ca.waterloo.dsg.graphflow.grammar"     // specify package for generated classes
     ]
 }
 

@@ -2,7 +2,10 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
+import ca.waterloo.dsg.graphflow.query.planner.MatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +17,7 @@ import java.util.Arrays;
 public class GenericJoinProcessor {
 
     public static final int BATCH_SIZE = 2;
-
+    private static final Logger logger = LogManager.getLogger(MatchQueryPlanner.class);
     /**
      * Stages represents a Generic Join query plan for a query consisting of particular set of edges
      * and vertices. Each stage is used to expand the result tuples to an additional vertex.
@@ -36,8 +39,8 @@ public class GenericJoinProcessor {
      */
     public void extend(int[][] prefixes, int stageIndex) {
         System.out.println("Starting new recursion. Stage: " + stageIndex);
-        ArrayList<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.get(
-            stageIndex);
+        ArrayList<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages
+            .get(stageIndex);
         int newPrefixCount = 0;
         int[][] newPrefixes = new int[BATCH_SIZE][];
 
@@ -55,8 +58,8 @@ public class GenericJoinProcessor {
                 }
                 // Intersect remaining extensions with the possible extensions from the rule
                 // under consideration.
-                extensions = extensions.getIntersection(this.graph
-                    .getAdjacencyList(prefixes[i][rule.getPrefixIndex()], rule.isForward()));
+                extensions = extensions.getIntersection(this.graph.getAdjacencyList(
+                    prefixes[i][rule.getPrefixIndex()], rule.isForward()));
             }
 
             for (int j = 0; j < extensions.size(); j++) {
@@ -66,8 +69,7 @@ public class GenericJoinProcessor {
                 System.arraycopy(prefixes[i], 0, newPrefix, 0, prefixes[i].length);
                 newPrefix[newPrefix.length - 1] = extensions.get(j);
                 newPrefixes[newPrefixCount++] = newPrefix;
-                System.out.println(
-                    Arrays.toString(prefixes[i]) + " : " + Arrays.toString(newPrefix));
+                logger.info(Arrays.toString(prefixes[i]) + " : " + Arrays.toString(newPrefix));
                 // Output is done in batches. Once the array of new prefixes reaches size BATCH_SIZE
                 // they are recursively executed till final results are obtained before
                 // proceeding with the extending process in this stage.

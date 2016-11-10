@@ -21,8 +21,8 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
         StructuredQuery structuredQuery = visit(ctx.variableExpression(0));
         structuredQuery.setOperation(StructuredQuery.Operation.MATCH);
         for (int i = 1; i < ctx.variableExpression().size(); i++) {
-            structuredQuery.addEdge(visit(ctx.variableExpression(i)).getStructuredQueryEdges()
-                                                                    .get(0));
+            structuredQuery.addEdge(visit(ctx.variableExpression(i)).getStructuredQueryEdges().
+                get(0));
         }
         return structuredQuery;
     }
@@ -32,8 +32,8 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
         StructuredQuery structuredQuery = visit(ctx.digitsExpression(0));
         structuredQuery.setOperation(StructuredQuery.Operation.DELETE);
         for (int i = 1; i < ctx.digitsExpression().size(); i++) {
-            structuredQuery.addEdge(visit(ctx.digitsExpression(i)).getStructuredQueryEdges()
-                                                                  .get(0));
+            structuredQuery.addEdge(visit(ctx.digitsExpression(i)).getStructuredQueryEdges().
+                get(0));
         }
         return structuredQuery;
     }

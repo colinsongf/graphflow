@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -20,76 +21,51 @@ import java.util.Set;
 public class MatchQueryPlanner extends AbstractQueryPlanner {
 
     private static final Logger logger = LogManager.getLogger(MatchQueryPlanner.class);
-    private QueryGraph matchQueryGraph = new QueryGraph();
+    protected QueryGraph queryGraph = new QueryGraph();
 
     public MatchQueryPlanner(StructuredQuery structuredQuery) {
         super(structuredQuery);
 
-        // Initialize {@code matchQueryGraph}.
+        // Initialize {@code queryGraph}.
         for (StructuredQueryEdge structuredQueryEdge : structuredQuery.getStructuredQueryEdges()) {
             String toVariable = structuredQueryEdge.getToVertex();
             String fromVariable = structuredQueryEdge.getFromVertex();
-            matchQueryGraph.addEdge(fromVariable, toVariable);
+            queryGraph.addEdge(fromVariable, toVariable);
         }
-        logger.info("Query Graph: \n" + matchQueryGraph);
+        logger.info("Query Graph: \n" + queryGraph);
     }
 
-    public QueryPlan plan() {
-        MatchQueryPlan matchQueryPlan = new MatchQueryPlan();
+    /**
+     * Selects the order of the rest of the variables, considering the following properties:
+     * 1) Select the variable with highest number of connections to the already covered
+     * variables.
+     * 2) Break tie from (1) by selecting the variable with highest degree.
+     * 3) Break tie from (2) by selecting the variable with lowest lexicographical rank.
+     */
+    public void orderRemainingVariables(List<String> orderedVariables) {
+        int initialSize = orderedVariables.size();
         Set<String> visitedVariables = new HashSet<>();
-        int variablesLeftToCoverCount = matchQueryGraph.getTotalCount();
-
-        /**
-         * Find the first variable, considering the following properties:
-         * 1) Select the variable with the highest degree.
-         * 2) Break tie from (1) by selecting the variable with the lowest lexicographical rank.
-         */
-        int highestDegreeCount = -1;
-        String variableWithHighestDegree = "";
-        for (String variable : matchQueryGraph.getAllVariables()) {
-            int variableDegree = matchQueryGraph.getQueryVariableAdjList(variable).getTotalDegree();
-            if (variableDegree > highestDegreeCount) {
-                // Rule (1).
-                highestDegreeCount = variableDegree;
-                variableWithHighestDegree = variable;
-            } else if ((variableDegree == highestDegreeCount) && (variable.compareTo(
-                variableWithHighestDegree) < 0)) {
-                // Rule (2).
-                highestDegreeCount = variableDegree;
-                variableWithHighestDegree = variable;
-            }
-        }
-        matchQueryPlan.addOrderedVariable(variableWithHighestDegree);
-        visitedVariables.add(variableWithHighestDegree);
-        variablesLeftToCoverCount--;
-
-        /**
-         * Select the order of the rest of the variables, considering the following properties:
-         * 1) Select the variable with highest number of connections to the already covered
-         * variables.
-         * 2) Break tie from (1) by selecting the variable with highest degree.
-         * 3) Break tie from (2) by selecting the variable with lowest lexicographical rank.
-         */
-        while (variablesLeftToCoverCount > 0) {
+        visitedVariables.addAll(orderedVariables);
+        for (int i = 0; i < queryGraph.getQueryVariableCount() - initialSize; i++) {
             String selectedVariable = "";
             int highestConnectionsCount = -1;
-            highestDegreeCount = -1;
-            for (String coveredVariable : matchQueryPlan.getAllOrderedVariables()) {
+            int highestDegreeCount = -1;
+            for (String coveredVariable : orderedVariables) {
                 // Loop for all neighboring vertices of the already covered vertices.
-                for (String neighborVariable : matchQueryGraph.getQueryVariableAdjList(
-                    coveredVariable).getAllNeighborVariables()) {
+                for (String neighborVariable : queryGraph.getQueryVariableAdjList(coveredVariable)
+                    .getAllNeighborVariables()) {
                     // Skip vertices which have already been covered.
                     if (visitedVariables.contains(neighborVariable)) {
                         continue;
                     }
-                    int variableDegree = matchQueryGraph.getQueryVariableAdjList(neighborVariable)
-                                                        .getTotalDegree();
+                    int variableDegree = queryGraph.getQueryVariableAdjList(neighborVariable)
+                        .getTotalDegree();
                     // Calculate the number of connections of the new variable to the already
                     // covered vertices.
                     int connectionsCount = 0;
-                    for (String alreadyCoveredVariable : matchQueryPlan.getAllOrderedVariables()) {
-                        if (matchQueryGraph.getQueryVariableAdjList(neighborVariable)
-                                           .hasNeighborVariable(alreadyCoveredVariable)) {
+                    for (String alreadyCoveredVariable : orderedVariables) {
+                        if (queryGraph.getQueryVariableAdjList(neighborVariable)
+                            .hasNeighborVariable(alreadyCoveredVariable)) {
                             connectionsCount++;
                         }
                     }
@@ -105,8 +81,8 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
                             selectedVariable = neighborVariable;
                             highestDegreeCount = variableDegree;
                             highestConnectionsCount = connectionsCount;
-                        } else if ((variableDegree == highestDegreeCount) &&
-                                   (neighborVariable.compareTo(selectedVariable) < 0)) {
+                        } else if ((variableDegree == highestDegreeCount) && (neighborVariable
+                            .compareTo(selectedVariable) < 0)) {
                             // Rule (3).
                             selectedVariable = neighborVariable;
                             highestDegreeCount = variableDegree;
@@ -115,24 +91,52 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
                     }
                 }
             }
-            matchQueryPlan.addOrderedVariable(selectedVariable);
+            orderedVariables.add(selectedVariable);
             visitedVariables.add(selectedVariable);
-            variablesLeftToCoverCount--;
         }
+    }
 
+    public QueryPlan plan() {
+        MatchQueryPlan matchQueryPlan = new MatchQueryPlan();
+        Set<String> visitedVariables = new HashSet<>();
+        List<String> orderedVariables = new ArrayList<>();
+        /**
+         * Find the first variable, considering the following properties:
+         * 1) Select the variable with the highest degree.
+         * 2) Break tie from (1) by selecting the variable with the lowest lexicographical rank.
+         */
+        int highestDegreeCount = -1;
+        String variableWithHighestDegree = "";
+        for (String variable : queryGraph.getAllVariables()) {
+            int variableDegree = queryGraph.getQueryVariableAdjList(variable).getTotalDegree();
+            if (variableDegree > highestDegreeCount) {
+                // Rule (1).
+                highestDegreeCount = variableDegree;
+                variableWithHighestDegree = variable;
+            } else if ((variableDegree == highestDegreeCount) && (variable
+                .compareTo(variableWithHighestDegree) < 0)) {
+                // Rule (2).
+                highestDegreeCount = variableDegree;
+                variableWithHighestDegree = variable;
+            }
+        }
+        orderedVariables.add(variableWithHighestDegree);
+        visitedVariables.add(variableWithHighestDegree);
+
+        orderRemainingVariables(orderedVariables);
         // Finally, create the plan.
         // Start from the second variable to create the first stage.
-        for (int i = 1; i < matchQueryPlan.getOrderedVariablesCount(); i++) {
-            String variableForCurrentStage = matchQueryPlan.getOrderedVariableAt(i);
+        for (int i = 1; i < orderedVariables.size(); i++) {
+            String variableForCurrentStage = orderedVariables.get(i);
             ArrayList<GenericJoinIntersectionRule> stage = new ArrayList<>();
             // Loop across all variables covered in the previous stages.
             for (int j = 0; j < i; j++) {
-                String variableFromPreviousStage = matchQueryPlan.getOrderedVariableAt(j);
-                if (matchQueryGraph.getQueryVariableAdjList(variableFromPreviousStage)
-                                   .hasNeighborVariable(variableForCurrentStage)) {
-                    boolean isForward = matchQueryGraph.getQueryVariableAdjList(
-                        variableFromPreviousStage).getDirectionTo(variableForCurrentStage) ==
-                                        QueryVariableAdjList.Direction.FORWARD;
+                String variableFromPreviousStage = orderedVariables.get(j);
+                if (queryGraph.getQueryVariableAdjList(variableFromPreviousStage)
+                    .hasNeighborVariable(variableForCurrentStage)) {
+                    boolean isForward = queryGraph
+                        .getQueryVariableAdjList(variableFromPreviousStage).getDirectionTo(
+                            variableForCurrentStage) == QueryVariableAdjList.Direction.FORWARD;
                     stage.add(new GenericJoinIntersectionRule(j, isForward));
                 }
             }

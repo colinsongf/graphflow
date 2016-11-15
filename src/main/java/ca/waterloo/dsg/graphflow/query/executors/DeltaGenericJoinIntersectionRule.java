@@ -31,6 +31,6 @@ public class DeltaGenericJoinIntersectionRule extends GenericJoinIntersectionRul
     }
 
     public boolean equalsTo(DeltaGenericJoinIntersectionRule that) {
-        return super.equalsTo(that) && (this.graphVersion == that.graphVersion);
+        return super.isSameAs(that) && (this.graphVersion == that.graphVersion);
     }
 }

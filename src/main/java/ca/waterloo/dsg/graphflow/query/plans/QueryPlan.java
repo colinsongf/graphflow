@@ -7,6 +7,4 @@ import ca.waterloo.dsg.graphflow.demograph.Graph;
  */
 public interface QueryPlan {
     String execute(Graph graph);
-
-    boolean equalsTo(Object o);
 }

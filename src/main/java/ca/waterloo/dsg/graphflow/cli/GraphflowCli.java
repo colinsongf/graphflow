@@ -14,8 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Client side command line interface implementation.
- * It uses gRPC to communicate with the server.
+ * Client side CLI implementation, which communicates with the {@code GraphflowServer} using gRPC.
  */
 public class GraphflowCli {
 
@@ -56,7 +55,7 @@ public class GraphflowCli {
                 System.out.println("ERROR: Needs a semicolon at the end.");
                 continue;
             }
-            if (query == "exit;") {
+            if (query.equals("exit;")) {
                 break;
             }
             System.out.println("Your query: " + query);

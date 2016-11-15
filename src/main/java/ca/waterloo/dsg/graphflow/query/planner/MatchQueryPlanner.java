@@ -1,10 +1,10 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
+import ca.waterloo.dsg.graphflow.graphmodel.Graph;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.MatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryGraph;
-import ca.waterloo.dsg.graphflow.query.utils.QueryVariableAdjList;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 import org.apache.logging.log4j.LogManager;
@@ -81,8 +81,8 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
                             selectedVariable = neighborVariable;
                             highestDegreeCount = variableDegree;
                             highestConnectionsCount = connectionsCount;
-                        } else if ((variableDegree == highestDegreeCount) && (neighborVariable
-                            .compareTo(selectedVariable) < 0)) {
+                        } else if ((variableDegree == highestDegreeCount) &&
+                            (neighborVariable.compareTo(selectedVariable) < 0)) {
                             // Rule (3).
                             selectedVariable = neighborVariable;
                             highestDegreeCount = variableDegree;
@@ -100,10 +100,10 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
         MatchQueryPlan matchQueryPlan = new MatchQueryPlan();
         Set<String> visitedVariables = new HashSet<>();
         List<String> orderedVariables = new ArrayList<>();
-        /**
-         * Find the first variable, considering the following properties:
-         * 1) Select the variable with the highest degree.
-         * 2) Break tie from (1) by selecting the variable with the lowest lexicographical rank.
+        /*
+          Find the first variable, considering the following properties:
+          1) Select the variable with the highest degree.
+          2) Break tie from (1) by selecting the variable with the lowest lexicographical rank.
          */
         int highestDegreeCount = -1;
         String variableWithHighestDegree = "";
@@ -113,8 +113,8 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
                 // Rule (1).
                 highestDegreeCount = variableDegree;
                 variableWithHighestDegree = variable;
-            } else if ((variableDegree == highestDegreeCount) && (variable
-                .compareTo(variableWithHighestDegree) < 0)) {
+            } else if ((variableDegree == highestDegreeCount) && (variable.compareTo(
+                variableWithHighestDegree) < 0)) {
                 // Rule (2).
                 highestDegreeCount = variableDegree;
                 variableWithHighestDegree = variable;
@@ -134,9 +134,9 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
                 String variableFromPreviousStage = orderedVariables.get(j);
                 if (queryGraph.getQueryVariableAdjList(variableFromPreviousStage)
                     .hasNeighborVariable(variableForCurrentStage)) {
-                    boolean isForward = queryGraph
-                        .getQueryVariableAdjList(variableFromPreviousStage).getDirectionTo(
-                            variableForCurrentStage) == QueryVariableAdjList.Direction.FORWARD;
+                    boolean isForward = queryGraph.getQueryVariableAdjList(
+                        variableFromPreviousStage).getDirectionTo(variableForCurrentStage) ==
+                        Graph.EdgeDirection.FORWARD;
                     stage.add(new GenericJoinIntersectionRule(j, isForward));
                 }
             }

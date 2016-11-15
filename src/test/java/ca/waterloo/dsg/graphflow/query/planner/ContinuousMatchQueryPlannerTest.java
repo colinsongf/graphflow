@@ -1,10 +1,10 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
+import ca.waterloo.dsg.graphflow.graphmodel.Graph;
 import ca.waterloo.dsg.graphflow.graphmodel.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.query.executors.DeltaGenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.DeltaGenericJoinQueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
-import ca.waterloo.dsg.graphflow.query.utils.QueryVariableAdjList;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 import org.junit.Assert;
@@ -22,11 +22,10 @@ import java.util.Set;
 public class ContinuousMatchQueryPlannerTest {
 
     private ContinuousMatchQueryPlanner planner;
-    private StructuredQuery structuredQuery;
 
     @Before
     public void setUp() throws Exception {
-        structuredQuery = new StructuredQuery();
+        StructuredQuery structuredQuery = new StructuredQuery();
         structuredQuery.addEdge(new StructuredQueryEdge("a", "b"));
         structuredQuery.addEdge(new StructuredQueryEdge("a", "d"));
         structuredQuery.addEdge(new StructuredQueryEdge("b", "c"));
@@ -67,8 +66,9 @@ public class ContinuousMatchQueryPlannerTest {
         secondStage.add(new DeltaGenericJoinIntersectionRule(2, GraphVersion.OLD, true));
         expectedSinglePlan.add(secondStage);
 
-        List<List<DeltaGenericJoinIntersectionRule>> resultSinglePlan = planner
-            .createSingleQueryPlan(diffRelation, orderedVariables, oldRelations, latestRelations);
+        List<List<DeltaGenericJoinIntersectionRule>> resultSinglePlan =
+            planner.createSingleQueryPlan(diffRelation, orderedVariables, oldRelations,
+                latestRelations);
         Assert.assertEquals(2, resultSinglePlan.size());
         Assert.assertEquals(2, resultSinglePlan.get(0).size());
         Assert.assertEquals(2, resultSinglePlan.get(1).size());
@@ -93,8 +93,8 @@ public class ContinuousMatchQueryPlannerTest {
         QueryEdge possibleEdge = new QueryEdge("a", "b");
         int prefixIndex = 0;
 
-        planner.addRuleIfPossibleEdgeExists(prefixIndex, QueryVariableAdjList.Direction.FORWARD,
-            possibleEdge, diffRelation, resultStage, oldRelations, latestRelations);
+        planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.EdgeDirection.FORWARD, possibleEdge,
+            diffRelation, resultStage, oldRelations, latestRelations);
         DeltaGenericJoinIntersectionRule expectedRule = new DeltaGenericJoinIntersectionRule(0,
             GraphVersion.LATEST, true);
 
@@ -114,8 +114,8 @@ public class ContinuousMatchQueryPlannerTest {
         QueryEdge possibleEdge = new QueryEdge("d", "c");
         int prefixIndex = 0;
 
-        planner.addRuleIfPossibleEdgeExists(prefixIndex, QueryVariableAdjList.Direction.FORWARD,
-            possibleEdge, diffRelation, resultStage, oldRelations, latestRelations);
+        planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.EdgeDirection.FORWARD, possibleEdge,
+            diffRelation, resultStage, oldRelations, latestRelations);
         DeltaGenericJoinIntersectionRule expectedRule = new DeltaGenericJoinIntersectionRule(0,
             GraphVersion.OLD, true);
 
@@ -135,8 +135,8 @@ public class ContinuousMatchQueryPlannerTest {
         QueryEdge possibleEdge = new QueryEdge("b", "c");
         int prefixIndex = 0;
 
-        planner.addRuleIfPossibleEdgeExists(prefixIndex, QueryVariableAdjList.Direction.FORWARD,
-            possibleEdge, diffRelation, resultStage, oldRelations, latestRelations);
+        planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.EdgeDirection.FORWARD, possibleEdge,
+            diffRelation, resultStage, oldRelations, latestRelations);
         DeltaGenericJoinIntersectionRule expectedRule = new DeltaGenericJoinIntersectionRule(0,
             GraphVersion.DIFF, true);
 
@@ -156,8 +156,8 @@ public class ContinuousMatchQueryPlannerTest {
         QueryEdge possibleEdge = new QueryEdge("d", "a");
         int prefixIndex = 0;
 
-        planner.addRuleIfPossibleEdgeExists(prefixIndex, QueryVariableAdjList.Direction.FORWARD,
-            possibleEdge, diffRelation, resultStage, oldRelations, latestRelations);
+        planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.EdgeDirection.FORWARD, possibleEdge,
+            diffRelation, resultStage, oldRelations, latestRelations);
         Assert.assertEquals(0, resultStage.size());
     }
 }

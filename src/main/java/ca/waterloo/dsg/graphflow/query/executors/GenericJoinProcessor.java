@@ -7,8 +7,8 @@ import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Processes the given query stages for the in-memory graph using the Generic Join algorithm.
@@ -22,11 +22,11 @@ public class GenericJoinProcessor {
      * Stages represents a Generic Join query plan for a query consisting of particular set of edges
      * and vertices. Each stage is used to expand the result tuples to an additional vertex.
      */
-    private ArrayList<ArrayList<GenericJoinIntersectionRule>> stages;
+    private List<List<GenericJoinIntersectionRule>> stages;
     private OutputSink outputSink;
     private Graph graph;
 
-    public GenericJoinProcessor(ArrayList<ArrayList<GenericJoinIntersectionRule>> stages,
+    public GenericJoinProcessor(List<List<GenericJoinIntersectionRule>> stages,
         OutputSink outputSink, Graph graph) {
         this.stages = stages;
         this.outputSink = outputSink;
@@ -39,8 +39,8 @@ public class GenericJoinProcessor {
      */
     public void extend(int[][] prefixes, int stageIndex) {
         System.out.println("Starting new recursion. Stage: " + stageIndex);
-        ArrayList<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages
-            .get(stageIndex);
+        List<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.get(
+            stageIndex);
         int newPrefixCount = 0;
         int[][] newPrefixes = new int[BATCH_SIZE][];
 
@@ -58,11 +58,11 @@ public class GenericJoinProcessor {
                 }
                 // Intersect remaining extensions with the possible extensions from the rule
                 // under consideration.
-                extensions = extensions.getIntersection(this.graph.getAdjacencyList(
-                    prefixes[i][rule.getPrefixIndex()], rule.isForward()));
+                extensions = extensions.getIntersection(this.graph
+                    .getAdjacencyList(prefixes[i][rule.getPrefixIndex()], rule.isForward()));
             }
 
-            for (int j = 0; j < extensions.size(); j++) {
+            for (int j = 0; j < extensions.getSize(); j++) {
                 int[] newPrefix = new int[prefixes[i].length + 1];
                 // TODO: Consider storing prefixes and new prefixes as trees so we don't replicate
                 // common prefixes.
@@ -106,7 +106,7 @@ public class GenericJoinProcessor {
      * @return GenericJoinIntersectionRule
      */
     private GenericJoinIntersectionRule getMinCountIndex(int[] prefix,
-        ArrayList<GenericJoinIntersectionRule> genericJoinIntersectionRules) {
+        List<GenericJoinIntersectionRule> genericJoinIntersectionRules) {
         GenericJoinIntersectionRule minGenericJoinIntersectionRule = null;
         int minCount = Integer.MAX_VALUE;
         for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {

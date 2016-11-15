@@ -1,10 +1,9 @@
 package ca.waterloo.dsg.graphflow.query.utils;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
+
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,10 +26,8 @@ public class QueryGraph {
     public void addEdge(String fromVariable, String toVariable) {
         addVariable(toVariable);
         addVariable(fromVariable);
-        queryGraph.get(toVariable)
-            .addNeighborVariable(fromVariable, QueryVariableAdjList.Direction.REVERSE);
-        queryGraph.get(fromVariable)
-            .addNeighborVariable(toVariable, QueryVariableAdjList.Direction.FORWARD);
+        queryGraph.get(toVariable).addNeighborVariable(fromVariable, EdgeDirection.REVERSE);
+        queryGraph.get(fromVariable).addNeighborVariable(toVariable, EdgeDirection.FORWARD);
         queryEdges.add(new QueryEdge(fromVariable, toVariable));
     }
 
@@ -47,23 +44,24 @@ public class QueryGraph {
         }
     }
 
+    public int getQueryVariableCount() {
+        return queryGraph.size();
+    }
+
     @Override
     public String toString() {
         StringBuilder graph = new StringBuilder();
         for (String key : queryGraph.keySet()) {
             QueryVariableAdjList queryVariableAdjList = queryGraph.get(key);
-            graph.append(key + " (degree = " + queryVariableAdjList.getTotalDegree() + ")\n");
+            graph.append(key).append(" (degree = ").append(queryVariableAdjList.getTotalDegree())
+                .append(")\n");
             for (String neighborVariable : queryVariableAdjList.getAllNeighborVariables()) {
-                QueryVariableAdjList.Direction direction = queryVariableAdjList
-                    .getDirectionTo(neighborVariable);
-                graph.append((direction == QueryVariableAdjList.Direction.FORWARD ? (key + "->" +
-                    neighborVariable) : (neighborVariable + "->" + key)) + "\n");
+                EdgeDirection edgeDirection = queryVariableAdjList.getDirectionTo(neighborVariable);
+                graph.append(
+                    edgeDirection == EdgeDirection.FORWARD ? (key + "->" + neighborVariable) :
+                        (neighborVariable + "->" + key)).append("\n");
             }
         }
         return graph.toString();
-    }
-
-    public int getQueryVariableCount() {
-        return queryGraph.size();
     }
 }

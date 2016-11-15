@@ -20,11 +20,6 @@ public class DeltaGenericJoinQueryPlan implements QueryPlan {
         return graph.getGraphString();
     }
 
-    @Override
-    public boolean equalsTo(Object o) {
-        return false;
-    }
-
     public void addQuery(List<List<DeltaGenericJoinIntersectionRule>> joinQuery) {
         joinQueries.add(joinQuery);
     }

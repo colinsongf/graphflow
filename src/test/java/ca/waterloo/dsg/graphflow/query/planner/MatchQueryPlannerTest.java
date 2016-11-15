@@ -2,7 +2,6 @@ package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.MatchQueryPlan;
-import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 import org.junit.Assert;
@@ -13,13 +12,14 @@ import java.util.ArrayList;
 public class MatchQueryPlannerTest {
 
     @Test
-    public void planTriangleQuery() throws Exception {
+    public void testPlanTriangleQuery() throws Exception {
         StructuredQuery triangleStructuredQuery = new StructuredQuery();
         triangleStructuredQuery.addEdge(new StructuredQueryEdge("a", "b"));
         triangleStructuredQuery.addEdge(new StructuredQueryEdge("b", "c"));
         triangleStructuredQuery.addEdge(new StructuredQueryEdge("c", "a"));
 
-        QueryPlan matchQueryPlanActual = new MatchQueryPlanner(triangleStructuredQuery).plan();
+        MatchQueryPlan matchQueryPlanActual = (MatchQueryPlan) new MatchQueryPlanner(
+            triangleStructuredQuery).plan();
 
         MatchQueryPlan matchQueryPlanExpected = new MatchQueryPlan();
         ArrayList<GenericJoinIntersectionRule> stage;
@@ -30,11 +30,12 @@ public class MatchQueryPlannerTest {
         stage.add(new GenericJoinIntersectionRule(0, false));
         stage.add(new GenericJoinIntersectionRule(1, true));
         matchQueryPlanExpected.addStage(stage);
-        Assert.assertTrue(matchQueryPlanActual.equalsTo(matchQueryPlanExpected));
+
+        Assert.assertTrue(matchQueryPlanActual.isSameAs(matchQueryPlanExpected));
     }
 
     @Test
-    public void planComplexQuery() throws Exception {
+    public void testPlanComplexQuery() throws Exception {
         StructuredQuery complexStructuredQuery = new StructuredQuery();
         complexStructuredQuery.addEdge(new StructuredQueryEdge("a", "b"));
         complexStructuredQuery.addEdge(new StructuredQueryEdge("a", "e"));
@@ -44,7 +45,8 @@ public class MatchQueryPlannerTest {
         complexStructuredQuery.addEdge(new StructuredQueryEdge("e", "b"));
         complexStructuredQuery.addEdge(new StructuredQueryEdge("f", "c"));
 
-        QueryPlan matchQueryPlanActual = new MatchQueryPlanner(complexStructuredQuery).plan();
+        MatchQueryPlan matchQueryPlanActual = (MatchQueryPlan) new MatchQueryPlanner(
+            complexStructuredQuery).plan();
 
         MatchQueryPlan matchQueryPlanExpected = new MatchQueryPlan();
         ArrayList<GenericJoinIntersectionRule> stage;
@@ -66,6 +68,6 @@ public class MatchQueryPlannerTest {
         stage.add(new GenericJoinIntersectionRule(1, false));
         matchQueryPlanExpected.addStage(stage);
 
-        Assert.assertTrue(matchQueryPlanActual.equalsTo(matchQueryPlanExpected));
+        Assert.assertTrue(matchQueryPlanActual.isSameAs(matchQueryPlanExpected));
     }
 }

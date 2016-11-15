@@ -1,6 +1,7 @@
 package ca.waterloo.dsg.graphflow.util;
 
 import java.util.Arrays;
+import java.util.StringJoiner;
 
 /**
  * A list of sorted int primitives implemented using an array.
@@ -19,63 +20,62 @@ public class SortedIntArrayList {
         data = new int[capacity];
     }
 
-    public boolean add(int i) {
-        ensure_capacity(size + 1);
+    public void add(int i) {
+        ensureCapacity(size + 1);
         data[size++] = i;
-        this.sort();
-        return true;
+        sort();
     }
 
     public int get(int index) throws ArrayIndexOutOfBoundsException {
+        if (index >= size) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
         return data[index];
     }
 
-    public boolean addAll(int[] i) {
+    public void addAll(int[] i) {
         int numnew = i.length;
-        ensure_capacity(size + numnew);
+        ensureCapacity(size + numnew);
         System.arraycopy(i, 0, data, size, numnew);
         size += numnew;
-        this.sort();
-        return true;
+        sort();
     }
 
-    public int remove(int index) throws ArrayIndexOutOfBoundsException {
+    public int removeFromIndex(int index) throws ArrayIndexOutOfBoundsException {
+        if (index >= size) {
+            throw new ArrayIndexOutOfBoundsException(index);
+        }
         int numMoved = size - index - 1;
         int valueToBeRemoved = data[index];
-        if (numMoved > 0)
+        if (numMoved > 0) {
             System.arraycopy(data, index + 1, data, index, numMoved);
-        data[--size] = 0;
-        this.sort();
+        }
+        --size;
+        sort();
         return valueToBeRemoved;
     }
 
-    public int size() {
+    public int removeElement(int value) throws ArrayIndexOutOfBoundsException {
+        int index = search(value);
+        if (index != -1) {
+            removeFromIndex(index);
+        }
+        return index;
+    }
+
+    public int getSize() {
         return size;
     }
 
     public int[] toArray() {
-        return Arrays.copyOfRange(data, 0, size);
+        return Arrays.copyOf(data, size);
     }
 
     /**
      * Sorts the underlying array in place.
      */
     private void sort() {
-        Arrays.sort(this.data, 0, size - 1);
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("[");
-        for (int i = 0; i < size - 1; i++) {
-            builder.append(data[i] + ", ");
-        }
-        if (size > 0) {
-            builder.append(data[size - 1]);
-        }
-        builder.append("]");
-        return builder.toString();
+        Arrays.sort(data, 0, size);
     }
 
     /**
@@ -83,7 +83,7 @@ public class SortedIntArrayList {
      *
      * @param minCapacity
      */
-    private void ensure_capacity(int minCapacity) {
+    private void ensureCapacity(int minCapacity) {
         int oldCapacity = data.length;
         if (minCapacity > oldCapacity) {
             int newCapacity = (oldCapacity * 3) / 2 + 1;
@@ -103,10 +103,10 @@ public class SortedIntArrayList {
      */
     public int search(int value) {
         int lowIndex = 0;
-        int highIndex = this.size - 1;
+        int highIndex = size - 1;
         int result = -1;
         while (lowIndex <= highIndex) {
-            int mid = (lowIndex + highIndex) / 2;
+            int mid = lowIndex + (highIndex - lowIndex) / 2;
             if (data[mid] == value) {
                 result = mid;
                 break;
@@ -128,20 +128,51 @@ public class SortedIntArrayList {
      */
     public SortedIntArrayList getIntersection(SortedIntArrayList newList) {
         SortedIntArrayList shorter, longer, intersection;
-        if (this.size() > newList.size()) {
+        if (size > newList.getSize()) {
             shorter = newList;
             longer = this;
         } else {
             shorter = this;
             longer = newList;
         }
-        intersection = new SortedIntArrayList(shorter.size());
-        for (int i = 0; i < shorter.size(); i++) {
+        intersection = new SortedIntArrayList(shorter.getSize());
+        for (int i = 0; i < shorter.getSize(); i++) {
             int resultIndex = longer.search(shorter.get(i));
             if (resultIndex >= 0) {
                 intersection.add(shorter.get(i));
             }
         }
         return intersection;
+    }
+
+    @Override
+    public String toString() {
+        StringJoiner sj = new StringJoiner(", ");
+        for (int i = 0; i < size; i++) {
+            sj.add("" + data[i]);
+        }
+        return "[" + sj.toString() + "]";
+    }
+
+    /**
+     * Used in unit tests to assert the equality of the actual and expected objects.
+     *
+     * @param that The expected object.
+     * @return {@code true} if the current object values match perfectly with the expected object
+     * values, {@code false} otherwise.
+     */
+    public boolean isSameAs(int[] that) {
+        if (that == null) {
+            return false;
+        }
+        if (this.size != that.length) {
+            return false;
+        }
+        for (int i = 0; i < size; i++) {
+            if (this.data[i] != that[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -1,13 +1,15 @@
 package ca.waterloo.dsg.graphflow.outputsink;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Keeps output from a query as an in memory data structure.
  */
 public class InMemoryOutputSink implements OutputSink {
 
-    private ArrayList<int[]> results;
+    private List<int[]> results;
 
     public InMemoryOutputSink() {
         results = new ArrayList<>();
@@ -15,12 +17,10 @@ public class InMemoryOutputSink implements OutputSink {
 
     @Override
     public void append(int[][] results) {
-        for (int[] result : results) {
-            this.results.add(result);
-        }
+        Collections.addAll(this.results, results);
     }
 
-    public ArrayList<int[]> getResults() {
+    public List<int[]> getResults() {
         return results;
     }
 }

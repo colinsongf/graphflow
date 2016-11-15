@@ -21,12 +21,15 @@ public class StructuredQueryEdge {
         return toVertex;
     }
 
-    // Used for unit testing.
-    public boolean equalsTo(StructuredQueryEdge that) {
-        if (that == null) {     // Null check.
-            return false;
-        }
-        return (this == that || (this.fromVertex.equals(that.fromVertex) && this.toVertex
-            .equals(that.toVertex)));
+    /**
+     * Used in unit tests to assert the equality of the actual and expected objects.
+     *
+     * @param that The expected object.
+     * @return {@code true} if the current object values match perfectly with the expected object
+     * values, {@code false} otherwise.
+     */
+    public boolean isSameAs(StructuredQueryEdge that) {
+        return that != null && (this == that || (this.fromVertex.equals(that.fromVertex) &&
+            this.toVertex.equals(that.toVertex)));
     }
 }

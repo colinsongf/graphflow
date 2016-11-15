@@ -1,6 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -8,57 +9,60 @@ import java.util.List;
  */
 public class StructuredQuery {
 
-    public enum Operation {
+    public enum QueryOperation {
         CREATE,
         MATCH,
         DELETE
     }
 
     private List<StructuredQueryEdge> structuredQueryEdges;
-    private Operation operation;
+    private QueryOperation queryOperation;
 
     public StructuredQuery() {
         this.structuredQueryEdges = new ArrayList<>();
     }
 
     public List<StructuredQueryEdge> getStructuredQueryEdges() {
-        return structuredQueryEdges;
+        return Collections.unmodifiableList(structuredQueryEdges);  // Return a read-only list.
     }
 
     public void addEdge(StructuredQueryEdge structuredQueryEdge) {
         this.structuredQueryEdges.add(structuredQueryEdge);
     }
 
-    public Operation getOperation() {
-        return operation;
+    public QueryOperation getQueryOperation() {
+        return queryOperation;
     }
 
-    public void setOperation(Operation operation) {
-        this.operation = operation;
+    public void setQueryOperation(QueryOperation queryOperation) {
+        this.queryOperation = queryOperation;
     }
 
-    // Used for unit testing.
-    public boolean equalsTo(StructuredQuery that) {
-        if (that == null) {     // Null check.
+    /**
+     * Used in unit tests to assert the equality of the actual and expected objects.
+     *
+     * @param that The expected object.
+     * @return {@code true} if the current object values match perfectly with the expected object
+     * values, {@code false} otherwise.
+     */
+    public boolean isSameAs(StructuredQuery that) {
+        if (that == null) {
             return false;
         }
-        if (this == that) {     // Same object check.
+        if (this == that) {
             return true;
         }
-
-        if (this.operation != that.operation) {
+        if (this.queryOperation != that.queryOperation) {
             return false;
         }
-
         if (this.structuredQueryEdges.size() != that.structuredQueryEdges.size()) {
             return false;
         }
         for (int i = 0; i < this.structuredQueryEdges.size(); i++) {
-            if (!this.structuredQueryEdges.get(i).equalsTo(that.structuredQueryEdges.get(i))) {
+            if (!this.structuredQueryEdges.get(i).isSameAs(that.structuredQueryEdges.get(i))) {
                 return false;
             }
         }
-
         return true;
     }
 }

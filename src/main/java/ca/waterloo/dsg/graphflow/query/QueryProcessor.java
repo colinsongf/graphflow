@@ -12,11 +12,7 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
  */
 public class QueryProcessor {
 
-    private Graph graph;
-
-    public QueryProcessor() {
-        this.graph = new Graph();
-    }
+    private Graph graph = new Graph();
 
     public String process(String query) {
         StructuredQuery structuredQuery;
@@ -25,7 +21,6 @@ public class QueryProcessor {
         } catch (ParseCancellationException e) {
             return "ERROR parsing: " + e.getMessage();
         }
-
         QueryPlan queryPlan = new QueryPlanBuilder().plan(structuredQuery);
         return queryPlan.execute(graph);
     }

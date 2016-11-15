@@ -1,6 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
+import ca.waterloo.dsg.graphflow.graphmodel.GraphBuilder;
 import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
 import org.junit.Assert;
 import org.junit.Before;
@@ -8,36 +9,36 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Tests for {@code GenericJoinProcessor}.
  */
 public class GenericJoinProcessorTest {
 
-    Graph graph;
-    private GenericJoinProcessor processor;
+    private Graph graph;
     private InMemoryOutputSink outputSink;
 
     @Before
     public void setUp() throws Exception {
         File file = new File(this.getClass().getClassLoader().getResource("graph.json").getPath());
-        graph = Graph.createInstance(file);
+        graph = GraphBuilder.createInstance(file);
     }
 
     @Test
     public void testProcessTriangles() throws Exception {
-        ArrayList<ArrayList<GenericJoinIntersectionRule>> stages = new ArrayList<>();
-        ArrayList<GenericJoinIntersectionRule> firstStage = new ArrayList<>();
+        List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
+        List<GenericJoinIntersectionRule> firstStage = new ArrayList<>();
         firstStage.add(new GenericJoinIntersectionRule(0, true));
         //first stage is an empty ArrayList signifying that this stage is unbounded
         stages.add(firstStage);
-        ArrayList<GenericJoinIntersectionRule> secondStage = new ArrayList<>();
+        List<GenericJoinIntersectionRule> secondStage = new ArrayList<>();
         secondStage.add(new GenericJoinIntersectionRule(1, true));
         secondStage.add(new GenericJoinIntersectionRule(0, false));
         stages.add(secondStage);
 
         outputSink = new InMemoryOutputSink();
-        processor = new GenericJoinProcessor(stages, outputSink, this.graph);
+        GenericJoinProcessor processor1 = new GenericJoinProcessor(stages, outputSink, this.graph);
         int[][] prefixes = new int[this.graph.getVertexCount()][1];
         for (int i = 0; i < this.graph.getVertexCount(); i++) {
             prefixes[i][0] = i;
@@ -50,14 +51,14 @@ public class GenericJoinProcessorTest {
 
     @Test
     public void testProcessSquares() throws Exception {
-        ArrayList<ArrayList<GenericJoinIntersectionRule>> stages = new ArrayList<>();
-        ArrayList<GenericJoinIntersectionRule> firstStage = new ArrayList<>();
+        List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
+        List<GenericJoinIntersectionRule> firstStage = new ArrayList<>();
         firstStage.add(new GenericJoinIntersectionRule(0, true));
         stages.add(firstStage);
-        ArrayList<GenericJoinIntersectionRule> secondStage = new ArrayList<>();
+        List<GenericJoinIntersectionRule> secondStage = new ArrayList<>();
         secondStage.add(new GenericJoinIntersectionRule(1, true));
         stages.add(secondStage);
-        ArrayList<GenericJoinIntersectionRule> thirdStage = new ArrayList<>();
+        List<GenericJoinIntersectionRule> thirdStage = new ArrayList<>();
         thirdStage.add(new GenericJoinIntersectionRule(2, true));
         thirdStage.add(new GenericJoinIntersectionRule(0, false));
         stages.add(thirdStage);

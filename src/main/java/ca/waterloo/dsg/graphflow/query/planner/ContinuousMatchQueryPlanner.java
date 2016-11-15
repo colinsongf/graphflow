@@ -1,13 +1,14 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
+import ca.waterloo.dsg.graphflow.graphmodel.Graph;
 import ca.waterloo.dsg.graphflow.graphmodel.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.query.executors.DeltaGenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.DeltaGenericJoinQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
-import ca.waterloo.dsg.graphflow.query.utils.QueryVariableAdjList;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,7 +65,7 @@ public class ContinuousMatchQueryPlanner extends MatchQueryPlanner {
     @VisibleForTesting
     public List<List<DeltaGenericJoinIntersectionRule>> createSingleQueryPlan(
         QueryEdge diffRelation, List<String> orderedVariables, Set<QueryEdge> oldRelations,
-        Set <QueryEdge> latestRelations) {
+        Set<QueryEdge> latestRelations) {
         List<List<DeltaGenericJoinIntersectionRule>> singleRoundPlan = new ArrayList<>();
         // We use 2 here because the first two ordered variables will not be matched using
         // generic join. Instead, we use the two variables from the edge of {@code diffRelation}.
@@ -75,15 +76,15 @@ public class ContinuousMatchQueryPlanner extends MatchQueryPlanner {
                 String coveredVariable = orderedVariables.get(j);
                 // We add a stage where there is a relation from the {@code queryVariable}
                 // currently being considered to previously considered query variables.
-                // Direction should be considered from covered variable to variable because
+                // EdgeDirection should be considered from covered variable to variable because
                 // in the intersection rule, it is the covered variable's adjacency list
                 // which will be used.
                 QueryEdge possibleEdge = new QueryEdge(coveredVariable, variable);
-                this.addRuleIfPossibleEdgeExists(j, QueryVariableAdjList.Direction.FORWARD,
-                    possibleEdge, diffRelation, stage, oldRelations, latestRelations);
+                this.addRuleIfPossibleEdgeExists(j, Graph.EdgeDirection.FORWARD, possibleEdge,
+                    diffRelation, stage, oldRelations, latestRelations);
                 possibleEdge = new QueryEdge(variable, coveredVariable);
-                this.addRuleIfPossibleEdgeExists(j, QueryVariableAdjList.Direction.REVERSE,
-                    possibleEdge, diffRelation, stage, oldRelations, latestRelations);
+                this.addRuleIfPossibleEdgeExists(j, Graph.EdgeDirection.REVERSE, possibleEdge,
+                    diffRelation, stage, oldRelations, latestRelations);
             }
             singleRoundPlan.add(stage);
         }
@@ -92,11 +93,13 @@ public class ContinuousMatchQueryPlanner extends MatchQueryPlanner {
 
     /**
      * Adds a {@code DeltaGenericJoinIntersectionRule} to the given stage with the given {@code
-     * prefixIndex} and given {@code direction} if {@code possibleEdge} is either the
+     * prefixIndex} and given {@code edgeDirection} if {@code possibleEdge} is either the
      * {\code diffRelation} or exists in {code oldRelations} or {code latestRelations}
+     *
      * @param prefixIndex Prefix index of the {@code DeltaGenericJoinIntersectionRule} to be
      * created.
-     * @param direction Direction from the covered variable to the variable under consideration.
+     * @param edgeDirection Direction from the covered variable to the variable under
+     * consideration.
      * @param possibleEdge The edge whose existence is checked.
      * @param diffRelation The relation which will use the diff graph for this iteration of
      * {@code DeltaGenericJoinQueryPlan}.
@@ -105,23 +108,23 @@ public class ContinuousMatchQueryPlanner extends MatchQueryPlanner {
      * @param latestRelations The set of relations that will use the latest version of the graph.
      */
     @VisibleForTesting
-    public void addRuleIfPossibleEdgeExists(int prefixIndex,
-        QueryVariableAdjList.Direction direction, QueryEdge possibleEdge, QueryEdge diffRelation,
+    public void addRuleIfPossibleEdgeExists(int prefixIndex, Graph.EdgeDirection edgeDirection,
+        QueryEdge possibleEdge, QueryEdge diffRelation,
         List<DeltaGenericJoinIntersectionRule> stage, Set<QueryEdge> oldRelations,
         Set<QueryEdge> latestRelations) {
-        // Check for the existence of the edge in the given direction.
+        // Check for the existence of the edge in the given edgeDirection.
         GraphVersion version = null;
         if (possibleEdge.equals(diffRelation)) {
             version = GraphVersion.DIFF;
         } else if (latestRelations.contains(possibleEdge)) {
             version = GraphVersion.LATEST;
-        } else if (oldRelations.contains(possibleEdge)){
+        } else if (oldRelations.contains(possibleEdge)) {
             version = GraphVersion.OLD;
         }
 
         if (version != null) {
             stage.add(new DeltaGenericJoinIntersectionRule(prefixIndex, version,
-                direction == QueryVariableAdjList.Direction.FORWARD));
+                edgeDirection == Graph.EdgeDirection.FORWARD));
         }
     }
 }

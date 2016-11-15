@@ -8,7 +8,7 @@ import org.junit.Test;
 
 public class StructuredQueryParserTest {
     @Test
-    public void parseTriangleMatchQuery() throws Exception {
+    public void testParseTriangleMatchQuery() throws Exception {
         StructuredQuery structuredQueryActual;
         String query = "MATCH (a)->(b),(b)->(c),(c)->(a);";
         try {
@@ -21,8 +21,45 @@ public class StructuredQueryParserTest {
         structuredQueryExpected.addEdge(new StructuredQueryEdge("a", "b"));
         structuredQueryExpected.addEdge(new StructuredQueryEdge("b", "c"));
         structuredQueryExpected.addEdge(new StructuredQueryEdge("c", "a"));
-        structuredQueryExpected.setOperation(StructuredQuery.Operation.MATCH);
+        structuredQueryExpected.setQueryOperation(StructuredQuery.QueryOperation.MATCH);
 
-        Assert.assertTrue(structuredQueryActual.equalsTo(structuredQueryExpected));
+        Assert.assertTrue(structuredQueryActual.isSameAs(structuredQueryExpected));
+    }
+
+    @Test
+    public void testParseCreateQuery() throws Exception {
+        StructuredQuery structuredQueryActual;
+        String query = "CREATE (1)->(2),(2)->(3),(1)->(3);";
+        try {
+            structuredQueryActual = new StructuredQueryParser().parse(query);
+        } catch (ParseCancellationException e) {
+            throw new Exception("ERROR parsing: " + e.getMessage());
+        }
+
+        StructuredQuery structuredQueryExpected = new StructuredQuery();
+        structuredQueryExpected.addEdge(new StructuredQueryEdge("1", "2"));
+        structuredQueryExpected.addEdge(new StructuredQueryEdge("2", "3"));
+        structuredQueryExpected.addEdge(new StructuredQueryEdge("1", "3"));
+        structuredQueryExpected.setQueryOperation(StructuredQuery.QueryOperation.CREATE);
+
+        Assert.assertTrue(structuredQueryActual.isSameAs(structuredQueryExpected));
+    }
+
+    @Test
+    public void testParseDeleteQuery() throws Exception {
+        StructuredQuery structuredQueryActual;
+        String query = "DELETE (1)->(2),(2)->(3);";
+        try {
+            structuredQueryActual = new StructuredQueryParser().parse(query);
+        } catch (ParseCancellationException e) {
+            throw new Exception("ERROR parsing: " + e.getMessage());
+        }
+
+        StructuredQuery structuredQueryExpected = new StructuredQuery();
+        structuredQueryExpected.addEdge(new StructuredQueryEdge("1", "2"));
+        structuredQueryExpected.addEdge(new StructuredQueryEdge("2", "3"));
+        structuredQueryExpected.setQueryOperation(StructuredQuery.QueryOperation.DELETE);
+
+        Assert.assertTrue(structuredQueryActual.isSameAs(structuredQueryExpected));
     }
 }

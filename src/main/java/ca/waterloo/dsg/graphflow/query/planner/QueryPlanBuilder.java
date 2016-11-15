@@ -10,7 +10,7 @@ public class QueryPlanBuilder {
 
     public QueryPlan plan(StructuredQuery query) {
         QueryPlan plan = null;
-        switch (query.getOperation()) {
+        switch (query.getQueryOperation()) {
             case CREATE:
                 plan = new CreateQueryPlanner(query).plan();
                 break;

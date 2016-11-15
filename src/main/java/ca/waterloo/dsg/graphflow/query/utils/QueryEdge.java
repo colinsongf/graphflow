@@ -1,5 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.utils;
 
+import java.util.Objects;
+
 /**
  * Represents an edge in the {@code QueryGraph}
  */
@@ -7,29 +9,34 @@ public class QueryEdge {
     public String toVariable;
     public String fromVariable;
 
-    public QueryEdge() { }
-
     public QueryEdge(String fromVariable, String toVariable) {
         this.fromVariable = fromVariable;
         this.toVariable = toVariable;
     }
 
     @Override
-    public boolean equals(Object edge) {
-        QueryEdge compareObject = (QueryEdge) edge;
-        return this.fromVariable == compareObject.fromVariable && this.toVariable ==
-            compareObject.toVariable;
+    public int hashCode() {
+        return Objects.hash(toVariable, fromVariable);
     }
 
     @Override
-    public int hashCode()
-    {
-        int hash = 0;
-        hash += (this.fromVariable != null? this.fromVariable.hashCode(): 0);
-        hash += (this.toVariable != null? this.toVariable.hashCode(): 0);
-        return hash;
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        QueryEdge queryEdge = (QueryEdge) o;
+        if (toVariable != null ? !toVariable.equals(queryEdge.toVariable) :
+            queryEdge.toVariable != null) {
+            return false;
+        }
+        return fromVariable != null ? fromVariable.equals(queryEdge.fromVariable) :
+            queryEdge.fromVariable == null;
     }
 
+    @Override
     public String toString() {
         return this.fromVariable + "->" + this.toVariable;
     }

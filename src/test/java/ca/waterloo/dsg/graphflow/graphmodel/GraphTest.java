@@ -14,7 +14,7 @@ public class GraphTest {
     @Test
     public void testCreateInstance() throws Exception {
         File file = new File(this.getClass().getClassLoader().getResource("graph.json").getPath());
-        Graph g = Graph.createInstance(file);
+        Graph g = GraphBuilder.createInstance(file);
         System.out.println(g);
         Assert.assertEquals(6, g.getVertexCount());
         int[] result = {2};
@@ -24,8 +24,8 @@ public class GraphTest {
     @Test
     public void testGetVertices() throws Exception {
         File file = new File(this.getClass().getClassLoader().getResource("graph.json").getPath());
-        Graph g = Graph.createInstance(file);
+        Graph g = GraphBuilder.createInstance(file);
         SortedIntArrayList vertices = g.getVertices();
-        Assert.assertEquals(6, vertices.size());
+        Assert.assertEquals(6, vertices.getSize());
     }
 }

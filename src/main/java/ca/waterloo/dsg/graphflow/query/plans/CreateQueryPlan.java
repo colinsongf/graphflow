@@ -22,9 +22,4 @@ public class CreateQueryPlan implements QueryPlan {
         }
         return structuredQuery.getStructuredQueryEdges().size() + " edges created.";
     }
-
-    @Override
-    public boolean equalsTo(Object o) {
-        return false;
-    }
 }

@@ -22,11 +22,20 @@ public class GenericJoinIntersectionRule {
         return isForward;
     }
 
-    public boolean equalsTo(GenericJoinIntersectionRule that) {
+    /**
+     * Used in unit tests to assert the equality of the actual and expected objects.
+     *
+     * @param that The expected object.
+     * @return {@code true} if the current object values match perfectly with the expected object
+     * values, {@code false} otherwise.
+     */
+    public boolean isSameAs(GenericJoinIntersectionRule that) {
         if (that == null) {
             return false;
         }
-        return (this == that || (this.prefixIndex == that.prefixIndex && this.isForward == that
-            .isForward));
+        if (this == that) {
+            return true;
+        }
+        return (this.prefixIndex == that.prefixIndex && this.isForward == that.isForward);
     }
 }

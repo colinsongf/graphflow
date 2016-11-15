@@ -14,8 +14,7 @@ public class GraphflowCliRunner {
         try {
             Scanner cliInput;
             if (args.length > 0) {
-                // If an argument is provided, treat it as a filename to read commands from.
-                // This is used for automated testing.
+                // Read queries from a file if provided in the {@code args}, for automated testing.
                 File file = new File(args[0]);
                 cliInput = new Scanner(file);
             } else {

@@ -11,12 +11,12 @@ public class GenericJoinIntersectionRuleTest {
 
     @Test
     public void equalObjects() throws Exception {
-        Assert.assertTrue(obj_equal_1.equalsTo(obj_equal_2));
+        Assert.assertTrue(obj_equal_1.isSameAs(obj_equal_2));
     }
 
     @Test
     public void notEqualObjects() throws Exception {
-        Assert.assertFalse(obj_equal_1.equalsTo(obj_different));
-        Assert.assertFalse(obj_equal_2.equalsTo(obj_different));
+        Assert.assertFalse(obj_equal_1.isSameAs(obj_different));
+        Assert.assertFalse(obj_equal_2.isSameAs(obj_different));
     }
 }

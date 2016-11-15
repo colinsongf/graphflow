@@ -9,19 +9,38 @@ import org.junit.Test;
 public class SortedIntArrayListTest {
 
     @Test
-    public void testSearch() throws Exception {
-        int[] sortedList = {2, 4, 7, 23, 23, 45, 56, 76, 78};
-        SortedIntArrayList testList = new SortedIntArrayList();
-        testList.addAll(sortedList);
-        int index = testList.search(7);
-        Assert.assertEquals(2, index);
-        index = testList.search(750);
-        Assert.assertEquals(-1, index);
-        index = testList.search(-750);
-        Assert.assertEquals(-1, index);
+    public void testCreationAndSearch() throws Exception {
+        SortedIntArrayList testList;
+        // Test empty list.
         testList = new SortedIntArrayList();
-        index = testList.search(7);
-        Assert.assertEquals(-1, index);
+        int[] emptyList = {};
+        Assert.assertTrue(testList.isSameAs(emptyList));
+        Assert.assertEquals(-1, testList.search(42));
+        // Insert values.
+        int[] randomList = {74, 21, 7, 93, 42, 3, 27};
+        testList = new SortedIntArrayList();
+        testList.addAll(randomList);
+        testList.add(10);
+        testList.add(2);
+        testList.add(99);
+        // Test insertion. The list is expected to be stored sorted.
+        int[] expectedList = {2, 3, 7, 10, 21, 27, 42, 74, 93, 99};
+        Assert.assertTrue(testList.isSameAs(expectedList));
+        // Test search.
+        Assert.assertEquals(0, testList.search(2));
+        Assert.assertEquals(1, testList.search(3));
+        Assert.assertEquals(2, testList.search(7));
+        Assert.assertEquals(3, testList.search(10));
+        Assert.assertEquals(4, testList.search(21));
+        Assert.assertEquals(5, testList.search(27));
+        Assert.assertEquals(6, testList.search(42));
+        Assert.assertEquals(7, testList.search(74));
+        Assert.assertEquals(8, testList.search(93));
+        Assert.assertEquals(9, testList.search(99));
+        Assert.assertEquals(-1, testList.search(1));
+        Assert.assertEquals(-1, testList.search(30));
+        Assert.assertEquals(-1, testList.search(172));
+        Assert.assertEquals(-1, testList.search(-122));
     }
 
     @Test
@@ -33,7 +52,6 @@ public class SortedIntArrayListTest {
         SortedIntArrayList testList2 = new SortedIntArrayList();
         testList2.addAll(otherList);
         SortedIntArrayList intersection = testList.getIntersection(testList2);
-        System.out.println(intersection);
         int[] results = {4, 23, 56, 76};
         Assert.assertArrayEquals(results, intersection.toArray());
     }

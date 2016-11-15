@@ -1,9 +1,10 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
+import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
 import ca.waterloo.dsg.graphflow.graphmodel.Graph.GraphVersion;
-import ca.waterloo.dsg.graphflow.query.executors.DeltaGenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.plans.DeltaGenericJoinQueryPlan;
+import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
+import ca.waterloo.dsg.graphflow.query.plans.DeltaGJMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
@@ -36,7 +37,7 @@ public class ContinuousMatchQueryPlannerTest {
 
     @Test
     public void testPlan() throws Exception {
-        DeltaGenericJoinQueryPlan plan = (DeltaGenericJoinQueryPlan) planner.plan();
+        DeltaGJMatchQueryPlan plan = (DeltaGJMatchQueryPlan) planner.plan();
         Assert.assertEquals(5, plan.getQueryCount());
     }
 
@@ -54,27 +55,29 @@ public class ContinuousMatchQueryPlannerTest {
         orderedVariables.add("c");
         orderedVariables.add("a");
         orderedVariables.add("d");
-        List<List<DeltaGenericJoinIntersectionRule>> expectedSinglePlan = new ArrayList<>();
+        List<List<GenericJoinIntersectionRule>> expectedSinglePlan = new ArrayList<>();
         // Extending to "a" in ordered variables.
-        List<DeltaGenericJoinIntersectionRule> firstStage = new ArrayList<>();
-        firstStage.add(new DeltaGenericJoinIntersectionRule(0, GraphVersion.LATEST, false));
-        firstStage.add(new DeltaGenericJoinIntersectionRule(1, GraphVersion.OLD, true));
+        List<GenericJoinIntersectionRule> firstStage = new ArrayList<>();
+        firstStage.add(
+            new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE, GraphVersion.LATEST));
+        firstStage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD, GraphVersion.OLD));
         expectedSinglePlan.add(firstStage);
         // Extending to "d" in ordered variables.
-        List<DeltaGenericJoinIntersectionRule> secondStage = new ArrayList<>();
-        secondStage.add(new DeltaGenericJoinIntersectionRule(1, GraphVersion.OLD, false));
-        secondStage.add(new DeltaGenericJoinIntersectionRule(2, GraphVersion.OLD, true));
+        List<GenericJoinIntersectionRule> secondStage = new ArrayList<>();
+        secondStage.add(
+            new GenericJoinIntersectionRule(1, EdgeDirection.REVERSE, GraphVersion.OLD));
+        secondStage.add(
+            new GenericJoinIntersectionRule(2, EdgeDirection.FORWARD, GraphVersion.OLD));
         expectedSinglePlan.add(secondStage);
 
-        List<List<DeltaGenericJoinIntersectionRule>> resultSinglePlan =
-            planner.createSingleQueryPlan(diffRelation, orderedVariables, oldRelations,
-                latestRelations);
+        List<List<GenericJoinIntersectionRule>> resultSinglePlan = planner.createSingleQueryPlan(
+            diffRelation, orderedVariables, oldRelations, latestRelations);
         Assert.assertEquals(2, resultSinglePlan.size());
         Assert.assertEquals(2, resultSinglePlan.get(0).size());
         Assert.assertEquals(2, resultSinglePlan.get(1).size());
         for (int i = 0; i < resultSinglePlan.size(); i++) {
             for (int j = 0; j < resultSinglePlan.get(i).size(); j++) {
-                Assert.assertTrue((resultSinglePlan.get(i).get(j).equalsTo(expectedSinglePlan.
+                Assert.assertTrue((resultSinglePlan.get(i).get(j).isSameAs(expectedSinglePlan.
                     get(i).get(j))));
             }
         }
@@ -89,16 +92,16 @@ public class ContinuousMatchQueryPlannerTest {
         oldRelations.add(new QueryEdge("a", "d"));
         oldRelations.add(new QueryEdge("d", "c"));
         oldRelations.add(new QueryEdge("c", "a"));
-        List<DeltaGenericJoinIntersectionRule> resultStage = new ArrayList<>();
+        List<GenericJoinIntersectionRule> resultStage = new ArrayList<>();
         QueryEdge possibleEdge = new QueryEdge("a", "b");
         int prefixIndex = 0;
 
         planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.EdgeDirection.FORWARD, possibleEdge,
             diffRelation, resultStage, oldRelations, latestRelations);
-        DeltaGenericJoinIntersectionRule expectedRule = new DeltaGenericJoinIntersectionRule(0,
-            GraphVersion.LATEST, true);
+        GenericJoinIntersectionRule expectedRule = new GenericJoinIntersectionRule(0,
+            EdgeDirection.FORWARD, GraphVersion.LATEST);
 
-        Assert.assertTrue(expectedRule.equalsTo(resultStage.get(0)));
+        Assert.assertTrue(expectedRule.isSameAs(resultStage.get(0)));
     }
 
     @Test
@@ -110,16 +113,16 @@ public class ContinuousMatchQueryPlannerTest {
         oldRelations.add(new QueryEdge("a", "d"));
         oldRelations.add(new QueryEdge("d", "c"));
         oldRelations.add(new QueryEdge("c", "a"));
-        List<DeltaGenericJoinIntersectionRule> resultStage = new ArrayList<>();
+        List<GenericJoinIntersectionRule> resultStage = new ArrayList<>();
         QueryEdge possibleEdge = new QueryEdge("d", "c");
         int prefixIndex = 0;
 
         planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.EdgeDirection.FORWARD, possibleEdge,
             diffRelation, resultStage, oldRelations, latestRelations);
-        DeltaGenericJoinIntersectionRule expectedRule = new DeltaGenericJoinIntersectionRule(0,
-            GraphVersion.OLD, true);
+        GenericJoinIntersectionRule expectedRule = new GenericJoinIntersectionRule(0,
+            EdgeDirection.FORWARD, GraphVersion.OLD);
 
-        Assert.assertTrue(expectedRule.equalsTo(resultStage.get(0)));
+        Assert.assertTrue(expectedRule.isSameAs(resultStage.get(0)));
     }
 
     @Test
@@ -131,16 +134,16 @@ public class ContinuousMatchQueryPlannerTest {
         oldRelations.add(new QueryEdge("a", "d"));
         oldRelations.add(new QueryEdge("d", "c"));
         oldRelations.add(new QueryEdge("c", "a"));
-        List<DeltaGenericJoinIntersectionRule> resultStage = new ArrayList<>();
+        List<GenericJoinIntersectionRule> resultStage = new ArrayList<>();
         QueryEdge possibleEdge = new QueryEdge("b", "c");
         int prefixIndex = 0;
 
         planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.EdgeDirection.FORWARD, possibleEdge,
             diffRelation, resultStage, oldRelations, latestRelations);
-        DeltaGenericJoinIntersectionRule expectedRule = new DeltaGenericJoinIntersectionRule(0,
-            GraphVersion.DIFF, true);
+        GenericJoinIntersectionRule expectedRule = new GenericJoinIntersectionRule(0,
+            EdgeDirection.FORWARD, GraphVersion.DIFF);
 
-        Assert.assertTrue(expectedRule.equalsTo(resultStage.get(0)));
+        Assert.assertTrue(expectedRule.isSameAs(resultStage.get(0)));
     }
 
     @Test
@@ -152,7 +155,7 @@ public class ContinuousMatchQueryPlannerTest {
         oldRelations.add(new QueryEdge("a", "d"));
         oldRelations.add(new QueryEdge("d", "c"));
         oldRelations.add(new QueryEdge("c", "a"));
-        List<DeltaGenericJoinIntersectionRule> resultStage = new ArrayList<>();
+        List<GenericJoinIntersectionRule> resultStage = new ArrayList<>();
         QueryEdge possibleEdge = new QueryEdge("d", "a");
         int prefixIndex = 0;
 

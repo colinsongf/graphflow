@@ -1,8 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.graphmodel.Graph;
+import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.plans.MatchQueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.GJMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryGraph;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
@@ -18,12 +18,12 @@ import java.util.Set;
 /**
  * Create a {@code QueryPlan} for the MATCH operation.
  */
-public class MatchQueryPlanner extends AbstractQueryPlanner {
+public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
 
-    private static final Logger logger = LogManager.getLogger(MatchQueryPlanner.class);
+    private static final Logger logger = LogManager.getLogger(OneTimeMatchQueryPlanner.class);
     protected QueryGraph queryGraph = new QueryGraph();
 
-    public MatchQueryPlanner(StructuredQuery structuredQuery) {
+    public OneTimeMatchQueryPlanner(StructuredQuery structuredQuery) {
         super(structuredQuery);
 
         // Initialize {@code queryGraph}.
@@ -97,7 +97,7 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
     }
 
     public QueryPlan plan() {
-        MatchQueryPlan matchQueryPlan = new MatchQueryPlan();
+        GJMatchQueryPlan gjMatchQueryPlan = new GJMatchQueryPlan();
         Set<String> visitedVariables = new HashSet<>();
         List<String> orderedVariables = new ArrayList<>();
         /*
@@ -134,15 +134,14 @@ public class MatchQueryPlanner extends AbstractQueryPlanner {
                 String variableFromPreviousStage = orderedVariables.get(j);
                 if (queryGraph.getQueryVariableAdjList(variableFromPreviousStage)
                     .hasNeighborVariable(variableForCurrentStage)) {
-                    boolean isForward = queryGraph.getQueryVariableAdjList(
-                        variableFromPreviousStage).getDirectionTo(variableForCurrentStage) ==
-                        Graph.EdgeDirection.FORWARD;
-                    stage.add(new GenericJoinIntersectionRule(j, isForward));
+                    EdgeDirection edgeDirection = queryGraph.getQueryVariableAdjList(
+                        variableFromPreviousStage).getDirectionTo(variableForCurrentStage);
+                    stage.add(new GenericJoinIntersectionRule(j, edgeDirection));
                 }
             }
-            matchQueryPlan.addStage(stage);
+            gjMatchQueryPlan.addStage(stage);
         }
-        logger.info("Plan: \n" + matchQueryPlan);
-        return matchQueryPlan;
+        logger.info("Plan: \n" + gjMatchQueryPlan);
+        return gjMatchQueryPlan;
     }
 }

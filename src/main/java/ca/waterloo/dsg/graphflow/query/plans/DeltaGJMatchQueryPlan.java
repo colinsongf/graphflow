@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.demograph.Graph;
-import ca.waterloo.dsg.graphflow.query.executors.DeltaGenericJoinIntersectionRule;
+import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,9 +10,9 @@ import java.util.List;
  * Represents a generic join delta query plan with multiple rounds of queries using different
  * versions of the graph.
  */
-public class DeltaGenericJoinQueryPlan implements QueryPlan {
+public class DeltaGJMatchQueryPlan implements QueryPlan {
 
-    private List<List<List<DeltaGenericJoinIntersectionRule>>> joinQueries = new ArrayList<>();
+    private List<List<List<GenericJoinIntersectionRule>>> joinQueries = new ArrayList<>();
 
     @Override
     public String execute(Graph graph) {
@@ -20,7 +20,7 @@ public class DeltaGenericJoinQueryPlan implements QueryPlan {
         return graph.getGraphString();
     }
 
-    public void addQuery(List<List<DeltaGenericJoinIntersectionRule>> joinQuery) {
+    public void addQuery(List<List<GenericJoinIntersectionRule>> joinQuery) {
         joinQueries.add(joinQuery);
     }
 
@@ -28,7 +28,7 @@ public class DeltaGenericJoinQueryPlan implements QueryPlan {
         return joinQueries.size();
     }
 
-    public List<List<DeltaGenericJoinIntersectionRule>> getQuery(int index) {
+    public List<List<GenericJoinIntersectionRule>> getQuery(int index) {
         return joinQueries.get(index);
     }
 }

@@ -2,8 +2,8 @@ package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
 import ca.waterloo.dsg.graphflow.graphmodel.Graph.GraphVersion;
-import ca.waterloo.dsg.graphflow.query.executors.DeltaGenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.plans.DeltaGenericJoinQueryPlan;
+import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
+import ca.waterloo.dsg.graphflow.query.plans.DeltaGJMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
@@ -15,10 +15,10 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Creates a {@code DeltaGenericJoinQueryPlan} to continuously find changes to MATCH query
+ * Creates a {@code DeltaGJMatchQueryPlan} to continuously find changes to MATCH query
  * results specified in the limited Cypher language Graphflow supports.
  */
-public class ContinuousMatchQueryPlanner extends MatchQueryPlanner {
+public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
 
     public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery) {
         super(structuredQuery);
@@ -26,7 +26,7 @@ public class ContinuousMatchQueryPlanner extends MatchQueryPlanner {
 
     @Override
     public QueryPlan plan() {
-        DeltaGenericJoinQueryPlan deltaPlan = new DeltaGenericJoinQueryPlan();
+        DeltaGJMatchQueryPlan deltaPlan = new DeltaGJMatchQueryPlan();
         // We construct as many delta queries as there are edges in the query graph. Let n be the
         // number of edges in the query graph. Then we have dQ1, dQ2, ..., dQn. Delta query dQi
         // consists of the following: (1) i-1 relations that contains all of the LATEST graph
@@ -52,25 +52,25 @@ public class ContinuousMatchQueryPlanner extends MatchQueryPlanner {
     }
 
     /**
-     * Returns the query plan for a single delta query in the {@code DeltaGenericJoinQueryPlan}.
+     * Returns the query plan for a single delta query in the {@code DeltaGJMatchQueryPlan}.
      *
      * @param diffRelation The relation which will use the diff graph for a single delta query in
-     * the {@code DeltaGenericJoinQueryPlan}.
+     * the {@code DeltaGJMatchQueryPlan}.
      * @param orderedVariables The order in which variables will be covered in the plan.
      * @param oldRelations The set of relations that uses the old version of the graph.
      * @param latestRelations The set of relations that will use the latest version of the graph.
-     * @return List<List<DeltaGenericJoinIntersectionRule>> A set of stages representing a single
+     * @return List<List<GenericJoinIntersectionRule>> A set of stages representing a single
      * generic join query plan.
      */
     @VisibleForTesting
-    public List<List<DeltaGenericJoinIntersectionRule>> createSingleQueryPlan(
-        QueryEdge diffRelation, List<String> orderedVariables, Set<QueryEdge> oldRelations,
+    public List<List<GenericJoinIntersectionRule>> createSingleQueryPlan(QueryEdge diffRelation,
+        List<String> orderedVariables, Set<QueryEdge> oldRelations,
         Set<QueryEdge> latestRelations) {
-        List<List<DeltaGenericJoinIntersectionRule>> singleRoundPlan = new ArrayList<>();
+        List<List<GenericJoinIntersectionRule>> singleRoundPlan = new ArrayList<>();
         // We use 2 here because the first two ordered variables will not be matched using
         // generic join. Instead, we use the two variables from the edge of {@code diffRelation}.
         for (int i = 2; i < orderedVariables.size(); i++) {
-            List<DeltaGenericJoinIntersectionRule> stage = new ArrayList<>();
+            List<GenericJoinIntersectionRule> stage = new ArrayList<>();
             String variable = orderedVariables.get(i);
             for (int j = 0; j < i; j++) {
                 String coveredVariable = orderedVariables.get(j);
@@ -92,26 +92,25 @@ public class ContinuousMatchQueryPlanner extends MatchQueryPlanner {
     }
 
     /**
-     * Adds a {@code DeltaGenericJoinIntersectionRule} to the given stage with the given {@code
+     * Adds a {@code GenericJoinIntersectionRule} to the given stage with the given {@code
      * prefixIndex} and given {@code edgeDirection} if {@code possibleEdge} is either the
      * {\code diffRelation} or exists in {code oldRelations} or {code latestRelations}
      *
-     * @param prefixIndex Prefix index of the {@code DeltaGenericJoinIntersectionRule} to be
+     * @param prefixIndex Prefix index of the {@code GenericJoinIntersectionRule} to be
      * created.
      * @param edgeDirection Direction from the covered variable to the variable under
      * consideration.
      * @param possibleEdge The edge whose existence is checked.
      * @param diffRelation The relation which will use the diff graph for this iteration of
-     * {@code DeltaGenericJoinQueryPlan}.
+     * {@code DeltaGJMatchQueryPlan}.
      * @param stage The generic join stage to which the intersection rule will be added.
      * @param oldRelations The set of relations that uses the old version of the graph.
      * @param latestRelations The set of relations that will use the latest version of the graph.
      */
     @VisibleForTesting
     public void addRuleIfPossibleEdgeExists(int prefixIndex, Graph.EdgeDirection edgeDirection,
-        QueryEdge possibleEdge, QueryEdge diffRelation,
-        List<DeltaGenericJoinIntersectionRule> stage, Set<QueryEdge> oldRelations,
-        Set<QueryEdge> latestRelations) {
+        QueryEdge possibleEdge, QueryEdge diffRelation, List<GenericJoinIntersectionRule> stage,
+        Set<QueryEdge> oldRelations, Set<QueryEdge> latestRelations) {
         // Check for the existence of the edge in the given edgeDirection.
         GraphVersion version = null;
         if (possibleEdge.equals(diffRelation)) {
@@ -123,8 +122,7 @@ public class ContinuousMatchQueryPlanner extends MatchQueryPlanner {
         }
 
         if (version != null) {
-            stage.add(new DeltaGenericJoinIntersectionRule(prefixIndex, version,
-                edgeDirection == Graph.EdgeDirection.FORWARD));
+            stage.add(new GenericJoinIntersectionRule(prefixIndex, edgeDirection, version));
         }
     }
 }

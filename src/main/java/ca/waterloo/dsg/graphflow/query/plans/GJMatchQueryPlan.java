@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Class representing plan for a MATCH operation.
  */
-public class MatchQueryPlan implements QueryPlan {
+public class GJMatchQueryPlan implements QueryPlan {
 
     private List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
 
@@ -45,7 +45,7 @@ public class MatchQueryPlan implements QueryPlan {
      * @return {@code true} if the current object values match perfectly with the expected object
      * values, {@code false} otherwise.
      */
-    public boolean isSameAs(MatchQueryPlan that) {
+    public boolean isSameAs(GJMatchQueryPlan that) {
         if (that == null) {
             return false;
         }

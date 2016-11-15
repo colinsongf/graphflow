@@ -64,14 +64,14 @@ public class Graph {
      * Returns an array of outgoing or incoming adjacency lists for the given vertex.
      *
      * @param vertexIndex
-     * @param isForward
+     * @param edgeDirection
      * @return SortedIntArrayList
      * @throws ArrayIndexOutOfBoundsException
      */
-    public SortedIntArrayList getAdjacencyList(int vertexIndex, boolean isForward)
+    public SortedIntArrayList getAdjacencyList(int vertexIndex, EdgeDirection edgeDirection)
         throws ArrayIndexOutOfBoundsException {
         SortedIntArrayList result = null;
-        if (isForward) {
+        if (edgeDirection == EdgeDirection.FORWARD) {
             if (outgoingAdjLists[vertexIndex] == null) {
                 outgoingAdjLists[vertexIndex] = new SortedIntArrayList();
             }
@@ -89,12 +89,12 @@ public class Graph {
      * Returns the size of the adjacency list for the given vertex in the given direction.
      *
      * @param vertexIndex
-     * @param isForward
+     * @param edgeDirection
      * @return
      */
-    public int getAdjacencyListSize(int vertexIndex, boolean isForward) {
+    public int getAdjacencyListSize(int vertexIndex, EdgeDirection edgeDirection) {
         int result;
-        if (isForward) {
+        if (edgeDirection == EdgeDirection.FORWARD) {
             if (outgoingAdjLists[vertexIndex] == null) {
                 outgoingAdjLists[vertexIndex] = new SortedIntArrayList();
             }

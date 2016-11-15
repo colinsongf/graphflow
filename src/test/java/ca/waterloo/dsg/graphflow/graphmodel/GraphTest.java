@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.graphmodel;
 
+import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
 import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
 import org.junit.Assert;
 import org.junit.Test;
@@ -18,7 +19,7 @@ public class GraphTest {
         System.out.println(g);
         Assert.assertEquals(6, g.getVertexCount());
         int[] result = {2};
-        Assert.assertArrayEquals(result, g.getAdjacencyList(1, true).toArray());
+        Assert.assertArrayEquals(result, g.getAdjacencyList(1, EdgeDirection.FORWARD).toArray());
     }
 
     @Test

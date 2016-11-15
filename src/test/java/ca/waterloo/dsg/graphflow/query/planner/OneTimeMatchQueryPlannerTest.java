@@ -1,7 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
+import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.plans.MatchQueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.GJMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 import org.junit.Assert;
@@ -9,7 +10,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 
-public class MatchQueryPlannerTest {
+public class OneTimeMatchQueryPlannerTest {
 
     @Test
     public void testPlanTriangleQuery() throws Exception {
@@ -18,20 +19,20 @@ public class MatchQueryPlannerTest {
         triangleStructuredQuery.addEdge(new StructuredQueryEdge("b", "c"));
         triangleStructuredQuery.addEdge(new StructuredQueryEdge("c", "a"));
 
-        MatchQueryPlan matchQueryPlanActual = (MatchQueryPlan) new MatchQueryPlanner(
+        GJMatchQueryPlan gjMatchQueryPlanActual = (GJMatchQueryPlan) new OneTimeMatchQueryPlanner(
             triangleStructuredQuery).plan();
 
-        MatchQueryPlan matchQueryPlanExpected = new MatchQueryPlan();
+        GJMatchQueryPlan gjMatchQueryPlanExpected = new GJMatchQueryPlan();
         ArrayList<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, true));
-        matchQueryPlanExpected.addStage(stage);
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.FORWARD));
+        gjMatchQueryPlanExpected.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, false));
-        stage.add(new GenericJoinIntersectionRule(1, true));
-        matchQueryPlanExpected.addStage(stage);
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
+        gjMatchQueryPlanExpected.addStage(stage);
 
-        Assert.assertTrue(matchQueryPlanActual.isSameAs(matchQueryPlanExpected));
+        Assert.assertTrue(gjMatchQueryPlanActual.isSameAs(gjMatchQueryPlanExpected));
     }
 
     @Test
@@ -45,29 +46,29 @@ public class MatchQueryPlannerTest {
         complexStructuredQuery.addEdge(new StructuredQueryEdge("e", "b"));
         complexStructuredQuery.addEdge(new StructuredQueryEdge("f", "c"));
 
-        MatchQueryPlan matchQueryPlanActual = (MatchQueryPlan) new MatchQueryPlanner(
+        GJMatchQueryPlan gjMatchQueryPlanActual = (GJMatchQueryPlan) new OneTimeMatchQueryPlanner(
             complexStructuredQuery).plan();
 
-        MatchQueryPlan matchQueryPlanExpected = new MatchQueryPlan();
+        GJMatchQueryPlan gjMatchQueryPlanExpected = new GJMatchQueryPlan();
         ArrayList<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, false));
-        matchQueryPlanExpected.addStage(stage);
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        gjMatchQueryPlanExpected.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, false));
-        stage.add(new GenericJoinIntersectionRule(1, true));
-        matchQueryPlanExpected.addStage(stage);
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
+        gjMatchQueryPlanExpected.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, false));
-        matchQueryPlanExpected.addStage(stage);
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        gjMatchQueryPlanExpected.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, false));
-        stage.add(new GenericJoinIntersectionRule(3, true));
-        matchQueryPlanExpected.addStage(stage);
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(3, EdgeDirection.FORWARD));
+        gjMatchQueryPlanExpected.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(1, false));
-        matchQueryPlanExpected.addStage(stage);
+        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.REVERSE));
+        gjMatchQueryPlanExpected.addStage(stage);
 
-        Assert.assertTrue(matchQueryPlanActual.isSameAs(matchQueryPlanExpected));
+        Assert.assertTrue(gjMatchQueryPlanActual.isSameAs(gjMatchQueryPlanExpected));
     }
 }

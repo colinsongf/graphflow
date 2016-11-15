@@ -1,5 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
+import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graphmodel.Graph.GraphVersion;
+
 /**
  * Represents a generic join rule consisting of a prefix index and a direction. The rule will be
  * part of a Generic Join stage and will be used to find possible extensions (new outgoing or
@@ -7,19 +10,34 @@ package ca.waterloo.dsg.graphflow.query.executors;
  */
 public class GenericJoinIntersectionRule {
     private int prefixIndex;
-    private boolean isForward;
+    private EdgeDirection edgeDirection;
+    private GraphVersion graphVersion;
 
-    public GenericJoinIntersectionRule(int prefixIndex, boolean isForward) {
+    public GenericJoinIntersectionRule(int prefixIndex, EdgeDirection edgeDirection) {
+        this(prefixIndex, edgeDirection, GraphVersion.OLD);
+    }
+
+    public GenericJoinIntersectionRule(int prefixIndex, EdgeDirection edgeDirection,
+        GraphVersion graphVersion) {
         this.prefixIndex = prefixIndex;
-        this.isForward = isForward;
+        this.edgeDirection = edgeDirection;
+        this.graphVersion = graphVersion;
     }
 
     public int getPrefixIndex() {
         return prefixIndex;
     }
 
-    public boolean isForward() {
-        return isForward;
+    public EdgeDirection isForward() {
+        return edgeDirection;
+    }
+
+    public GraphVersion getGraphVersion() {
+        return graphVersion;
+    }
+
+    public void setGraphVersion(GraphVersion graphVersion) {
+        this.graphVersion = graphVersion;
     }
 
     /**
@@ -36,6 +54,7 @@ public class GenericJoinIntersectionRule {
         if (this == that) {
             return true;
         }
-        return (this.prefixIndex == that.prefixIndex && this.isForward == that.isForward);
+        return (this.prefixIndex == that.prefixIndex && this.edgeDirection == that.edgeDirection &&
+            this.graphVersion == that.graphVersion);
     }
 }

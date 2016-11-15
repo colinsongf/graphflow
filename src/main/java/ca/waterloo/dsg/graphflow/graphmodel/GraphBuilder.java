@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.graphmodel;
 
+import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -66,8 +67,8 @@ public class GraphBuilder {
                 JsonObject edgeObj = edge.getAsJsonObject();
                 int src = edgeObj.get(GraphDeserializer.SOURCE).getAsInt();
                 int dst = edgeObj.get(GraphDeserializer.DESTINATION).getAsInt();
-                graph.getAdjacencyList(src, true).add(dst);
-                graph.getAdjacencyList(dst, false).add(src);
+                graph.getAdjacencyList(src, EdgeDirection.FORWARD).add(dst);
+                graph.getAdjacencyList(dst, EdgeDirection.REVERSE).add(src);
             }
             return graph;
         }

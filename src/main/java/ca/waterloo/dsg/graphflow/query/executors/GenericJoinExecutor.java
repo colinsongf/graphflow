@@ -2,7 +2,7 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graphmodel.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
-import ca.waterloo.dsg.graphflow.query.planner.MatchQueryPlanner;
+import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,10 +14,10 @@ import java.util.List;
  * Processes the given query stages for the in-memory graph using the Generic Join algorithm.
  * Processing is done in batches using recursion.
  */
-public class GenericJoinProcessor {
+public class GenericJoinExecutor {
 
     public static final int BATCH_SIZE = 2;
-    private static final Logger logger = LogManager.getLogger(MatchQueryPlanner.class);
+    private static final Logger logger = LogManager.getLogger(OneTimeMatchQueryPlanner.class);
     /**
      * Stages represents a Generic Join query plan for a query consisting of particular set of edges
      * and vertices. Each stage is used to expand the result tuples to an additional vertex.
@@ -26,7 +26,7 @@ public class GenericJoinProcessor {
     private OutputSink outputSink;
     private Graph graph;
 
-    public GenericJoinProcessor(List<List<GenericJoinIntersectionRule>> stages,
+    public GenericJoinExecutor(List<List<GenericJoinIntersectionRule>> stages,
         OutputSink outputSink, Graph graph) {
         this.stages = stages;
         this.outputSink = outputSink;

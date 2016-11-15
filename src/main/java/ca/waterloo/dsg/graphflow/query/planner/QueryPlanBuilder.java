@@ -18,7 +18,7 @@ public class QueryPlanBuilder {
                 plan = new DeleteQueryPlanner(query).plan();
                 break;
             case MATCH:
-                plan = new MatchQueryPlanner(query).plan();
+                plan = new OneTimeMatchQueryPlanner(query).plan();
                 break;
             default:
                 break;

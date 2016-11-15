@@ -1,14 +1,11 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
-import ca.waterloo.dsg.graphflow.graphmodel.Graph;
-import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
-import ca.waterloo.dsg.graphflow.graphmodel.GraphBuilder;
+import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
 import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,60 +14,77 @@ import java.util.List;
  */
 public class GenericJoinExecutorTest {
 
-    private Graph graph;
-    private InMemoryOutputSink outputSink;
-
-    @Before
-    public void setUp() throws Exception {
-        File file = new File(this.getClass().getClassLoader().getResource("graph.json").getPath());
-        graph = GraphBuilder.createInstance(file);
-    }
-
     @Test
     public void testProcessTriangles() throws Exception {
-        List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
-        List<GenericJoinIntersectionRule> firstStage = new ArrayList<>();
-        firstStage.add(new GenericJoinIntersectionRule(0, EdgeDirection.FORWARD));
-        //first stage is an empty ArrayList signifying that this stage is unbounded
-        stages.add(firstStage);
-        List<GenericJoinIntersectionRule> secondStage = new ArrayList<>();
-        secondStage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
-        secondStage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
-        stages.add(secondStage);
+        // Create the stages for the triangle query.
+        List<List<GenericJoinIntersectionRule>> triangleQueryStages = new ArrayList<>();
+        List<GenericJoinIntersectionRule> stage;
+        stage = new ArrayList<>();
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.FORWARD));
+        triangleQueryStages.add(stage);
+        stage = new ArrayList<>();
+        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        triangleQueryStages.add(stage);
 
-        outputSink = new InMemoryOutputSink();
-        int[][] prefixes = new int[this.graph.getVertexCount()][1];
-        for (int i = 0; i < this.graph.getVertexCount(); i++) {
-            prefixes[i][0] = i;
-        }
-        GenericJoinExecutor executor = new GenericJoinExecutor(stages, outputSink, this.graph);
-        executor.extend(prefixes, 0);
-        int[][] results = {{0, 1, 2}, {1, 2, 0}, {2, 0, 1}};
-        Assert.assertArrayEquals(results, outputSink.getResults().toArray());
+        int[][] results1 = {{0, 1, 3}, {1, 3, 0}, {1, 3, 4}, {3, 0, 1}, {3, 4, 1}, {4, 1, 3}};
+        int[][] results2 = {{0, 1, 3}, {1, 3, 0}, {3, 0, 1}};
+        executeGJ(triangleQueryStages, results1, results2);
     }
 
     @Test
     public void testProcessSquares() throws Exception {
-        List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
-        List<GenericJoinIntersectionRule> firstStage = new ArrayList<>();
-        firstStage.add(new GenericJoinIntersectionRule(0, EdgeDirection.FORWARD));
-        stages.add(firstStage);
-        List<GenericJoinIntersectionRule> secondStage = new ArrayList<>();
-        secondStage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
-        stages.add(secondStage);
-        List<GenericJoinIntersectionRule> thirdStage = new ArrayList<>();
-        thirdStage.add(new GenericJoinIntersectionRule(2, EdgeDirection.FORWARD));
-        thirdStage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
-        stages.add(thirdStage);
+        // Create the stages for the triangle query.
+        List<List<GenericJoinIntersectionRule>> squareQueryStages = new ArrayList<>();
+        List<GenericJoinIntersectionRule> stage;
+        stage = new ArrayList<>();
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.FORWARD));
+        squareQueryStages.add(stage);
+        stage = new ArrayList<>();
+        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
+        squareQueryStages.add(stage);
+        stage = new ArrayList<>();
+        stage.add(new GenericJoinIntersectionRule(2, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        squareQueryStages.add(stage);
 
-        outputSink = new InMemoryOutputSink();
-        int[][] prefixes = new int[this.graph.getVertexCount()][1];
-        for (int i = 0; i < this.graph.getVertexCount(); i++) {
-            prefixes[i][0] = i;
+        int[][] results1 =
+            {{0, 1, 2, 3}, {1, 2, 3, 0}, {1, 2, 3, 4}, {2, 3, 0, 1}, {2, 3, 4, 1}, {3, 0, 1, 2},
+                {3, 4, 1, 2}, {4, 1, 2, 3}};
+        int[][] results2 = {{0, 1, 2, 3}, {1, 2, 3, 0}, {2, 3, 0, 1}, {3, 0, 1, 2}};
+        executeGJ(squareQueryStages, results1, results2);
+    }
+
+    private void executeGJ(List<List<GenericJoinIntersectionRule>> stages, int[][] results1,
+        int[][] results2) {
+        Graph graph = new Graph();
+        InMemoryOutputSink outputSink;
+        GenericJoinExecutor genericJoinExecutor;
+
+        // Initialize the graph.
+        int[][] edges = {{0, 1}, {1, 2}, {2, 3}, {1, 3}, {3, 4}, {3, 0}, {4, 1}};
+        for (int[] edge : edges) {
+            graph.addEdge(edge[0], edge[1]);
         }
-        GenericJoinExecutor executor = new GenericJoinExecutor(stages, outputSink, this.graph);
-        executor.extend(prefixes, 0);
-        int[][] results = {{0, 1, 2, 3}, {1, 2, 3, 0}, {2, 3, 0, 1}, {3, 0, 1, 2}};
-        Assert.assertArrayEquals(results, outputSink.getResults().toArray());
+        graph.finalizeChanges();
+
+        // Execute the triangle query and test.
+        outputSink = new InMemoryOutputSink();
+        genericJoinExecutor = new GenericJoinExecutor(stages, outputSink, graph);
+        genericJoinExecutor.execute();
+        Assert.assertArrayEquals(results1, outputSink.getResults().toArray());
+
+        // Delete one of the edges.
+        int[][] deletedEdges = {{4, 1}};
+        for (int[] edge : deletedEdges) {
+            graph.deleteEdge(edge[0], edge[1]);
+        }
+        graph.finalizeChanges();
+
+        // Execute the triangle query again and test.
+        outputSink = new InMemoryOutputSink();
+        genericJoinExecutor = new GenericJoinExecutor(stages, outputSink, graph);
+        genericJoinExecutor.execute();
+        Assert.assertArrayEquals(results2, outputSink.getResults().toArray());
     }
 }

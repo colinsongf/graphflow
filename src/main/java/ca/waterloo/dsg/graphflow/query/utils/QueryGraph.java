@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.utils;
 
-import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
 
 import java.util.HashMap;
 import java.util.HashSet;

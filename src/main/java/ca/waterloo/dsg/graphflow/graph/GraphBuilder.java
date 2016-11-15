@@ -1,6 +1,5 @@
-package ca.waterloo.dsg.graphflow.graphmodel;
+package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -16,8 +15,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 
-import static ca.waterloo.dsg.graphflow.graphmodel.Graph.graph;
-
 public class GraphBuilder {
 
     /**
@@ -32,8 +29,7 @@ public class GraphBuilder {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(Graph.class, new GraphDeserializer());
         Gson gson = gsonBuilder.create();
-        graph = gson.fromJson(new BufferedReader(new FileReader(file)), Graph.class);
-        return graph;
+        return gson.fromJson(new BufferedReader(new FileReader(file)), Graph.class);
     }
 
     /**
@@ -67,9 +63,9 @@ public class GraphBuilder {
                 JsonObject edgeObj = edge.getAsJsonObject();
                 int src = edgeObj.get(GraphDeserializer.SOURCE).getAsInt();
                 int dst = edgeObj.get(GraphDeserializer.DESTINATION).getAsInt();
-                graph.getAdjacencyList(src, EdgeDirection.FORWARD).add(dst);
-                graph.getAdjacencyList(dst, EdgeDirection.REVERSE).add(src);
+                graph.addEdge(src, dst);
             }
+            graph.finalizeChanges();
             return graph;
         }
         //TODO: serialize function to write human readable graph

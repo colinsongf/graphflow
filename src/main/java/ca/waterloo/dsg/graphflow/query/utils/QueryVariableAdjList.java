@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.utils;
 
-import ca.waterloo.dsg.graphflow.graphmodel.Graph;
+import ca.waterloo.dsg.graphflow.graph.Graph;
 
 import java.util.HashMap;
 import java.util.Map;

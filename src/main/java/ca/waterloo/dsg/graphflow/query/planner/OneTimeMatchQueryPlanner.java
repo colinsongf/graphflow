@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.GJMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;

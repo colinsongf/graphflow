@@ -1,8 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.graphmodel.Graph;
-import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
-import ca.waterloo.dsg.graphflow.graphmodel.Graph.GraphVersion;
+import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.DeltaGJMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
@@ -59,15 +59,16 @@ public class ContinuousMatchQueryPlannerTest {
         // Extending to "a" in ordered variables.
         List<GenericJoinIntersectionRule> firstStage = new ArrayList<>();
         firstStage.add(
-            new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE, GraphVersion.LATEST));
-        firstStage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD, GraphVersion.OLD));
+            new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE, GraphVersion.MERGED));
+        firstStage.add(
+            new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD, GraphVersion.CURRENT));
         expectedSinglePlan.add(firstStage);
         // Extending to "d" in ordered variables.
         List<GenericJoinIntersectionRule> secondStage = new ArrayList<>();
         secondStage.add(
-            new GenericJoinIntersectionRule(1, EdgeDirection.REVERSE, GraphVersion.OLD));
+            new GenericJoinIntersectionRule(1, EdgeDirection.REVERSE, GraphVersion.CURRENT));
         secondStage.add(
-            new GenericJoinIntersectionRule(2, EdgeDirection.FORWARD, GraphVersion.OLD));
+            new GenericJoinIntersectionRule(2, EdgeDirection.FORWARD, GraphVersion.CURRENT));
         expectedSinglePlan.add(secondStage);
 
         List<List<GenericJoinIntersectionRule>> resultSinglePlan = planner.createSingleQueryPlan(
@@ -99,7 +100,7 @@ public class ContinuousMatchQueryPlannerTest {
         planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.EdgeDirection.FORWARD, possibleEdge,
             diffRelation, resultStage, oldRelations, latestRelations);
         GenericJoinIntersectionRule expectedRule = new GenericJoinIntersectionRule(0,
-            EdgeDirection.FORWARD, GraphVersion.LATEST);
+            EdgeDirection.FORWARD, GraphVersion.MERGED);
 
         Assert.assertTrue(expectedRule.isSameAs(resultStage.get(0)));
     }
@@ -120,7 +121,7 @@ public class ContinuousMatchQueryPlannerTest {
         planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.EdgeDirection.FORWARD, possibleEdge,
             diffRelation, resultStage, oldRelations, latestRelations);
         GenericJoinIntersectionRule expectedRule = new GenericJoinIntersectionRule(0,
-            EdgeDirection.FORWARD, GraphVersion.OLD);
+            EdgeDirection.FORWARD, GraphVersion.CURRENT);
 
         Assert.assertTrue(expectedRule.isSameAs(resultStage.get(0)));
     }
@@ -141,7 +142,7 @@ public class ContinuousMatchQueryPlannerTest {
         planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.EdgeDirection.FORWARD, possibleEdge,
             diffRelation, resultStage, oldRelations, latestRelations);
         GenericJoinIntersectionRule expectedRule = new GenericJoinIntersectionRule(0,
-            EdgeDirection.FORWARD, GraphVersion.DIFF);
+            EdgeDirection.FORWARD, GraphVersion.DIFF_PLUS);
 
         Assert.assertTrue(expectedRule.isSameAs(resultStage.get(0)));
     }

@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
-import ca.waterloo.dsg.graphflow.demograph.Graph;
+import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ public class DeltaGJMatchQueryPlan implements QueryPlan {
     @Override
     public String execute(Graph graph) {
         //TODO: perform actual generic join query
-        return graph.getGraphString();
+        return graph.toString();
     }
 
     public void addQuery(List<List<GenericJoinIntersectionRule>> joinQuery) {

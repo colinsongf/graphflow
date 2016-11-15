@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
-import ca.waterloo.dsg.graphflow.graphmodel.Graph;
+import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
@@ -33,23 +33,30 @@ public class GenericJoinExecutor {
         this.graph = graph;
     }
 
+    public void execute() {
+        GenericJoinIntersectionRule firstRule = stages.get(0).get(0);
+        int[][] initialPrefixes = graph.getCurrentEdges(firstRule.getEdgeDirection());
+        extend(initialPrefixes, 1);
+    }
+
     /**
      * Recursively extends the given prefixes according to the correct query plan stage
      * and writes the output to the output sink.
      */
-    public void extend(int[][] prefixes, int stageIndex) {
+    private void extend(int[][] prefixes, int stageIndex) {
         System.out.println("Starting new recursion. Stage: " + stageIndex);
         List<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.get(
             stageIndex);
         int newPrefixCount = 0;
         int[][] newPrefixes = new int[BATCH_SIZE][];
 
-        for (int i = 0; i < prefixes.length; i++) {
+        for (int[] prefix : prefixes) {
             // Gets the rule with the minimum of possible extensions for this prefix.
-            GenericJoinIntersectionRule minCountRule = getMinCountIndex(prefixes[i],
+            GenericJoinIntersectionRule minCountRule = getMinCountIndex(prefix,
                 genericJoinIntersectionRules);
             SortedIntArrayList extensions = this.graph.getAdjacencyList(
-                prefixes[i][minCountRule.getPrefixIndex()], minCountRule.isForward());
+                prefix[minCountRule.getPrefixIndex()], minCountRule.getEdgeDirection(),
+                minCountRule.getGraphVersion());
 
             for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
                 // Skip rule if it is the minCountRule.
@@ -59,17 +66,18 @@ public class GenericJoinExecutor {
                 // Intersect remaining extensions with the possible extensions from the rule
                 // under consideration.
                 extensions = extensions.getIntersection(this.graph
-                    .getAdjacencyList(prefixes[i][rule.getPrefixIndex()], rule.isForward()));
+                    .getAdjacencyList(prefix[rule.getPrefixIndex()], rule.getEdgeDirection(),
+                        rule.getGraphVersion()));
             }
 
             for (int j = 0; j < extensions.getSize(); j++) {
-                int[] newPrefix = new int[prefixes[i].length + 1];
+                int[] newPrefix = new int[prefix.length + 1];
                 // TODO: Consider storing prefixes and new prefixes as trees so we don't replicate
                 // common prefixes.
-                System.arraycopy(prefixes[i], 0, newPrefix, 0, prefixes[i].length);
+                System.arraycopy(prefix, 0, newPrefix, 0, prefix.length);
                 newPrefix[newPrefix.length - 1] = extensions.get(j);
                 newPrefixes[newPrefixCount++] = newPrefix;
-                logger.info(Arrays.toString(prefixes[i]) + " : " + Arrays.toString(newPrefix));
+                logger.info(Arrays.toString(prefix) + " : " + Arrays.toString(newPrefix));
                 // Output is done in batches. Once the array of new prefixes reaches size BATCH_SIZE
                 // they are recursively executed till final results are obtained before
                 // proceeding with the extending process in this stage.
@@ -110,8 +118,8 @@ public class GenericJoinExecutor {
         GenericJoinIntersectionRule minGenericJoinIntersectionRule = null;
         int minCount = Integer.MAX_VALUE;
         for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
-            int extensionCount = this.graph.getAdjacencyListSize(prefix[rule.getPrefixIndex()],
-                rule.isForward());
+            int extensionCount = this.graph.getAdjacencyList(prefix[rule.getPrefixIndex()],
+                rule.getEdgeDirection(), rule.getGraphVersion()).getSize();
             if (extensionCount < minCount) {
                 minCount = extensionCount;
                 minGenericJoinIntersectionRule = rule;

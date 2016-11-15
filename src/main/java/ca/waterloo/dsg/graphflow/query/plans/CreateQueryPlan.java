@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
-import ca.waterloo.dsg.graphflow.demograph.Graph;
+import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 
@@ -18,7 +18,10 @@ public class CreateQueryPlan implements QueryPlan {
     @Override
     public String execute(Graph graph) {
         for (StructuredQueryEdge structuredQueryEdge : structuredQuery.getStructuredQueryEdges()) {
-            graph.addEdge(structuredQueryEdge);
+            graph.addEdge(Integer.parseInt(structuredQueryEdge.getFromVertex()),
+                Integer.parseInt(structuredQueryEdge.getToVertex()));
+            // TODO: execute delta generic join
+            graph.finalizeChanges();
         }
         return structuredQuery.getStructuredQueryEdges().size() + " edges created.";
     }

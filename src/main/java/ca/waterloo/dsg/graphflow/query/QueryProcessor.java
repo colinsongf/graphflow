@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query;
 
-import ca.waterloo.dsg.graphflow.demograph.Graph;
+import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.QueryPlanBuilder;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;

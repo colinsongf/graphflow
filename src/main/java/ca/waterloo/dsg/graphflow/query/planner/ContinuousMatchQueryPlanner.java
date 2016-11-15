@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.graphmodel.Graph;
-import ca.waterloo.dsg.graphflow.graphmodel.Graph.GraphVersion;
+import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.DeltaGJMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
@@ -114,11 +114,11 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         // Check for the existence of the edge in the given edgeDirection.
         GraphVersion version = null;
         if (possibleEdge.equals(diffRelation)) {
-            version = GraphVersion.DIFF;
+            version = GraphVersion.DIFF_PLUS;
         } else if (latestRelations.contains(possibleEdge)) {
-            version = GraphVersion.LATEST;
+            version = GraphVersion.MERGED;
         } else if (oldRelations.contains(possibleEdge)) {
-            version = GraphVersion.OLD;
+            version = GraphVersion.CURRENT;
         }
 
         if (version != null) {

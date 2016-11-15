@@ -1,9 +1,12 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
-import ca.waterloo.dsg.graphflow.demograph.Graph;
+import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.executors.GenericJoinExecutor;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -19,8 +22,15 @@ public class GJMatchQueryPlan implements QueryPlan {
 
     @Override
     public String execute(Graph graph) {
-        //TODO: perform actual generic join query
-        return graph.getGraphString();
+        InMemoryOutputSink outputSink = new InMemoryOutputSink();
+        GenericJoinExecutor genericJoinExecutor = new GenericJoinExecutor(stages, outputSink,
+            graph);
+        genericJoinExecutor.execute();
+        StringBuilder output = new StringBuilder();
+        for (int[] result : outputSink.getResults()) {
+            output.append(Arrays.toString(result)).append("\n");
+        }
+        return output.toString();
     }
 
     @Override
@@ -30,8 +40,8 @@ public class GJMatchQueryPlan implements QueryPlan {
         for (List<GenericJoinIntersectionRule> stage : stages) {
             plan.append("\nStage: ").append(i).append("\n");
             for (GenericJoinIntersectionRule rule : stage) {
-                plan.append(rule.getPrefixIndex()).append(", ").append(rule.isForward()).append(
-                    "\n");
+                plan.append(rule.getPrefixIndex()).append(", ").append(rule.getEdgeDirection())
+                    .append("\n");
             }
             i++;
         }

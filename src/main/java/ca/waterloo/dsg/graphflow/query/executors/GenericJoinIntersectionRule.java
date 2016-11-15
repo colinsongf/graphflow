@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
-import ca.waterloo.dsg.graphflow.graphmodel.Graph.EdgeDirection;
-import ca.waterloo.dsg.graphflow.graphmodel.Graph.GraphVersion;
+import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 
 /**
  * Represents a generic join rule consisting of a prefix index and a direction. The rule will be
@@ -14,7 +14,7 @@ public class GenericJoinIntersectionRule {
     private GraphVersion graphVersion;
 
     public GenericJoinIntersectionRule(int prefixIndex, EdgeDirection edgeDirection) {
-        this(prefixIndex, edgeDirection, GraphVersion.OLD);
+        this(prefixIndex, edgeDirection, GraphVersion.CURRENT);
     }
 
     public GenericJoinIntersectionRule(int prefixIndex, EdgeDirection edgeDirection,
@@ -28,16 +28,12 @@ public class GenericJoinIntersectionRule {
         return prefixIndex;
     }
 
-    public EdgeDirection isForward() {
+    public EdgeDirection getEdgeDirection() {
         return edgeDirection;
     }
 
     public GraphVersion getGraphVersion() {
         return graphVersion;
-    }
-
-    public void setGraphVersion(GraphVersion graphVersion) {
-        this.graphVersion = graphVersion;
     }
 
     /**

@@ -14,7 +14,7 @@ public class GenericJoinIntersectionRule {
     private GraphVersion graphVersion;
 
     public GenericJoinIntersectionRule(int prefixIndex, EdgeDirection edgeDirection) {
-        this(prefixIndex, edgeDirection, GraphVersion.CURRENT);
+        this(prefixIndex, edgeDirection, GraphVersion.PERMANENT);
     }
 
     public GenericJoinIntersectionRule(int prefixIndex, EdgeDirection edgeDirection,
@@ -40,17 +40,18 @@ public class GenericJoinIntersectionRule {
      * Used in unit tests to assert the equality of the actual and expected objects.
      *
      * @param that The expected object.
+     *
      * @return {@code true} if the current object values match perfectly with the expected object
      * values, {@code false} otherwise.
      */
     public boolean isSameAs(GenericJoinIntersectionRule that) {
-        if (that == null) {
+        if (null == that) {
             return false;
         }
         if (this == that) {
             return true;
         }
-        return (this.prefixIndex == that.prefixIndex && this.edgeDirection == that.edgeDirection &&
-            this.graphVersion == that.graphVersion);
+        return (this.prefixIndex == that.prefixIndex && this.edgeDirection == that.edgeDirection
+            && this.graphVersion == that.graphVersion);
     }
 }

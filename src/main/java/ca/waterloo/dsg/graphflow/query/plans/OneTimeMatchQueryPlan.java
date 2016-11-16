@@ -4,6 +4,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinExecutor;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
+import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,11 +13,11 @@ import java.util.List;
 /**
  * Class representing plan for a MATCH operation.
  */
-public class GJMatchQueryPlan implements QueryPlan {
+public class OneTimeMatchQueryPlan implements QueryPlan {
 
     private List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
 
-    public void addStage(ArrayList<GenericJoinIntersectionRule> stage) {
+    public void addStage(List<GenericJoinIntersectionRule> stage) {
         this.stages.add(stage);
     }
 
@@ -27,8 +28,10 @@ public class GJMatchQueryPlan implements QueryPlan {
             graph);
         genericJoinExecutor.execute();
         StringBuilder output = new StringBuilder();
-        for (int[] result : outputSink.getResults()) {
-            output.append(Arrays.toString(result)).append("\n");
+        for (MatchQueryResultType matchQueryResultType : outputSink.getMatchQueryResultTypes()) {
+            for (int[] result : outputSink.getResults(matchQueryResultType)) {
+                output.append(Arrays.toString(result)).append("\n");
+            }
         }
         return output.toString();
     }
@@ -52,11 +55,12 @@ public class GJMatchQueryPlan implements QueryPlan {
      * Used in unit tests to assert the equality of the actual and expected objects.
      *
      * @param that The expected object.
+     *
      * @return {@code true} if the current object values match perfectly with the expected object
      * values, {@code false} otherwise.
      */
-    public boolean isSameAs(GJMatchQueryPlan that) {
-        if (that == null) {
+    public boolean isSameAs(OneTimeMatchQueryPlan that) {
+        if (null == that) {
             return false;
         }
         if (this == that) {

@@ -18,7 +18,7 @@ public class CreateQueryPlan implements QueryPlan {
     @Override
     public String execute(Graph graph) {
         for (StructuredQueryEdge structuredQueryEdge : structuredQuery.getStructuredQueryEdges()) {
-            graph.addEdge(Integer.parseInt(structuredQueryEdge.getFromVertex()),
+            graph.addEdgeTemporarily(Integer.parseInt(structuredQueryEdge.getFromVertex()),
                 Integer.parseInt(structuredQueryEdge.getToVertex()));
             // TODO: execute delta generic join
             graph.finalizeChanges();

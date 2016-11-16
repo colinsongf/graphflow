@@ -7,9 +7,9 @@ import org.junit.Test;
 public class GenericJoinIntersectionRuleTest {
 
     GenericJoinIntersectionRule obj_equal_1 = new GenericJoinIntersectionRule(0,
-        EdgeDirection.REVERSE);
+        EdgeDirection.BACKWARD);
     GenericJoinIntersectionRule obj_equal_2 = new GenericJoinIntersectionRule(0,
-        EdgeDirection.REVERSE);
+        EdgeDirection.BACKWARD);
     GenericJoinIntersectionRule obj_different = new GenericJoinIntersectionRule(1,
         EdgeDirection.FORWARD);
 

@@ -24,17 +24,18 @@ public class GenericJoinExecutorTest {
         triangleQueryStages.add(stage);
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
         triangleQueryStages.add(stage);
 
-        int[][] results1 = {{0, 1, 3}, {1, 3, 0}, {1, 3, 4}, {3, 0, 1}, {3, 4, 1}, {4, 1, 3}};
-        int[][] results2 = {{0, 1, 3}, {1, 3, 0}, {3, 0, 1}};
-        executeGJ(triangleQueryStages, results1, results2);
+        int[][] motifsAfterAdditions = {{0, 1, 3}, {1, 3, 0}, {1, 3, 4}, {3, 0, 1}, {3, 4, 1},
+            {4, 1, 3}};
+        int[][] motifsAfterDeletion = {{0, 1, 3}, {1, 3, 0}, {3, 0, 1}};
+        assertGenericJoinOutput(triangleQueryStages, motifsAfterAdditions, motifsAfterDeletion);
     }
 
     @Test
     public void testProcessSquares() throws Exception {
-        // Create the stages for the triangle query.
+        // Create the stages for the square query.
         List<List<GenericJoinIntersectionRule>> squareQueryStages = new ArrayList<>();
         List<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
@@ -45,46 +46,47 @@ public class GenericJoinExecutorTest {
         squareQueryStages.add(stage);
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(2, EdgeDirection.FORWARD));
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
         squareQueryStages.add(stage);
 
-        int[][] results1 =
-            {{0, 1, 2, 3}, {1, 2, 3, 0}, {1, 2, 3, 4}, {2, 3, 0, 1}, {2, 3, 4, 1}, {3, 0, 1, 2},
-                {3, 4, 1, 2}, {4, 1, 2, 3}};
-        int[][] results2 = {{0, 1, 2, 3}, {1, 2, 3, 0}, {2, 3, 0, 1}, {3, 0, 1, 2}};
-        executeGJ(squareQueryStages, results1, results2);
+        int[][] motifsAfterAdditions = {{0, 1, 2, 3}, {1, 2, 3, 0}, {1, 2, 3, 4}, {2, 3, 0, 1},
+            {2, 3, 4, 1}, {3, 0, 1, 2}, {3, 4, 1, 2}, {4, 1, 2, 3}};
+        int[][] motifsAfterDeletion = {{0, 1, 2, 3}, {1, 2, 3, 0}, {2, 3, 0, 1}, {3, 0, 1, 2}};
+        assertGenericJoinOutput(squareQueryStages, motifsAfterAdditions, motifsAfterDeletion);
     }
 
-    private void executeGJ(List<List<GenericJoinIntersectionRule>> stages, int[][] results1,
-        int[][] results2) {
+    private void assertGenericJoinOutput(List<List<GenericJoinIntersectionRule>> stages, int[][]
+        motifsAfterAdditions, int[][] motifsAfterDeletion) {
         Graph graph = new Graph();
         InMemoryOutputSink outputSink;
         GenericJoinExecutor genericJoinExecutor;
 
-        // Initialize the graph.
+        // Initialize a graph.
         int[][] edges = {{0, 1}, {1, 2}, {2, 3}, {1, 3}, {3, 4}, {3, 0}, {4, 1}};
         for (int[] edge : edges) {
-            graph.addEdge(edge[0], edge[1]);
+            graph.addEdgeTemporarily(edge[0], edge[1]);
         }
         graph.finalizeChanges();
 
-        // Execute the triangle query and test.
+        // Execute the query and test.
         outputSink = new InMemoryOutputSink();
         genericJoinExecutor = new GenericJoinExecutor(stages, outputSink, graph);
         genericJoinExecutor.execute();
-        Assert.assertArrayEquals(results1, outputSink.getResults().toArray());
+        Assert.assertArrayEquals(motifsAfterAdditions, outputSink.getResults(
+            MatchQueryResultType.MATCHED).toArray());
 
         // Delete one of the edges.
         int[][] deletedEdges = {{4, 1}};
         for (int[] edge : deletedEdges) {
-            graph.deleteEdge(edge[0], edge[1]);
+            graph.deleteEdgeTemporarily(edge[0], edge[1]);
         }
         graph.finalizeChanges();
 
-        // Execute the triangle query again and test.
+        // Execute the query again and test.
         outputSink = new InMemoryOutputSink();
         genericJoinExecutor = new GenericJoinExecutor(stages, outputSink, graph);
         genericJoinExecutor.execute();
-        Assert.assertArrayEquals(results2, outputSink.getResults().toArray());
+        Assert.assertArrayEquals(motifsAfterDeletion, outputSink.getResults(
+            MatchQueryResultType.MATCHED).toArray());
     }
 }

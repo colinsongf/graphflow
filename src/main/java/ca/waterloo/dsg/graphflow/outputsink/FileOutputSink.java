@@ -1,5 +1,7 @@
 package ca.waterloo.dsg.graphflow.outputsink;
 
+import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -23,8 +25,6 @@ public class FileOutputSink implements OutputSink {
 
     /**
      * Creates the output file at the given directory.
-     *
-     * @param directory
      */
     public void setDirectory(File directory) {
         if (directory.isDirectory()) {
@@ -36,16 +36,15 @@ public class FileOutputSink implements OutputSink {
 
     /**
      * Sets the given fileName as the filename of the output sink.
-     *
-     * @param fileName
      */
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
 
     @Override
-    public void append(int[][] results) {
+    public void append(MatchQueryResultType matchQueryResultType, int[][] results) {
         try {
+            this.getWriter().println("Output type: " + matchQueryResultType);
             for (int[] result : results) {
                 this.getWriter().println(Arrays.toString(result));
             }
@@ -61,12 +60,11 @@ public class FileOutputSink implements OutputSink {
      * Initializes the writer first if necessary.
      *
      * @return PrintWriter
-     * @throws IOException
      */
     private PrintWriter getWriter() throws IOException {
-        if (this.writer == null) {
-            this.writer = new PrintWriter(
-                new BufferedWriter(new FileWriter(new File(this.directory, this.fileName), true)));
+        if (null == this.writer) {
+            this.writer = new PrintWriter(new BufferedWriter(new FileWriter(new File(this
+                .directory, this.fileName), true)));
         }
         return this.writer;
     }

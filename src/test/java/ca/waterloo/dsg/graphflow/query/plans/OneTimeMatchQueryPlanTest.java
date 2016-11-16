@@ -8,46 +8,46 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 
-public class GJMatchQueryPlanTest {
+public class OneTimeMatchQueryPlanTest {
 
-    private GJMatchQueryPlan obj_equal_1 = new GJMatchQueryPlan();
-    private GJMatchQueryPlan obj_equal_2 = new GJMatchQueryPlan();
-    private GJMatchQueryPlan obj_different_1 = new GJMatchQueryPlan();
-    private GJMatchQueryPlan obj_different_2 = new GJMatchQueryPlan();
+    private OneTimeMatchQueryPlan obj_equal_1 = new OneTimeMatchQueryPlan();
+    private OneTimeMatchQueryPlan obj_equal_2 = new OneTimeMatchQueryPlan();
+    private OneTimeMatchQueryPlan obj_different_1 = new OneTimeMatchQueryPlan();
+    private OneTimeMatchQueryPlan obj_different_2 = new OneTimeMatchQueryPlan();
 
     @Before
     public void setup() {
         ArrayList<GenericJoinIntersectionRule> stage;
 
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
         obj_equal_1.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
         stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
         obj_equal_1.addStage(stage);
 
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
         obj_equal_2.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
         stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
         obj_equal_2.addStage(stage);
 
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
         obj_different_1.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.BACKWARD));
         stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
         obj_different_1.addStage(stage);
 
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
         obj_different_2.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.REVERSE));
+        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
         obj_different_2.addStage(stage);
     }
 

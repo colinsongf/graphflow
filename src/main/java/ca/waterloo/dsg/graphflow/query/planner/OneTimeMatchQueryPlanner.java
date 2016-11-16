@@ -2,7 +2,7 @@ package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.plans.GJMatchQueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryGraph;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
@@ -97,8 +97,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
     }
 
     public QueryPlan plan() {
-        GJMatchQueryPlan gjMatchQueryPlan = new GJMatchQueryPlan();
-        Set<String> visitedVariables = new HashSet<>();
+        OneTimeMatchQueryPlan oneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
         List<String> orderedVariables = new ArrayList<>();
         /*
           Find the first variable, considering the following properties:
@@ -113,16 +112,15 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                 // Rule (1).
                 highestDegreeCount = variableDegree;
                 variableWithHighestDegree = variable;
-            } else if ((variableDegree == highestDegreeCount) && (variable.compareTo(
-                variableWithHighestDegree) < 0)) {
+            } else if ((variableDegree == highestDegreeCount) &&
+                (variable.compareTo(variableWithHighestDegree) < 0)) {
                 // Rule (2).
                 highestDegreeCount = variableDegree;
                 variableWithHighestDegree = variable;
             }
         }
         orderedVariables.add(variableWithHighestDegree);
-        visitedVariables.add(variableWithHighestDegree);
-
+        // Order the rest of the variables.
         orderRemainingVariables(orderedVariables);
         // Finally, create the plan.
         // Start from the second variable to create the first stage.
@@ -139,9 +137,9 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     stage.add(new GenericJoinIntersectionRule(j, edgeDirection));
                 }
             }
-            gjMatchQueryPlan.addStage(stage);
+            oneTimeMatchQueryPlan.addStage(stage);
         }
-        logger.info("Plan: \n" + gjMatchQueryPlan);
-        return gjMatchQueryPlan;
+        logger.info("Plan: \n" + oneTimeMatchQueryPlan);
+        return oneTimeMatchQueryPlan;
     }
 }

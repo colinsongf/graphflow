@@ -1,8 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
-import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,23 +11,27 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Processes the given query stages for the in-memory graph using the Generic Join algorithm.
- * Processing is done in batches using recursion.
+ * Executes the Generic Join algorithm encapsulated in {@code stages} on {@code graph} and
+ * writes output to the {@code outputSink}. Processing is done in batches using recursion.
  */
 public class GenericJoinExecutor {
 
-    public static final int BATCH_SIZE = 2;
-    private static final Logger logger = LogManager.getLogger(OneTimeMatchQueryPlanner.class);
+    private static final int BATCH_SIZE = 2;
+    private static final Logger logger = LogManager.getLogger(GenericJoinExecutor.class);
     /**
-     * Stages represents a Generic Join query plan for a query consisting of particular set of edges
-     * and vertices. Each stage is used to expand the result tuples to an additional vertex.
+     * Stages represents a Generic Join query plan for a query consisting of particular set of
+     * relations between variables. Each stage is used to expand the result tuples to an
+     * additional vertex.
      */
     private List<List<GenericJoinIntersectionRule>> stages;
     private OutputSink outputSink;
     private Graph graph;
 
-    public GenericJoinExecutor(List<List<GenericJoinIntersectionRule>> stages,
-        OutputSink outputSink, Graph graph) {
+    public GenericJoinExecutor(List<List<GenericJoinIntersectionRule>> stages, OutputSink
+        outputSink, Graph graph) {
+        if (0 == stages.size() || 0 == stages.get(0).size()) {
+            throw new RuntimeException("Incomplete stages.");
+        }
         this.stages = stages;
         this.outputSink = outputSink;
         this.graph = graph;
@@ -35,18 +39,42 @@ public class GenericJoinExecutor {
 
     public void execute() {
         GenericJoinIntersectionRule firstRule = stages.get(0).get(0);
-        int[][] initialPrefixes = graph.getCurrentEdges(firstRule.getEdgeDirection());
-        extend(initialPrefixes, 1);
+        // Get the initial set of edges.
+        int[][] initialPrefixes = graph.getEdges(firstRule.getGraphVersion(), firstRule
+            .getEdgeDirection());
+        if (0 == initialPrefixes.length) {
+            // Obtained empty set of edges, nothing to execute.
+            return;
+        }
+        MatchQueryResultType matchQueryResultType;
+        if (GraphVersion.DIFF_PLUS == firstRule.getGraphVersion()) {
+            matchQueryResultType = MatchQueryResultType.EMERGED;
+        } else if (GraphVersion.DIFF_MINUS == firstRule.getGraphVersion()) {
+            matchQueryResultType = MatchQueryResultType.DELETED;
+        } else {
+            matchQueryResultType = MatchQueryResultType.MATCHED;
+        }
+        extend(initialPrefixes, 1, matchQueryResultType);
     }
 
     /**
      * Recursively extends the given prefixes according to the correct query plan stage
      * and writes the output to the output sink.
+     *
+     * @param prefixes Array of prefixes to extend.
+     * @param stageIndex Stage index to track progress of the execution.
+     * @param matchQueryResultType The category to under which the output prefixes are stored.
      */
-    private void extend(int[][] prefixes, int stageIndex) {
-        System.out.println("Starting new recursion. Stage: " + stageIndex);
-        List<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.get(
-            stageIndex);
+    private void extend(int[][] prefixes, int stageIndex, MatchQueryResultType
+        matchQueryResultType) {
+        if (stageIndex >= stages.size()) {
+            // Write to output sink because this is the last stage.
+            outputSink.append(matchQueryResultType, prefixes);
+            return;
+        }
+        logger.debug("Starting new recursion. Stage: " + stageIndex);
+        List<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.get
+            (stageIndex);
         int newPrefixCount = 0;
         int[][] newPrefixes = new int[BATCH_SIZE][];
 
@@ -54,20 +82,19 @@ public class GenericJoinExecutor {
             // Gets the rule with the minimum of possible extensions for this prefix.
             GenericJoinIntersectionRule minCountRule = getMinCountIndex(prefix,
                 genericJoinIntersectionRules);
-            SortedIntArrayList extensions = this.graph.getAdjacencyList(
-                prefix[minCountRule.getPrefixIndex()], minCountRule.getEdgeDirection(),
-                minCountRule.getGraphVersion());
+            SortedIntArrayList extensions = this.graph.getAdjacencyList(prefix[minCountRule
+                .getPrefixIndex()], minCountRule.getEdgeDirection(), minCountRule.getGraphVersion
+                ());
 
             for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
                 // Skip rule if it is the minCountRule.
                 if (rule == minCountRule) {
                     continue;
                 }
-                // Intersect remaining extensions with the possible extensions from the rule
-                // under consideration.
-                extensions = extensions.getIntersection(this.graph
-                    .getAdjacencyList(prefix[rule.getPrefixIndex()], rule.getEdgeDirection(),
-                        rule.getGraphVersion()));
+                // Intersect current extensions with the possible extensions obtained from
+                // {@code rule}.
+                extensions = extensions.getIntersection(this.graph.getAdjacencyList(prefix[rule
+                    .getPrefixIndex()], rule.getEdgeDirection(), rule.getGraphVersion()));
             }
 
             for (int j = 0; j < extensions.getSize(); j++) {
@@ -77,19 +104,14 @@ public class GenericJoinExecutor {
                 System.arraycopy(prefix, 0, newPrefix, 0, prefix.length);
                 newPrefix[newPrefix.length - 1] = extensions.get(j);
                 newPrefixes[newPrefixCount++] = newPrefix;
-                logger.info(Arrays.toString(prefix) + " : " + Arrays.toString(newPrefix));
+                logger.debug(Arrays.toString(prefix) + " : " + Arrays.toString(newPrefix));
                 // Output is done in batches. Once the array of new prefixes reaches size BATCH_SIZE
                 // they are recursively executed till final results are obtained before
                 // proceeding with the extending process in this stage.
                 if (newPrefixCount >= BATCH_SIZE) {
-                    if (stageIndex == (stages.size() - 1)) {
-                        // Write to output sink if this is the last stage.
-                        outputSink.append(newPrefixes);
-                    } else {
-                        // Recursing to extend to the next stage with a set of prefix results
-                        // equaling BATCH_SIZE.
-                        this.extend(newPrefixes, stageIndex + 1);
-                    }
+                    // Recursing to extend to the next stage with a set of prefix results
+                    // equaling BATCH_SIZE.
+                    this.extend(newPrefixes, stageIndex + 1, matchQueryResultType);
                     newPrefixCount = 0;
                 }
             }
@@ -97,11 +119,8 @@ public class GenericJoinExecutor {
 
         // Handling the last batch for extended prefixes which did not reach size of BATCH_SIZE.
         if (newPrefixCount > 0) {
-            if (stageIndex == (stages.size() - 1)) {
-                outputSink.append(Arrays.copyOfRange(newPrefixes, 0, newPrefixCount));
-            } else {
-                this.extend(Arrays.copyOfRange(newPrefixes, 0, newPrefixCount), stageIndex + 1);
-            }
+            this.extend(Arrays.copyOfRange(newPrefixes, 0, newPrefixCount), stageIndex + 1,
+                matchQueryResultType);
         }
     }
 
@@ -111,6 +130,7 @@ public class GenericJoinExecutor {
      *
      * @param prefix A list of number representing a partial solution to the query.
      * @param genericJoinIntersectionRules A list of relations in Generic Join.
+     *
      * @return GenericJoinIntersectionRule
      */
     private GenericJoinIntersectionRule getMinCountIndex(int[] prefix,
@@ -118,8 +138,8 @@ public class GenericJoinExecutor {
         GenericJoinIntersectionRule minGenericJoinIntersectionRule = null;
         int minCount = Integer.MAX_VALUE;
         for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
-            int extensionCount = this.graph.getAdjacencyList(prefix[rule.getPrefixIndex()],
-                rule.getEdgeDirection(), rule.getGraphVersion()).getSize();
+            int extensionCount = this.graph.getAdjacencyList(prefix[rule.getPrefixIndex()], rule
+                .getEdgeDirection(), rule.getGraphVersion()).getSize();
             if (extensionCount < minCount) {
                 minCount = extensionCount;
                 minGenericJoinIntersectionRule = rule;

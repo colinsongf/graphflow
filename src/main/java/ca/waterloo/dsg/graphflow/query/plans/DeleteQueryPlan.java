@@ -18,7 +18,7 @@ public class DeleteQueryPlan implements QueryPlan {
     @Override
     public String execute(Graph graph) {
         for (StructuredQueryEdge structuredQueryEdge : structuredQuery.getStructuredQueryEdges()) {
-            graph.deleteEdge(Integer.parseInt(structuredQueryEdge.getFromVertex()),
+            graph.deleteEdgeTemporarily(Integer.parseInt(structuredQueryEdge.getFromVertex()),
                 Integer.parseInt(structuredQueryEdge.getToVertex()));
             // TODO: execute delta generic join
             graph.finalizeChanges();

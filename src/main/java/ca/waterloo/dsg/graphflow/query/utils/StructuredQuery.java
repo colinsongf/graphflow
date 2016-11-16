@@ -42,11 +42,12 @@ public class StructuredQuery {
      * Used in unit tests to assert the equality of the actual and expected objects.
      *
      * @param that The expected object.
+     *
      * @return {@code true} if the current object values match perfectly with the expected object
      * values, {@code false} otherwise.
      */
     public boolean isSameAs(StructuredQuery that) {
-        if (that == null) {
+        if (null == that) {
             return false;
         }
         if (this == that) {

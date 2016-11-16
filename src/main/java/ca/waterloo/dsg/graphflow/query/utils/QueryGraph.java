@@ -26,7 +26,7 @@ public class QueryGraph {
     public void addEdge(String fromVariable, String toVariable) {
         addVariable(toVariable);
         addVariable(fromVariable);
-        queryGraph.get(toVariable).addNeighborVariable(fromVariable, EdgeDirection.REVERSE);
+        queryGraph.get(toVariable).addNeighborVariable(fromVariable, EdgeDirection.BACKWARD);
         queryGraph.get(fromVariable).addNeighborVariable(toVariable, EdgeDirection.FORWARD);
         queryEdges.add(new QueryEdge(fromVariable, toVariable));
     }
@@ -57,9 +57,8 @@ public class QueryGraph {
                 .append(")\n");
             for (String neighborVariable : queryVariableAdjList.getAllNeighborVariables()) {
                 EdgeDirection edgeDirection = queryVariableAdjList.getDirectionTo(neighborVariable);
-                graph.append(
-                    edgeDirection == EdgeDirection.FORWARD ? (key + "->" + neighborVariable) :
-                        (neighborVariable + "->" + key)).append("\n");
+                graph.append(edgeDirection == EdgeDirection.FORWARD ? (key + "->" +
+                    neighborVariable) : (neighborVariable + "->" + key)).append("\n");
             }
         }
         return graph.toString();

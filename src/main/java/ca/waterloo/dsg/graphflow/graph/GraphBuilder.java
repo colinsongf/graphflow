@@ -18,12 +18,14 @@ import java.lang.reflect.Type;
 public class GraphBuilder {
 
     /**
-     * Creates a graph object from the given file.
+     * Creates a graph object from the given JSON file.
      *
      * @param file JSON file with pattern {"num-vertices": x, "edges" : [("src": 1, "dst": 2),
      * ("src": 2, "dst": 3)...]}. Vertex indices are assumed to start from 0.
-     * @return Graph
-     * @throws IOException
+     *
+     * @return The {@code Graph} object created from the JSON file.
+     *
+     * @throws IOException on IO errors during file operations on {@code file}.
      */
     public static Graph createInstance(File file) throws IOException {
         GsonBuilder gsonBuilder = new GsonBuilder();
@@ -47,13 +49,14 @@ public class GraphBuilder {
          *
          * @param json handle to the root element of the json file.
          * @param typeOfT is used when deserializing to a specific Type.
-         * @param context
-         * @return Graph
-         * @throws JsonParseException
+         *
+         * @return The {@code Graph} object created from the JSON input.
+         *
+         * @throws JsonParseException if JSON input is not in correct format.
          */
         @Override
-        public Graph deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-            throws JsonParseException {
+        public Graph deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext
+            context) throws JsonParseException {
             JsonObject rawGraph = json.getAsJsonObject();
             JsonArray edges = rawGraph.get(GraphDeserializer.EDGES).getAsJsonArray();
             int numVertices = rawGraph.get(GraphDeserializer.NUM_VERTICES).getAsInt();
@@ -63,7 +66,7 @@ public class GraphBuilder {
                 JsonObject edgeObj = edge.getAsJsonObject();
                 int src = edgeObj.get(GraphDeserializer.SOURCE).getAsInt();
                 int dst = edgeObj.get(GraphDeserializer.DESTINATION).getAsInt();
-                graph.addEdge(src, dst);
+                graph.addEdgeTemporarily(src, dst);
             }
             graph.finalizeChanges();
             return graph;

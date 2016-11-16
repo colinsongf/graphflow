@@ -99,6 +99,7 @@ public class SortedIntArrayList {
      * value in the list. Returns -1 if value not found.
      *
      * @param value value to find in list.
+     *
      * @return int index of matched value or -1 if value does not exist
      */
     public int search(int value) {
@@ -124,6 +125,7 @@ public class SortedIntArrayList {
      * and returns the result as {@code SortedIntArrayList}.
      *
      * @param newList
+     *
      * @return SortedIntArrayList
      */
     public SortedIntArrayList getIntersection(SortedIntArrayList newList) {
@@ -158,11 +160,12 @@ public class SortedIntArrayList {
      * Used in unit tests to assert the equality of the actual and expected objects.
      *
      * @param that The expected object.
+     *
      * @return {@code true} if the current object values match perfectly with the expected object
      * values, {@code false} otherwise.
      */
     public boolean isSameAs(int[] that) {
-        if (that == null) {
+        if (null == that) {
             return false;
         }
         if (this.size != that.length) {

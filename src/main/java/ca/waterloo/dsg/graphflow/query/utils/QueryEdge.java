@@ -28,12 +28,12 @@ public class QueryEdge {
             return false;
         }
         QueryEdge queryEdge = (QueryEdge) o;
-        if (toVariable != null ? !toVariable.equals(queryEdge.toVariable) :
-            queryEdge.toVariable != null) {
+        if (null != toVariable ? !toVariable.equals(queryEdge.toVariable) : null != queryEdge
+            .toVariable) {
             return false;
         }
-        return fromVariable != null ? fromVariable.equals(queryEdge.fromVariable) :
-            queryEdge.fromVariable == null;
+        return fromVariable != null ? fromVariable.equals(queryEdge.fromVariable) : null ==
+            queryEdge.fromVariable;
     }
 
     @Override

@@ -46,8 +46,8 @@ public class GraphflowServer {
         private QueryProcessor processor = new QueryProcessor();
 
         @Override
-        public void executeQuery(ServerQueryString request,
-            StreamObserver<ServerQueryResult> responseObserver) {
+        public void executeQuery(ServerQueryString request, StreamObserver<ServerQueryResult>
+            responseObserver) {
             String result = processor.process(request.getMessage());
             ServerQueryResult queryResult = ServerQueryResult.newBuilder().setMessage(result)
                 .build();

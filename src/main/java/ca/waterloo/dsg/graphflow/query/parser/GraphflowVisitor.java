@@ -52,8 +52,8 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
     @Override
     public StructuredQuery visitDigitsExpression(GraphflowParser.DigitsExpressionContext ctx) {
         StructuredQuery structuredQuery = new StructuredQuery();
-        StructuredQueryEdge structuredQueryEdge = new StructuredQueryEdge(ctx.leftDigit().getText(),
-            ctx.rightDigit().getText());
+        StructuredQueryEdge structuredQueryEdge = new StructuredQueryEdge(ctx.leftDigit()
+            .getText(), ctx.rightDigit().getText());
         structuredQuery.addEdge(structuredQueryEdge);
         return structuredQuery;
     }
@@ -61,8 +61,8 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
     @Override
     public StructuredQuery visitVariableExpression(GraphflowParser.VariableExpressionContext ctx) {
         StructuredQuery structuredQuery = new StructuredQuery();
-        StructuredQueryEdge structuredQueryEdge = new StructuredQueryEdge(
-            ctx.leftVariable().getText(), ctx.rightVariable().getText());
+        StructuredQueryEdge structuredQueryEdge = new StructuredQueryEdge(ctx.leftVariable()
+            .getText(), ctx.rightVariable().getText());
         structuredQuery.addEdge(structuredQueryEdge);
         return structuredQuery;
     }

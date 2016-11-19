@@ -17,6 +17,15 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
     }
 
     @Override
+    public StructuredQuery visitPathPattern(GraphflowParser.PathPatternContext ctx) {
+        StructuredQuery structuredQuery = new StructuredQuery();
+        structuredQuery.addEdge(new StructuredQueryEdge(ctx.leftDigit().getText(), ctx.rightDigit
+            ().getText()));
+        structuredQuery.setOperation(StructuredQuery.Operation.SHORTEST_PATH);
+        return structuredQuery;
+    }
+
+    @Override
     public StructuredQuery visitMatchPattern(GraphflowParser.MatchPatternContext ctx) {
         StructuredQuery structuredQuery = visit(ctx.variableExpression(0));
         structuredQuery.setQueryOperation(StructuredQuery.QueryOperation.MATCH);
@@ -66,4 +75,6 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
         structuredQuery.addEdge(structuredQueryEdge);
         return structuredQuery;
     }
+
+
 }

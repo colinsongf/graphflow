@@ -7,6 +7,7 @@ statement : query ;
 query : match
        | create
        | delete
+       | shortestPath
        ;
 
 match : MATCH sp matchPattern ;
@@ -15,11 +16,15 @@ create : CREATE sp createPattern ;
 
 delete : DELETE sp deletePattern ;
 
+shortestPath: SHORTEST_PATH sp pathPattern ;
+
 matchPattern: variableExpression ( sp? ',' sp? variableExpression )* ;
 
 deletePattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
 
 createPattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
+
+pathPattern: '(' sp? leftDigit sp? ',' sp? rightDigit sp? ')' ;
 
 digitsExpression : '(' sp? leftDigit sp? ')' sp? dash rightArrowHead '(' sp? rightDigit sp? ')' ;
 
@@ -60,6 +65,9 @@ MATCH : ( 'M' | 'm' ) ( 'A' | 'a' ) ( 'T' | 't' ) ( 'C' | 'c' ) ( 'H' | 'h' )  ;
 CREATE : ( 'C' | 'c' ) ( 'R' | 'r' ) ( 'E' | 'e' ) ( 'A' | 'a' ) ( 'T' | 't' ) ( 'E' | 'e' )  ;
 
 DELETE : ( 'D' | 'd' ) ( 'E' | 'e' ) ( 'L' | 'l' ) ( 'E' | 'e' ) ( 'T' | 't' ) ( 'E' | 'e' )  ;
+
+SHORTEST_PATH: ( 'S' | 's' ) ( 'H' | 'h' ) ( 'O' | 'o' ) ( 'R' | 'r' ) ( 'T' | 't' ) ( 'E' | 'e' )
+    ( 'S' | 's' ) ( 'T' | 't' ) ( '_' ) ('P' | 'p') ( 'A' | 'a' ) ( 'T' | 't' ) ('H' | 'h') ;
 
 sp : ( WHITESPACE )+ ;
 

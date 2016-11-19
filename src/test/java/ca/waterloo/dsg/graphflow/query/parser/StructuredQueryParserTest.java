@@ -62,4 +62,19 @@ public class StructuredQueryParserTest {
 
         Assert.assertTrue(structuredQueryActual.isSameAs(structuredQueryExpected));
     }
+
+    @Test
+    public void parseSimpleShortestPathQuery() throws Exception {
+        StructuredQuery result;
+        String query = "SHORTEST_PATH (0, 9)";
+        try {
+            result = new StructuredQueryParser().parse(query);
+        } catch (ParseCancellationException e) {
+            throw new Exception("ERROR parsing: " + e.getMessage());
+        }
+        StructuredQuery expected = new StructuredQuery();
+        expected.addEdge(new StructuredQueryEdge("0", "9"));
+        expected.setOperation(StructuredQuery.Operation.SHORTEST_PATH);
+        Assert.assertTrue(result.equalsTo(expected));
+    }
 }

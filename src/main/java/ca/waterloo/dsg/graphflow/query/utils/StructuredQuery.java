@@ -12,7 +12,8 @@ public class StructuredQuery {
     public enum QueryOperation {
         CREATE,
         MATCH,
-        DELETE
+        DELETE,
+        SHORTEST_PATH
     }
 
     private List<StructuredQueryEdge> structuredQueryEdges;

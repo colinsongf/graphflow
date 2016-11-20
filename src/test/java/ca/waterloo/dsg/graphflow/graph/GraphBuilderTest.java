@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,14 +22,14 @@ public class GraphBuilderTest {
         int[][] expectedOutgoingAdjLists = {{1}, {2}, {0, 3, 4}, {0}, {5}, {}};
         for (int i = 0; i < expectedOutgoingAdjLists.length; i++) {
             Assert.assertTrue("Testing FORWARD vertex id: " + i, graph.getAdjacencyList(i,
-                EdgeDirection.FORWARD, GraphVersion.PERMANENT).isSameAs
+                Direction.FORWARD, GraphVersion.PERMANENT).isSameAs
                 (expectedOutgoingAdjLists[i]));
         }
         // Test incoming adjacency lists.
         int[][] expectedIncomingAdjLists = {{2, 3}, {0}, {1}, {2}, {2}, {4}};
         for (int i = 0; i < expectedIncomingAdjLists.length; i++) {
             Assert.assertTrue("Testing BACKWARD vertex id: " + i, graph.getAdjacencyList(i,
-                EdgeDirection.BACKWARD, GraphVersion.PERMANENT).isSameAs
+                Direction.BACKWARD, GraphVersion.PERMANENT).isSameAs
                 (expectedIncomingAdjLists[i]));
         }
     }

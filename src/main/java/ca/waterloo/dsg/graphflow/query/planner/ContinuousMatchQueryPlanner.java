@@ -1,7 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
@@ -74,7 +73,7 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         List<GenericJoinIntersectionRule> stage;
         // Add the first stage.
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.FORWARD, graphVersion));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, graphVersion));
         singleRoundPlan.add(stage);
         // Add the rest of the stages.
         for (int i = 2; i < orderedVariables.size(); i++) {
@@ -88,10 +87,10 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
                 // in the intersection rule, it is the covered variable's adjacency list
                 // which will be used.
                 QueryEdge possibleEdge = new QueryEdge(coveredVariable, variable);
-                this.addRuleIfPossibleEdgeExists(j, Graph.EdgeDirection.FORWARD, possibleEdge,
+                this.addRuleIfPossibleEdgeExists(j, Direction.FORWARD, possibleEdge,
                     diffRelation, stage, oldRelations, latestRelations);
                 possibleEdge = new QueryEdge(variable, coveredVariable);
-                this.addRuleIfPossibleEdgeExists(j, Graph.EdgeDirection.BACKWARD, possibleEdge,
+                this.addRuleIfPossibleEdgeExists(j, Direction.BACKWARD, possibleEdge,
                     diffRelation, stage, oldRelations, latestRelations);
             }
             singleRoundPlan.add(stage);
@@ -101,11 +100,11 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
 
     /**
      * Adds a {@code GenericJoinIntersectionRule} to the given stage with the given {@code
-     * prefixIndex} and given {@code edgeDirection} if {@code possibleEdge} is either the
+     * prefixIndex} and given {@code direction} if {@code possibleEdge} is either the
      * {\code diffRelation} or exists in {code oldRelations} or {code latestRelations}
      *
      * @param prefixIndex Prefix index of the {@code GenericJoinIntersectionRule} to be created.
-     * @param edgeDirection Direction from the covered variable to the variable under
+     * @param direction Direction from the covered variable to the variable under
      * consideration.
      * @param possibleEdge The edge whose existence is checked.
      * @param diffRelation The relation which will use the diff graph for this iteration of {@code
@@ -115,10 +114,10 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
      * @param latestRelations The set of relations that will use the latest version of the graph.
      */
     @VisibleForTesting
-    public void addRuleIfPossibleEdgeExists(int prefixIndex, Graph.EdgeDirection edgeDirection,
+    public void addRuleIfPossibleEdgeExists(int prefixIndex, Direction direction,
         QueryEdge possibleEdge, QueryEdge diffRelation, List<GenericJoinIntersectionRule> stage,
         Set<QueryEdge> oldRelations, Set<QueryEdge> latestRelations) {
-        // Check for the existence of the edge in the given edgeDirection.
+        // Check for the existence of the edge in the given direction.
         GraphVersion version = null;
         if (possibleEdge.equals(diffRelation)) {
             version = GraphVersion.DIFF_PLUS;
@@ -129,7 +128,7 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         }
 
         if (version != null) {
-            stage.add(new GenericJoinIntersectionRule(prefixIndex, edgeDirection, version));
+            stage.add(new GenericJoinIntersectionRule(prefixIndex, direction, version));
         }
     }
 }

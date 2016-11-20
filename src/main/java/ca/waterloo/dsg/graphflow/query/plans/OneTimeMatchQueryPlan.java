@@ -43,7 +43,7 @@ public class OneTimeMatchQueryPlan implements QueryPlan {
         for (List<GenericJoinIntersectionRule> stage : stages) {
             plan.append("\nStage: ").append(i).append("\n");
             for (GenericJoinIntersectionRule rule : stage) {
-                plan.append(rule.getPrefixIndex()).append(", ").append(rule.getEdgeDirection())
+                plan.append(rule.getPrefixIndex()).append(", ").append(rule.getDirection())
                     .append("\n");
             }
             i++;

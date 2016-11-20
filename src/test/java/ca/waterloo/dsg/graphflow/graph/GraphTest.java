@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,14 +46,14 @@ public class GraphTest {
         int[][] expectedOutgoingAdjLists2 = {{1, 2, 3, 4, 5, 6}, {6}, {6}, {6}, {6}, {6}, {}};
         for (int i = 0; i < expectedOutgoingAdjLists2.length; i++) {
             Assert.assertTrue("Testing FORWARD vertex id: " + i, graph.getAdjacencyList(i,
-                EdgeDirection.FORWARD, GraphVersion.PERMANENT).isSameAs
+                Direction.FORWARD, GraphVersion.PERMANENT).isSameAs
                 (expectedOutgoingAdjLists2[i]));
         }
         // Test incoming adjacency lists. The adjacency lists should be in sorted order.
         int[][] expectedIncomingAdjLists2 = {{}, {0}, {0}, {0}, {0}, {0}, {0, 1, 2, 3, 4, 5}};
         for (int i = 0; i < expectedIncomingAdjLists2.length; i++) {
             Assert.assertTrue("Testing BACKWARD vertex id: " + i, graph.getAdjacencyList(i,
-                EdgeDirection.BACKWARD, GraphVersion.PERMANENT).isSameAs
+                Direction.BACKWARD, GraphVersion.PERMANENT).isSameAs
                 (expectedIncomingAdjLists2[i]));
         }
     }
@@ -87,14 +87,14 @@ public class GraphTest {
         int[][] expectedOutgoingAdjLists = {{3}, {2, 3}, {}, {}, {0}};
         for (int i = 0; i < expectedOutgoingAdjLists.length; i++) {
             Assert.assertTrue("Testing FORWARD vertex id: " + i, graph.getAdjacencyList(i,
-                EdgeDirection.FORWARD, GraphVersion.PERMANENT).isSameAs
+                Direction.FORWARD, GraphVersion.PERMANENT).isSameAs
                 (expectedOutgoingAdjLists[i]));
         }
         // Test the incoming adjacency lists.
         int[][] expectedIncomingAdjLists = {{4}, {}, {1}, {0, 1}, {}};
         for (int i = 0; i < expectedIncomingAdjLists.length; i++) {
             Assert.assertTrue("Testing BACKWARD vertex id: " + i, graph.getAdjacencyList(i,
-                EdgeDirection.BACKWARD, GraphVersion.PERMANENT).isSameAs
+                Direction.BACKWARD, GraphVersion.PERMANENT).isSameAs
                 (expectedIncomingAdjLists[i]));
         }
     }

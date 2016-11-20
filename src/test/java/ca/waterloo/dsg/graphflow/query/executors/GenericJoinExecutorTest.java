@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,11 +20,11 @@ public class GenericJoinExecutorTest {
         List<List<GenericJoinIntersectionRule>> triangleQueryStages = new ArrayList<>();
         List<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD));
         triangleQueryStages.add(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
         triangleQueryStages.add(stage);
 
         int[][] motifsAfterAdditions = {{0, 1, 3}, {1, 3, 0}, {1, 3, 4}, {3, 0, 1}, {3, 4, 1},
@@ -39,14 +39,14 @@ public class GenericJoinExecutorTest {
         List<List<GenericJoinIntersectionRule>> squareQueryStages = new ArrayList<>();
         List<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD));
         squareQueryStages.add(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD));
         squareQueryStages.add(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(2, EdgeDirection.FORWARD));
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(2, Direction.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
         squareQueryStages.add(stage);
 
         int[][] motifsAfterAdditions = {{0, 1, 2, 3}, {1, 2, 3, 0}, {1, 2, 3, 4}, {2, 3, 0, 1},

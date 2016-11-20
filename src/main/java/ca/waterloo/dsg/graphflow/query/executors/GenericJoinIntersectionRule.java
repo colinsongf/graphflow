@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 
 /**
@@ -10,17 +10,17 @@ import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
  */
 public class GenericJoinIntersectionRule {
     private int prefixIndex;
-    private EdgeDirection edgeDirection;
+    private Direction direction;
     private GraphVersion graphVersion;
 
-    public GenericJoinIntersectionRule(int prefixIndex, EdgeDirection edgeDirection) {
-        this(prefixIndex, edgeDirection, GraphVersion.PERMANENT);
+    public GenericJoinIntersectionRule(int prefixIndex, Direction direction) {
+        this(prefixIndex, direction, GraphVersion.PERMANENT);
     }
 
-    public GenericJoinIntersectionRule(int prefixIndex, EdgeDirection edgeDirection,
+    public GenericJoinIntersectionRule(int prefixIndex, Direction direction,
         GraphVersion graphVersion) {
         this.prefixIndex = prefixIndex;
-        this.edgeDirection = edgeDirection;
+        this.direction = direction;
         this.graphVersion = graphVersion;
     }
 
@@ -28,8 +28,8 @@ public class GenericJoinIntersectionRule {
         return prefixIndex;
     }
 
-    public EdgeDirection getEdgeDirection() {
-        return edgeDirection;
+    public Direction getDirection() {
+        return direction;
     }
 
     public GraphVersion getGraphVersion() {
@@ -51,7 +51,7 @@ public class GenericJoinIntersectionRule {
         if (this == that) {
             return true;
         }
-        return (this.prefixIndex == that.prefixIndex && this.edgeDirection == that.edgeDirection
+        return (this.prefixIndex == that.prefixIndex && this.direction == that.direction
             && this.graphVersion == that.graphVersion);
     }
 }

@@ -21,7 +21,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
         StructuredQuery structuredQuery = new StructuredQuery();
         structuredQuery.addEdge(new StructuredQueryEdge(ctx.leftDigit().getText(), ctx.rightDigit
             ().getText()));
-        structuredQuery.setOperation(StructuredQuery.Operation.SHORTEST_PATH);
+        structuredQuery.setQueryOperation(StructuredQuery.QueryOperation.SHORTEST_PATH);
         return structuredQuery;
     }
 

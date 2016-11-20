@@ -121,8 +121,9 @@ public class SortedIntArrayList {
     }
 
     /**
-     * Intersects this {@code SortedIntArrayList} and the given newList
-     * and returns the result as {@code SortedIntArrayList}.
+     * Intersects this {@code SortedIntArrayList} and the given {@code newList} and returns the
+     * result as
+     * {@code SortedIntArrayList}.
      *
      * @param newList
      *

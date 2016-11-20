@@ -1,17 +1,17 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class GenericJoinIntersectionRuleTest {
 
     GenericJoinIntersectionRule obj_equal_1 = new GenericJoinIntersectionRule(0,
-        EdgeDirection.BACKWARD);
+        Direction.BACKWARD);
     GenericJoinIntersectionRule obj_equal_2 = new GenericJoinIntersectionRule(0,
-        EdgeDirection.BACKWARD);
+        Direction.BACKWARD);
     GenericJoinIntersectionRule obj_different = new GenericJoinIntersectionRule(1,
-        EdgeDirection.FORWARD);
+        Direction.FORWARD);
 
     @Test
     public void equalObjects() throws Exception {

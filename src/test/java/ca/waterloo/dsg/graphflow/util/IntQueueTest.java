@@ -1,101 +1,102 @@
 package ca.waterloo.dsg.graphflow.util;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Tests {@code IntQueue}.
  */
 public class IntQueueTest {
-    private IntQueue intQueue;
-    @Before
-    public void setUp() throws Exception {
-        intQueue = new IntQueue(10);
+
+    @Test
+    public void testEnqueueAdjustsFistAndNextItemIndicesAndSize() throws Exception {
+        IntQueue intQueue = new IntQueue();
+        intQueue.enqueue(2);
+        Assert.assertEquals(0, intQueue.getFirstItemIndex());
+        Assert.assertEquals(1, intQueue.getNextItemIndex());
+        Assert.assertEquals(1, intQueue.getSize());
     }
 
     @Test
-    public void testPutFirst() throws Exception {
-        intQueue.put(2);
-        Assert.assertEquals(0, intQueue.getFirst());
-        Assert.assertEquals(1, intQueue.getNext());
-        Assert.assertEquals(1, intQueue.size());
-    }
-
-    @Test
-    public void testPutLast() throws Exception {
-        intQueue.setFirst(4);
-        intQueue.setNext(9);
+    public void testEnqueueWrapsAroundNextItemIndex() throws Exception {
+        IntQueue intQueue = new IntQueue(10);
+        intQueue.setFirstItemIndex(4);
+        intQueue.setNextItemIndex(9);
         intQueue.setSize(5);
-        intQueue.put(2);
-        Assert.assertEquals(4, intQueue.getFirst());
-        Assert.assertEquals(0, intQueue.getNext());
-        Assert.assertEquals(6, intQueue.size());
+        intQueue.enqueue(2);
+        Assert.assertEquals(4, intQueue.getFirstItemIndex());
+        Assert.assertEquals(0, intQueue.getNextItemIndex());
+        Assert.assertEquals(6, intQueue.getSize());
     }
 
     @Test
-    public void testPutResize() throws Exception {
-        intQueue.setFirst(4);
-        intQueue.setNext(4);
+    public void testResizeAdjustsFirstAndNextItemIndicesAndSize() throws Exception {
+        IntQueue intQueue = new IntQueue(10);
+        intQueue.setFirstItemIndex(4);
+        intQueue.setNextItemIndex(2);
         intQueue.setSize(10);
-        intQueue.put(2);
-        Assert.assertEquals(0, intQueue.getFirst());
-        Assert.assertEquals(11, intQueue.getNext());
-        Assert.assertEquals(11, intQueue.size());
+        intQueue.enqueue(2);
+        Assert.assertEquals(0, intQueue.getFirstItemIndex());
+        Assert.assertEquals(11, intQueue.getNextItemIndex());
+        Assert.assertEquals(11, intQueue.getSize());
     }
 
     @Test
-    public void testGetFirst() throws Exception {
-        intQueue.put(2);
-        intQueue.put(3);
-        intQueue.get();
-        Assert.assertEquals(1, intQueue.getFirst());
-        Assert.assertEquals(2, intQueue.getNext());
-        Assert.assertEquals(1, intQueue.size());
+    public void testDequeueFirstAdjustsFirstAndNextItemIndicesAndSize() throws Exception {
+        IntQueue intQueue = new IntQueue(10);
+        intQueue.enqueue(2);
+        intQueue.enqueue(3);
+        intQueue.dequeue();
+        Assert.assertEquals(1, intQueue.getFirstItemIndex());
+        Assert.assertEquals(2, intQueue.getNextItemIndex());
+        Assert.assertEquals(1, intQueue.getSize());
     }
 
     @Test
-    public void testGetLast() throws Exception {
-        intQueue.setFirst(9);
-        intQueue.setNext(0);
+    public void testDequeueLastAdjustsFirstAndNextItemIndicesAndSize() throws Exception {
+        IntQueue intQueue = new IntQueue(10);
+        intQueue.setFirstItemIndex(9);
+        intQueue.setNextItemIndex(0);
         intQueue.setSize(1);
-        intQueue.get();
-        Assert.assertEquals(0, intQueue.getFirst());
-        Assert.assertEquals(0, intQueue.getNext());
-        Assert.assertEquals(0, intQueue.size());
+        intQueue.dequeue();
+        Assert.assertEquals(0, intQueue.getFirstItemIndex());
+        Assert.assertEquals(0, intQueue.getNextItemIndex());
+        Assert.assertEquals(0, intQueue.getSize());
     }
 
     @Test
-    public void testGetAndPut() throws Exception {
-        intQueue.put(0);
-        int result = intQueue.get();
+    public void test5Enqueue3Dequeue() throws Exception {
+        IntQueue intQueue = new IntQueue();
+        intQueue.enqueue(0);
+        int result = intQueue.dequeue();
         Assert.assertEquals(0, result);
-        intQueue.put(1);
-        intQueue.put(2);
-        result = intQueue.get();
+        intQueue.enqueue(1);
+        intQueue.enqueue(2);
+        result = intQueue.dequeue();
         Assert.assertEquals(1, result);
-        intQueue.put(4);
-        intQueue.put(5);
-        result = intQueue.get();
+        intQueue.enqueue(4);
+        intQueue.enqueue(5);
+        result = intQueue.dequeue();
         Assert.assertEquals(2, result);
     }
 
     @Test
-    public void testGetAndPut0to5() throws Exception {
-        intQueue.put(0);
-        int result = intQueue.get();
+    public void test5Enqueue4Dequeue() throws Exception {
+        IntQueue intQueue = new IntQueue();
+        intQueue.enqueue(0);
+        int result = intQueue.dequeue();
         Assert.assertEquals(0, result);
-        intQueue.put(1);
-        intQueue.put(2);
-        result = intQueue.get();
+        intQueue.enqueue(1);
+        intQueue.enqueue(2);
+        result = intQueue.dequeue();
         Assert.assertEquals(1, result);
-        intQueue.put(3);
-        intQueue.put(4);
-        result = intQueue.get();
+        intQueue.enqueue(3);
+        intQueue.enqueue(4);
+        result = intQueue.dequeue();
         Assert.assertEquals(2, result);
-        intQueue.put(4);
-        intQueue.put(5);
-        result = intQueue.get();
+        intQueue.enqueue(4);
+        intQueue.enqueue(5);
+        result = intQueue.dequeue();
         Assert.assertEquals(3, result);
     }
 }

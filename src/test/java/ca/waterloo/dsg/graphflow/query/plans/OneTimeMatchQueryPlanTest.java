@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,34 +20,34 @@ public class OneTimeMatchQueryPlanTest {
         ArrayList<GenericJoinIntersectionRule> stage;
 
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
         obj_equal_1.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
-        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD));
         obj_equal_1.addStage(stage);
 
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
         obj_equal_2.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
-        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD));
         obj_equal_2.addStage(stage);
 
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
         obj_different_1.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.BACKWARD));
-        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD));
         obj_different_1.addStage(stage);
 
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
         obj_different_2.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
         obj_different_2.addStage(stage);
     }
 

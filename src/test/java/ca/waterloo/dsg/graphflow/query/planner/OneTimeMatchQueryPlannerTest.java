@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
@@ -27,11 +27,11 @@ public class OneTimeMatchQueryPlannerTest {
         OneTimeMatchQueryPlan oneTimeMatchQueryPlanExpected = new OneTimeMatchQueryPlan();
         List<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD));
         oneTimeMatchQueryPlanExpected.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
-        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD));
         oneTimeMatchQueryPlanExpected.addStage(stage);
 
         Assert.assertTrue(oneTimeMatchQueryPlanActual.isSameAs(oneTimeMatchQueryPlanExpected));
@@ -55,21 +55,21 @@ public class OneTimeMatchQueryPlannerTest {
         OneTimeMatchQueryPlan oneTimeMatchQueryPlanExpected = new OneTimeMatchQueryPlan();
         List<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
         oneTimeMatchQueryPlanExpected.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
-        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD));
         oneTimeMatchQueryPlanExpected.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
         oneTimeMatchQueryPlanExpected.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, EdgeDirection.BACKWARD));
-        stage.add(new GenericJoinIntersectionRule(3, EdgeDirection.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(3, Direction.FORWARD));
         oneTimeMatchQueryPlanExpected.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(1, EdgeDirection.BACKWARD));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD));
         oneTimeMatchQueryPlanExpected.addStage(stage);
 
         Assert.assertTrue(oneTimeMatchQueryPlanActual.isSameAs(oneTimeMatchQueryPlanExpected));

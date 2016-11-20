@@ -41,7 +41,7 @@ public class GenericJoinExecutor {
         GenericJoinIntersectionRule firstRule = stages.get(0).get(0);
         // Get the initial set of edges.
         int[][] initialPrefixes = graph.getEdges(firstRule.getGraphVersion(), firstRule
-            .getEdgeDirection());
+            .getDirection());
         if (0 == initialPrefixes.length) {
             // Obtained empty set of edges, nothing to execute.
             return;
@@ -83,7 +83,7 @@ public class GenericJoinExecutor {
             GenericJoinIntersectionRule minCountRule = getMinCountIndex(prefix,
                 genericJoinIntersectionRules);
             SortedIntArrayList extensions = this.graph.getAdjacencyList(prefix[minCountRule
-                .getPrefixIndex()], minCountRule.getEdgeDirection(), minCountRule.getGraphVersion
+                .getPrefixIndex()], minCountRule.getDirection(), minCountRule.getGraphVersion
                 ());
 
             for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
@@ -94,7 +94,7 @@ public class GenericJoinExecutor {
                 // Intersect current extensions with the possible extensions obtained from
                 // {@code rule}.
                 extensions = extensions.getIntersection(this.graph.getAdjacencyList(prefix[rule
-                    .getPrefixIndex()], rule.getEdgeDirection(), rule.getGraphVersion()));
+                    .getPrefixIndex()], rule.getDirection(), rule.getGraphVersion()));
             }
 
             for (int j = 0; j < extensions.getSize(); j++) {
@@ -139,7 +139,7 @@ public class GenericJoinExecutor {
         int minCount = Integer.MAX_VALUE;
         for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
             int extensionCount = this.graph.getAdjacencyList(prefix[rule.getPrefixIndex()], rule
-                .getEdgeDirection(), rule.getGraphVersion()).getSize();
+                .getDirection(), rule.getGraphVersion()).getSize();
             if (extensionCount < minCount) {
                 minCount = extensionCount;
                 minGenericJoinIntersectionRule = rule;

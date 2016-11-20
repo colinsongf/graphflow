@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
@@ -132,9 +132,9 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                 String variableFromPreviousStage = orderedVariables.get(j);
                 if (queryGraph.getQueryVariableAdjList(variableFromPreviousStage)
                     .hasNeighborVariable(variableForCurrentStage)) {
-                    EdgeDirection edgeDirection = queryGraph.getQueryVariableAdjList(
+                    Direction direction = queryGraph.getQueryVariableAdjList(
                         variableFromPreviousStage).getDirectionTo(variableForCurrentStage);
-                    stage.add(new GenericJoinIntersectionRule(j, edgeDirection));
+                    stage.add(new GenericJoinIntersectionRule(j, direction));
                 }
             }
             oneTimeMatchQueryPlan.addStage(stage);

@@ -10,7 +10,7 @@ import java.util.InputMismatchException;
 /**
  * Creates the execution plan for a shortest path query.
  */
-public class ShortestPathPlanner extends AbstractQueryPlanner{
+public class ShortestPathPlanner extends AbstractQueryPlanner {
 
     public ShortestPathPlanner(StructuredQuery structuredQuery) {
         super(structuredQuery);
@@ -18,10 +18,7 @@ public class ShortestPathPlanner extends AbstractQueryPlanner{
     }
 
     @Override
-    QueryPlan plan() throws InputMismatchException{
-        if(structuredQuery.getStructuredQueryEdges().isEmpty()) {
-            throw new InputMismatchException();
-        }
+    QueryPlan plan() {
         StructuredQueryEdge shortestPathEdge = structuredQuery.getStructuredQueryEdges()
             .get(0);
         ShortestPathPlan plan = new ShortestPathPlan(Integer.parseInt(shortestPathEdge

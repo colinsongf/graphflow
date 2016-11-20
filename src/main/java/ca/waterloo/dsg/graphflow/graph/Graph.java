@@ -30,9 +30,24 @@ public class Graph {
         MERGED
     }
 
-    public enum EdgeDirection {
-        FORWARD,
-        BACKWARD
+    /**
+     * This is used for both identifying the edge direction in adjacency lists in the graph
+     * representation and the direction when evaluating MATCH queries using Generic Join and
+     * the direction of traversals in SHORTEST PATH queries.
+     */
+    public enum Direction {
+        FORWARD(true),
+        BACKWARD(false);
+
+        private final boolean isForward;
+
+        Direction(boolean isForward) {
+            this.isForward = isForward;
+        }
+
+        public boolean getBooleanValue() {
+            return isForward;
+        }
     }
 
     private static final Logger logger = LogManager.getLogger(Graph.class);
@@ -170,7 +185,8 @@ public class Graph {
      * since the previous call to {@code finalizeChanges()}.
      */
     public void finalizeChanges() {
-        // Increase the size of the adjacency lists if newly added edges have a higher vertex ID
+        // Increase the size of the adjacency lists if newly added edges have a higher
+        // vertex ID
         // as captured by {@code highestMergedVertexId}.
         // TODO: handle very large vertex ids.
         ensureCapacity(highestMergedVertexId + 1);
@@ -191,11 +207,11 @@ public class Graph {
 
     /**
      * @param graphVersion The {@code GraphVersion} for which list of edges is required.
-     * @param edgeDirection The {@code EdgeDirection} of the edges.
+     * @param direction The {@code Direction} of the edges.
      *
-     * @return The list of edges for the given {@code graphVersion} and {@code edgeDirection}.
+     * @return The list of edges for the given {@code graphVersion} and {@code direction}.
      */
-    public int[][] getEdges(GraphVersion graphVersion, EdgeDirection edgeDirection) {
+    public int[][] getEdges(GraphVersion graphVersion, Direction direction) {
         List<int[]> list = new ArrayList<>();
         if (GraphVersion.DIFF_PLUS == graphVersion) {
             list = diffPlusEdges;
@@ -204,7 +220,7 @@ public class Graph {
         } else {
             SortedIntArrayList[] permanentAdjList;
             Map<Integer, SortedIntArrayList> mergedAdjLists;
-            if (EdgeDirection.FORWARD == edgeDirection) {
+            if (Direction.FORWARD == direction) {
                 permanentAdjList = forwardAdjLists;
                 mergedAdjLists = mergedForwardAdjLists;
             } else {
@@ -239,13 +255,13 @@ public class Graph {
 
     /**
      * @param vertexId The vertex ID whose adjacency list is required.
-     * @param edgeDirection The {@code EdgeDirection} of the adjacency list.
+     * @param direction The {@code Direction} of the adjacency list.
      * @param graphVersion The {@code GraphVersion} to consider.
      *
      * @return The adjacency list for the vertex with given {@code vertexId}, for the given {@code
-     * graphVersion} and {@code edgeDirection}.
+     * graphVersion} and {@code direction}.
      */
-    public SortedIntArrayList getAdjacencyList(int vertexId, EdgeDirection edgeDirection,
+    public SortedIntArrayList getAdjacencyList(int vertexId, Direction direction,
         GraphVersion graphVersion) {
         if (vertexId > highestPermanentVertexId) {
             throw new ArrayIndexOutOfBoundsException(vertexId + " does not exist.");
@@ -256,7 +272,7 @@ public class Graph {
         }
         SortedIntArrayList[] permanentAdjList;
         Map<Integer, SortedIntArrayList> mergedAdjLists;
-        if (EdgeDirection.FORWARD == edgeDirection) {
+        if (Direction.FORWARD == direction) {
             permanentAdjList = forwardAdjLists;
             mergedAdjLists = mergedForwardAdjLists;
         } else {

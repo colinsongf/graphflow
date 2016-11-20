@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.utils;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.EdgeDirection;
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,8 +26,8 @@ public class QueryGraph {
     public void addEdge(String fromVariable, String toVariable) {
         addVariable(toVariable);
         addVariable(fromVariable);
-        queryGraph.get(toVariable).addNeighborVariable(fromVariable, EdgeDirection.BACKWARD);
-        queryGraph.get(fromVariable).addNeighborVariable(toVariable, EdgeDirection.FORWARD);
+        queryGraph.get(toVariable).addNeighborVariable(fromVariable, Direction.BACKWARD);
+        queryGraph.get(fromVariable).addNeighborVariable(toVariable, Direction.FORWARD);
         queryEdges.add(new QueryEdge(fromVariable, toVariable));
     }
 
@@ -56,8 +56,8 @@ public class QueryGraph {
             graph.append(key).append(" (degree = ").append(queryVariableAdjList.getTotalDegree())
                 .append(")\n");
             for (String neighborVariable : queryVariableAdjList.getAllNeighborVariables()) {
-                EdgeDirection edgeDirection = queryVariableAdjList.getDirectionTo(neighborVariable);
-                graph.append(edgeDirection == EdgeDirection.FORWARD ? (key + "->" +
+                Direction direction = queryVariableAdjList.getDirectionTo(neighborVariable);
+                graph.append(direction == Direction.FORWARD ? (key + "->" +
                     neighborVariable) : (neighborVariable + "->" + key)).append("\n");
             }
         }

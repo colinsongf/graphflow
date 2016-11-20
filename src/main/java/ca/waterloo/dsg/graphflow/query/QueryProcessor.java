@@ -1,6 +1,7 @@
 package ca.waterloo.dsg.graphflow.query;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.query.executors.ShortestPathExecutor;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.QueryPlanBuilder;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
@@ -12,7 +13,13 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
  */
 public class QueryProcessor {
 
-    private Graph graph = new Graph();
+    private Graph graph;
+
+    public QueryProcessor() {
+        graph = new Graph();
+        ShortestPathExecutor shortestPathExecutor = ShortestPathExecutor.getInstance();
+        shortestPathExecutor.init(graph);
+    }
 
     public String process(String query) {
         StructuredQuery structuredQuery;

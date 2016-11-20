@@ -4,9 +4,14 @@ import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class StructuredQueryParserTest {
+
+    @Rule
+    public ExpectedException parseException = ExpectedException.none();
     @Test
     public void testParseTriangleMatchQuery() throws Exception {
         StructuredQuery structuredQueryActual;
@@ -74,7 +79,7 @@ public class StructuredQueryParserTest {
         }
         StructuredQuery expected = new StructuredQuery();
         expected.addEdge(new StructuredQueryEdge("0", "9"));
-        expected.setOperation(StructuredQuery.Operation.SHORTEST_PATH);
-        Assert.assertTrue(result.equalsTo(expected));
+        expected.setQueryOperation(StructuredQuery.QueryOperation.SHORTEST_PATH);
+        Assert.assertTrue(result.isSameAs(expected));
     }
 }

@@ -6,9 +6,12 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.StringJoiner;
 
 /**
@@ -101,9 +104,10 @@ public class Graph {
      * @param toVertex The ending vertex ID for the edge.
      */
     public void addEdgeTemporarily(int fromVertex, int toVertex) {
-        if (fromVertex <= highestPermanentVertexId && forwardAdjLists[fromVertex] != null &&
-            forwardAdjLists[fromVertex].search(toVertex) != -1) {
-            return; // Edge is already present. Skip.
+        if (fromVertex <= highestPermanentVertexId && toVertex <= highestPermanentVertexId &&
+            null != forwardAdjLists[fromVertex] && -1 != forwardAdjLists[fromVertex]
+            .search(toVertex)) {
+            return; // Edge is already present in the permanent graph. Skip.
         }
         addOrDeleteEdgeTemporarily(true /* addition */, fromVertex, toVertex, diffPlusEdges);
         highestMergedVertexId = Integer.max(highestMergedVertexId, Integer.max(fromVertex,
@@ -118,9 +122,15 @@ public class Graph {
      * @param toVertex The ending vertex ID for the edge.
      */
     public void deleteEdgeTemporarily(int fromVertex, int toVertex) {
-        if (fromVertex > highestPermanentVertexId || null == forwardAdjLists[fromVertex] || -1 ==
-            forwardAdjLists[fromVertex].search(toVertex)) {
-            return; // Edge is not present. Skip.
+        // Check whether the edge exists in either the MERGED or the PERMANENT graph.
+        if (!((fromVertex <= highestMergedVertexId) && ((toVertex <= highestMergedVertexId) &&
+            mergedForwardAdjLists.containsKey(fromVertex) && (-1 != mergedForwardAdjLists.get
+            (fromVertex).search(toVertex)))) && !((fromVertex <= highestPermanentVertexId) &&
+            (toVertex <= highestPermanentVertexId) && (null != forwardAdjLists[fromVertex]) &&
+            (-1 != forwardAdjLists[fromVertex].search(toVertex)))) {
+            // The edge does not exist.
+            throw new NoSuchElementException("The edge " + fromVertex + "->" + toVertex +
+                " does not exist.");
         }
         addOrDeleteEdgeTemporarily(false /* deletion */, fromVertex, toVertex, diffMinusEdges);
     }
@@ -206,65 +216,61 @@ public class Graph {
     }
 
     /**
+     * Returns an iterator over the edges of the graph for the given {@code graphVersion} and
+     * {@code direction}. The order of the returned edges is first in increasing order of source
+     * vertex IDs and then, for the edges with the same source vertex ID, in increasing order of
+     * destination IDs.
+     *
      * @param graphVersion The {@code GraphVersion} for which list of edges is required.
      * @param direction The {@code Direction} of the edges.
-     *
-     * @return The list of edges for the given {@code graphVersion} and {@code direction}.
+     * @return An iterator to the list of edges for the given {@code graphVersion} and
+     * {@code direction}.
      */
-    public int[][] getEdges(GraphVersion graphVersion, Direction direction) {
-        List<int[]> list = new ArrayList<>();
+    public Iterator<int[]> getEdgesIterator(GraphVersion graphVersion, Direction direction) {
+        if ((GraphVersion.DIFF_PLUS == graphVersion || GraphVersion.DIFF_MINUS == graphVersion) &&
+            Direction.BACKWARD == direction) {
+            throw new UnsupportedOperationException("Getting edges for the DIFF_PLUS "
+                + "or DIFF_MINUS graph in BACKWARD direction is not supported.");
+        }
         if (GraphVersion.DIFF_PLUS == graphVersion) {
-            list = diffPlusEdges;
+            return Collections.unmodifiableCollection(diffPlusEdges).iterator();
         } else if (GraphVersion.DIFF_MINUS == graphVersion) {
-            list = diffMinusEdges;
+            return Collections.unmodifiableCollection(diffMinusEdges).iterator();
         } else {
-            SortedIntArrayList[] permanentAdjList;
+            SortedIntArrayList[] permanentAdjacencyLists;
             Map<Integer, SortedIntArrayList> mergedAdjLists;
             if (Direction.FORWARD == direction) {
-                permanentAdjList = forwardAdjLists;
+                permanentAdjacencyLists = forwardAdjLists;
                 mergedAdjLists = mergedForwardAdjLists;
             } else {
-                permanentAdjList = backwardAdjLists;
+                permanentAdjacencyLists = backwardAdjLists;
                 mergedAdjLists = mergedBackwardAdjLists;
             }
-            int lastVertexId = (GraphVersion.MERGED == graphVersion) ? highestPermanentVertexId :
-                highestMergedVertexId;
-            for (int fromVertex = 0; fromVertex <= lastVertexId; fromVertex++) {
-                SortedIntArrayList adjList;
-                if (GraphVersion.MERGED == graphVersion && mergedAdjLists.containsKey(fromVertex)) {
-                    // Use the adjacency list of the merged graph.
-                    adjList = mergedAdjLists.get(fromVertex);
-                } else if (null != permanentAdjList[fromVertex]) {
-                    // Use the adjacency list of the permanent graph.
-                    adjList = permanentAdjList[fromVertex];
-                } else {
-                    // {@code fromVertex} does not exist.
-                    continue;
-                }
-                for (int toVertex : adjList.toArray()) {
-                    list.add(new int[]{fromVertex, toVertex});
-                }
+            int lastVertexId = (GraphVersion.MERGED == graphVersion) ? highestMergedVertexId :
+                highestPermanentVertexId;
+
+            if (0 > lastVertexId) {
+                // Handle the case when the graph is empty.
+                logger.warn("A getEdgesIterator(" + graphVersion + "," + direction +
+                    ") call received when the graph was empty.");
+                return Collections.<int[]>emptyList().iterator();
             }
+            return new EdgesIterator(graphVersion, permanentAdjacencyLists, mergedAdjLists,
+                lastVertexId);
         }
-        int[][] edges = new int[list.size()][];
-        for (int i = 0; i < list.size(); i++) {
-            edges[i] = list.get(i);
-        }
-        return edges;
     }
 
     /**
      * @param vertexId The vertex ID whose adjacency list is required.
      * @param direction The {@code Direction} of the adjacency list.
      * @param graphVersion The {@code GraphVersion} to consider.
-     *
-     * @return The adjacency list for the vertex with given {@code vertexId}, for the given {@code
-     * graphVersion} and {@code direction}.
+     * @return The adjacency list for the vertex with the given {@code vertexId}, for the given
+     * {@code graphVersion} and {@code direction}.
      */
     public SortedIntArrayList getAdjacencyList(int vertexId, Direction direction,
         GraphVersion graphVersion) {
         if (vertexId > highestPermanentVertexId) {
-            throw new ArrayIndexOutOfBoundsException(vertexId + " does not exist.");
+            throw new NoSuchElementException(vertexId + " does not exist.");
         } else if (GraphVersion.DIFF_MINUS == graphVersion || GraphVersion.DIFF_PLUS ==
             graphVersion) {
             throw new UnsupportedOperationException("Getting adjacency lists from the DIFF_PLUS "
@@ -337,7 +343,6 @@ public class Graph {
      * Converts the permanent adjacency lists {@code permanentAdjLists} to a {@code String}.
      *
      * @param permanentAdjLists The permanent adjacency list to convert to a {@code String}.
-     *
      * @return The{@code String} representation of {@code permanentAdjLists}.
      */
     private String convertPermanentAdjListsToString(SortedIntArrayList[] permanentAdjLists) {
@@ -355,7 +360,6 @@ public class Graph {
      * Converts the merged adjacency lists {@code mergedAdjLists} to a {@code String}.
      *
      * @param mergedAdjLists The merged adjacency list to convert to a {@code String}.
-     *
      * @return The {@code String} representation of {@code permanentAdjLists}.
      */
     private String convertMergedAdjListsToString(Map<Integer, SortedIntArrayList> mergedAdjLists) {
@@ -373,7 +377,6 @@ public class Graph {
      * Converts the list of diff edges {@code diffEdges} to a {@code String}.
      *
      * @param diffEdges The list of diff edges to convert to a {@code String}.
-     *
      * @return The {@code String} representation of {@code diffEdges}.
      */
     private String convertDiffEdgesToString(List<int[]> diffEdges) {

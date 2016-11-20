@@ -5,11 +5,15 @@ import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
- * Tests {@code Graph} class.
+ * Tests the {@code Graph} class.
  */
 public class GraphTest {
 
@@ -74,12 +78,21 @@ public class GraphTest {
         graph.finalizeChanges();
 
         // Delete a list of edges.
-        int[][] deleteEdges = {{0, 1}, {4, 1}, /* Edges exist in the graph.*/
-            {120, 34}, {1, 42} /* Edges do not exist in the graph.*/};
-        for (int[] edge : deleteEdges) {
+        int[][] deleteExistingEdges = {{0, 1}, {4, 1}};
+        for (int[] edge : deleteExistingEdges) {
             graph.deleteEdgeTemporarily(edge[0], edge[1]);
         }
         graph.finalizeChanges();
+
+        int[][] deleteNonExistingEdges = {{120, 34}, {1, 42}};
+        for (int[] edge : deleteNonExistingEdges) {
+            try {
+                graph.deleteEdgeTemporarily(edge[0], edge[1]);
+                Assert.fail("NoSuchElementException should have been thrown.");
+            } catch (NoSuchElementException e) {
+                // Expected exception caught.
+            }
+        }
 
         // Test the vertex count.
         Assert.assertEquals(5, graph.getVertexCount());
@@ -97,5 +110,119 @@ public class GraphTest {
                 Direction.BACKWARD, GraphVersion.PERMANENT).isSameAs
                 (expectedIncomingAdjLists[i]));
         }
+    }
+
+    private Graph getGraphWithTemporaryChanges() {
+        // Create a graph with some initial edges.
+        Graph graph = new Graph();
+        graph.addEdgeTemporarily(0, 1);
+        graph.addEdgeTemporarily(11, 9);
+        graph.finalizeChanges();
+
+        // Add and delete some edges temporarily.
+        int[][] edges = {{0, 6}, {2, 6}, {5, 6}, {4, 6}, {2, 5}};
+        for (int[] edge : edges) {
+            graph.addEdgeTemporarily(edge[0], edge[1]);
+        }
+        graph.deleteEdgeTemporarily(2, 6);
+        graph.deleteEdgeTemporarily(0, 1);
+        return graph;
+    }
+
+    /**
+     * Tests that the iterator returned by {@code getEdgesIterator()} correctly returns the
+     * list of edges for the {@link GraphVersion#PERMANENT} graph.
+     */
+    @Test
+    public void testGetEdgesIteratorForPermanentGraph() throws Exception {
+        Graph graph = getGraphWithTemporaryChanges();
+
+        // Test the list of edges of the permanent graph before finalizing the changes.
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.FORWARD),
+            new int[][]{{0, 1}, {11, 9}});
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.BACKWARD),
+            new int[][]{{1, 0}, {9, 11}});
+
+        // Make the temporary changes permanent.
+        graph.finalizeChanges();
+
+        // Test the list of edges of the permanent graph after finalizing the changes.
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.FORWARD),
+            new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.BACKWARD),
+            new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
+    }
+
+    /**
+     * Tests that the iterator returned by {@code getEdgesIterator()} correctly returns the
+     * list of edges for the {@link GraphVersion#MERGED} graph.
+     */
+    @Test
+    public void testGetEdgesIteratorForMergedGraph() throws Exception {
+        Graph graph = getGraphWithTemporaryChanges();
+
+        // Test the list of edges of the merged graph before finalizing the changes.
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.FORWARD),
+            new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.BACKWARD),
+            new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
+
+        // Make the temporary changes permanent.
+        graph.finalizeChanges();
+
+        // Test the list of edges of the merged graph after finalizing the changes.
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.FORWARD),
+            new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.BACKWARD),
+            new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
+    }
+
+    /**
+     * Tests that the iterator returned by {@code getEdgesIterator()} correctly returns the
+     * list of edges for the {@link GraphVersion#DIFF_PLUS} graph.
+     */
+    @Test
+    public void testGetEdgesIteratorForDiffPlusGraph() throws Exception {
+        Graph graph = getGraphWithTemporaryChanges();
+
+        // Test the list of edges of the merged graph before finalizing the changes.
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_PLUS, Direction.FORWARD),
+            new int[][]{{0, 6}, {2, 6}, {5, 6}, {4, 6}, {2, 5}});
+
+        // Make the temporary changes permanent.
+        graph.finalizeChanges();
+
+        // Test the list of edges of the merged graph after finalizing the changes.
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_PLUS, Direction.FORWARD),
+            new int[][]{});
+    }
+
+    /**
+     * Tests that the iterator returned by {@code getEdgesIterator()} correctly returns the
+     * list of edges for the {@link GraphVersion#DIFF_MINUS} graph.
+     */
+    @Test
+    public void testGetEdgesIteratorForDiffMinusGraph() throws Exception {
+        Graph graph = getGraphWithTemporaryChanges();
+
+        // Test the list of edges of the merged graph before finalizing the changes.
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_MINUS, Direction.FORWARD),
+            new int[][]{{2, 6}, {0, 1}});
+
+        // Make the temporary changes permanent.
+        graph.finalizeChanges();
+
+        // Test the list of edges of the merged graph after finalizing the changes.
+        assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_MINUS, Direction.FORWARD),
+            new int[][]{});
+    }
+
+    private void assertEdgesIterator(Iterator<int[]> iterator, int[][] expectedEdges) {
+        List<int[]> edgesList;
+        edgesList = new ArrayList<>();
+        while (iterator.hasNext()) {
+            edgesList.add(iterator.next());
+        }
+        Assert.assertArrayEquals(edgesList.toArray(), expectedEdges);
     }
 }

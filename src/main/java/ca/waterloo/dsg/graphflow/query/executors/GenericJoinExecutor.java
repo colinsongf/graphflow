@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -40,9 +41,9 @@ public class GenericJoinExecutor {
     public void execute() {
         GenericJoinIntersectionRule firstRule = stages.get(0).get(0);
         // Get the initial set of edges.
-        int[][] initialPrefixes = graph.getEdges(firstRule.getGraphVersion(), firstRule
-            .getDirection());
-        if (0 == initialPrefixes.length) {
+        Iterator<int[]> iterator = graph.getEdgesIterator(firstRule.getGraphVersion(),
+            firstRule.getDirection());
+        if (!iterator.hasNext()) {
             // Obtained empty set of edges, nothing to execute.
             return;
         }
@@ -54,7 +55,20 @@ public class GenericJoinExecutor {
         } else {
             matchQueryResultType = MatchQueryResultType.MATCHED;
         }
-        extend(initialPrefixes, 1, matchQueryResultType);
+        int[][] initialPrefixes = new int[BATCH_SIZE][];
+        int index = 0;
+        while (iterator.hasNext()) {
+            initialPrefixes[index++] = iterator.next();
+            if (index == BATCH_SIZE) {
+                // Extend the initial prefixes in batches of size BATCH_SIZE.
+                extend(initialPrefixes, 1, matchQueryResultType);
+                index = 0;
+            }
+        }
+        if (index > 0) {
+            // Handle the last batch of initial prefixes which did not reach size of BATCH_SIZE.
+            extend(Arrays.copyOf(initialPrefixes, index), 1, matchQueryResultType);
+        }
     }
 
     /**
@@ -65,6 +79,7 @@ public class GenericJoinExecutor {
      * @param stageIndex Stage index to track progress of the execution.
      * @param matchQueryResultType The category to under which the output prefixes are stored.
      */
+
     private void extend(int[][] prefixes, int stageIndex, MatchQueryResultType
         matchQueryResultType) {
         if (stageIndex >= stages.size()) {
@@ -73,8 +88,8 @@ public class GenericJoinExecutor {
             return;
         }
         logger.debug("Starting new recursion. Stage: " + stageIndex);
-        List<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.get
-            (stageIndex);
+        List<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages
+            .get(stageIndex);
         int newPrefixCount = 0;
         int[][] newPrefixes = new int[BATCH_SIZE][];
 
@@ -83,8 +98,8 @@ public class GenericJoinExecutor {
             GenericJoinIntersectionRule minCountRule = getMinCountIndex(prefix,
                 genericJoinIntersectionRules);
             SortedIntArrayList extensions = this.graph.getAdjacencyList(prefix[minCountRule
-                .getPrefixIndex()], minCountRule.getDirection(), minCountRule.getGraphVersion
-                ());
+                .getPrefixIndex()], minCountRule.getDirection(), minCountRule
+                .getGraphVersion());
 
             for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
                 // Skip rule if it is the minCountRule.
@@ -117,9 +132,9 @@ public class GenericJoinExecutor {
             }
         }
 
-        // Handling the last batch for extended prefixes which did not reach size of BATCH_SIZE.
         if (newPrefixCount > 0) {
-            this.extend(Arrays.copyOfRange(newPrefixes, 0, newPrefixCount), stageIndex + 1,
+            // Handle the last batch of extended prefixes which did not reach size of BATCH_SIZE.
+            this.extend(Arrays.copyOf(newPrefixes, newPrefixCount), stageIndex + 1,
                 matchQueryResultType);
         }
     }

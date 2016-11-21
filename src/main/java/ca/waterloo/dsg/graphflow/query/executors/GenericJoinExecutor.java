@@ -3,6 +3,7 @@ package ca.waterloo.dsg.graphflow.query.executors;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
+import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,8 +29,8 @@ public class GenericJoinExecutor {
     private OutputSink outputSink;
     private Graph graph;
 
-    public GenericJoinExecutor(List<List<GenericJoinIntersectionRule>> stages, OutputSink
-        outputSink, Graph graph) {
+    public GenericJoinExecutor(List<List<GenericJoinIntersectionRule>> stages,
+        OutputSink outputSink, Graph graph) {
         if (0 == stages.size() || 0 == stages.get(0).size()) {
             throw new RuntimeException("Incomplete stages.");
         }
@@ -84,7 +85,9 @@ public class GenericJoinExecutor {
         matchQueryResultType) {
         if (stageIndex >= stages.size()) {
             // Write to output sink because this is the last stage.
-            outputSink.append(matchQueryResultType, prefixes);
+            for (int[] result : prefixes) {
+                outputSink.append(getStringOutput(result, matchQueryResultType));
+            }
             return;
         }
         logger.debug("Starting new recursion. Stage: " + stageIndex);
@@ -100,6 +103,10 @@ public class GenericJoinExecutor {
             SortedIntArrayList extensions = this.graph.getAdjacencyList(prefix[minCountRule
                 .getPrefixIndex()], minCountRule.getDirection(), minCountRule
                 .getGraphVersion());
+            if (extensions.getSize() == 0) {
+                // No extensions found for the current {@code prefix}.
+                continue;
+            }
 
             for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
                 // Skip rule if it is the minCountRule.
@@ -145,7 +152,6 @@ public class GenericJoinExecutor {
      *
      * @param prefix A list of number representing a partial solution to the query.
      * @param genericJoinIntersectionRules A list of relations in Generic Join.
-     *
      * @return GenericJoinIntersectionRule
      */
     private GenericJoinIntersectionRule getMinCountIndex(int[] prefix,
@@ -161,5 +167,10 @@ public class GenericJoinExecutor {
             }
         }
         return minGenericJoinIntersectionRule;
+    }
+
+    @PackagePrivateForTesting
+    static String getStringOutput(int[] result, MatchQueryResultType matchQueryResultType) {
+        return Arrays.toString(result) + ", " + matchQueryResultType;
     }
 }

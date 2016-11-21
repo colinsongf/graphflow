@@ -1,13 +1,11 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinExecutor;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -21,19 +19,14 @@ public class OneTimeMatchQueryPlan implements QueryPlan {
         this.stages.add(stage);
     }
 
-    @Override
-    public String execute(Graph graph) {
-        InMemoryOutputSink outputSink = new InMemoryOutputSink();
-        GenericJoinExecutor genericJoinExecutor = new GenericJoinExecutor(stages, outputSink,
-            graph);
-        genericJoinExecutor.execute();
-        StringBuilder output = new StringBuilder();
-        for (MatchQueryResultType matchQueryResultType : outputSink.getMatchQueryResultTypes()) {
-            for (int[] result : outputSink.getResults(matchQueryResultType)) {
-                output.append(Arrays.toString(result)).append("\n");
-            }
-        }
-        return output.toString();
+    /**
+     * Executes the {@link OneTimeMatchQueryPlan}.
+     *
+     * @param graph the {@link Graph} instance to use during the plan execution.
+     * @param outputSink the {@link OutputSink} to which the execution output is written.
+     */
+    public void execute(Graph graph, OutputSink outputSink) {
+        new GenericJoinExecutor(stages, outputSink, graph).execute();
     }
 
     @Override
@@ -55,7 +48,6 @@ public class OneTimeMatchQueryPlan implements QueryPlan {
      * Used in unit tests to assert the equality of the actual and expected objects.
      *
      * @param that The expected object.
-     *
      * @return {@code true} if the current object values match perfectly with the expected object
      * values, {@code false} otherwise.
      */

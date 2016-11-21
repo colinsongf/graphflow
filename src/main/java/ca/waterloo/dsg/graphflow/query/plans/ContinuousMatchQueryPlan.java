@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
+import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,31 +12,41 @@ import java.util.List;
  */
 public class ContinuousMatchQueryPlan implements QueryPlan {
 
-    private List<List<List<GenericJoinIntersectionRule>>> queries = new ArrayList<>();
+    /**
+     * The continuous match query plan is stored as a list of {@code OneTimeMatchQueryPlan}s,
+     * which together produce the complete output for the Delta Generic Join query.
+     */
+    private List<OneTimeMatchQueryPlan> oneTimeMatchQueryPlans = new ArrayList<>();
+    private OutputSink outputSink;
 
-    @Override
-    public String execute(Graph graph) {
-        //TODO: perform actual generic join query
-        return graph.toString();
+    public ContinuousMatchQueryPlan(OutputSink outputSink) {
+        this.outputSink = outputSink;
     }
 
-    public List<List<List<GenericJoinIntersectionRule>>> getQueries() {
-        return queries;
+    /**
+     * Adds a new {@link OneTimeMatchQueryPlan} to the {@link ContinuousMatchQueryPlan}.
+     *
+     * @param oneTimeMatchQueryPlan the {@link OneTimeMatchQueryPlan} to be added.
+     */
+    public void addOneTimeMatchQueryPlan(OneTimeMatchQueryPlan oneTimeMatchQueryPlan) {
+        oneTimeMatchQueryPlans.add(oneTimeMatchQueryPlan);
     }
 
-    public void addQuery(List<List<GenericJoinIntersectionRule>> stages) {
-        queries.add(stages);
-    }
-
-    public List<List<GenericJoinIntersectionRule>> getQuery(int index) {
-        return queries.get(index);
+    /**
+     * Executes the {@link CreateQueryPlan}.
+     *
+     * @param graph the {@link Graph} instance to use during the plan execution.
+     */
+    public void execute(Graph graph) {
+        for (OneTimeMatchQueryPlan oneTimeMatchQueryPlan : oneTimeMatchQueryPlans) {
+            oneTimeMatchQueryPlan.execute(graph, outputSink);
+        }
     }
 
     /**
      * Used in unit tests to assert the equality of the actual and expected objects.
      *
      * @param that The expected object.
-     *
      * @return {@code true} if the current object values match perfectly with the expected object
      * values, {@code false} otherwise.
      */
@@ -47,23 +57,12 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
         if (this == that) {
             return true;
         }
-        if (this.queries.size() != that.queries.size()) {
+        if (this.oneTimeMatchQueryPlans.size() != that.oneTimeMatchQueryPlans.size()) {
             return false;
         }
-        for (int i = 0; i < this.queries.size(); i++) {
-            if (this.queries.get(i).size() != that.queries.get(i).size()) {
+        for (int i = 0; i < this.oneTimeMatchQueryPlans.size(); i++) {
+            if (!this.oneTimeMatchQueryPlans.get(i).isSameAs(that.oneTimeMatchQueryPlans.get(i))) {
                 return false;
-            }
-            for (int j = 0; j < this.queries.get(i).size(); j++) {
-                if (this.queries.get(i).get(j).size() != that.queries.get(i).get(j).size()) {
-                    return false;
-                }
-                for (int k = 0; k < this.queries.get(i).get(j).size(); k++) {
-                    if (!this.queries.get(i).get(j).get(k).isSameAs(that.queries.get(i).get(j)
-                        .get(k))) {
-                        return false;
-                    }
-                }
             }
         }
         return true;

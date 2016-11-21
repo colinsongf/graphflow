@@ -3,18 +3,20 @@ package ca.waterloo.dsg.graphflow.query.executors;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
-import ca.waterloo.dsg.graphflow.outputsink.ShortestPathOutputSink;
+import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 import ca.waterloo.dsg.graphflow.util.IntQueue;
+import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
-import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 
 /**
  * Finds the s-t shortest path between a given source s and destination t using bi-directional BFS.
@@ -55,7 +57,7 @@ public class ShortestPathExecutor {
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
      * class.
      */
-    private ShortestPathExecutor() { }
+    private ShortestPathExecutor() {}
 
     /**
      * Used to set executor state for testing purposes.
@@ -67,13 +69,6 @@ public class ShortestPathExecutor {
         this.visitedLevels = visitedLevels;
         this.visitedVerticesByQueryId = visitedVerticesByQueryId;
         this.queryId = queryId;
-    }
-
-    /**
-     * Returns the singleton instance {@link #INSTANCE} of the {@link ShortestPathExecutor} class.
-     */
-    public static ShortestPathExecutor getInstance() {
-        return INSTANCE;
     }
 
     /**
@@ -140,13 +135,13 @@ public class ShortestPathExecutor {
      * direction that has the smaller size queue. Once the two traversals intersect, we backtrack
      * from the intersecting nodes to s and t to identify all of the edges that are on at least one
      * shortest path. The subgraph formed by the identified edges are output to the given
-     * {@link ShortestPathOutputSink}. If no paths are found, an empty result set is output to the
-     * {@link ShortestPathOutputSink}.
+     * {@code outputSink}. If no paths are found, an empty result set is output to the
+     * {@code outputSink}.
      *
      * @param start The source vertex of the shortest path query.
      * @param target The target vertex for the shortest path query.
      */
-    public void evaluate(int start, int target, ShortestPathOutputSink outputSink) {
+    public void execute(int start, int target, OutputSink outputSink) {
         initQuery();
         Set<Integer> intersectionSet = new HashSet<>();
         boolean foundIntersections = false;
@@ -216,11 +211,11 @@ public class ShortestPathExecutor {
             // {@link #visitedStages} array.
             backTrackIntersection(intersectionSet, Direction.BACKWARD, forwardLevelNumber, results);
             backTrackIntersection(intersectionSet, Direction.FORWARD, backwardLevelNumber, results);
-            outputSink.setResults(results);
+            outputSink.append(getStringOutput(results));
         }
         // Set the results from the backtracking or an empty result set to the
         // {@link ShortestPathOutputSink}.
-        outputSink.setResults(results);
+        outputSink.append(getStringOutput(results));
     }
 
     /**
@@ -244,8 +239,8 @@ public class ShortestPathExecutor {
      * @param results The data structure for storing the set of edges in at least one (source,
      * target) shortest path.
      */
-    @VisibleForTesting
-    public void backTrackIntersection(Set<Integer> intersectionSet, Direction directionToBacktrack,
+    @PackagePrivateForTesting
+    void backTrackIntersection(Set<Integer> intersectionSet, Direction directionToBacktrack,
         int startingLevel, Map<Integer, Set<Integer>> results) {
         IntQueue nextLevelVertices = new IntQueue(intersectionSet.size());
         for (int intersectionVertex : intersectionSet) {
@@ -286,5 +281,21 @@ public class ShortestPathExecutor {
             precedingLevel = (Direction.FORWARD == directionToBacktrack) ? currentLevel + 1 :
                 currentLevel - 1;
         }
+    }
+
+    @PackagePrivateForTesting
+    static String getStringOutput(Map<Integer, Set<Integer>> results) {
+        StringJoiner stringJoiner = new StringJoiner(", ");
+        for (Map.Entry<Integer, Set<Integer>> entry : results.entrySet()) {
+            stringJoiner.add(entry.getKey() + ": " + Arrays.toString(entry.getValue().toArray()));
+        }
+        return stringJoiner.toString();
+    }
+
+    /**
+     * Returns the singleton instance {@link #INSTANCE} of {@link ShortestPathExecutor}.
+     */
+    public static ShortestPathExecutor getInstance() {
+        return INSTANCE;
     }
 }

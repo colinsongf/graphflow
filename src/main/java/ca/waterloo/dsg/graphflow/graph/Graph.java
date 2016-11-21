@@ -269,7 +269,7 @@ public class Graph {
      */
     public SortedIntArrayList getAdjacencyList(int vertexId, Direction direction,
         GraphVersion graphVersion) {
-        if (vertexId > highestPermanentVertexId) {
+        if (vertexId < 0 || vertexId > highestMergedVertexId) {
             throw new NoSuchElementException(vertexId + " does not exist.");
         } else if (GraphVersion.DIFF_MINUS == graphVersion || GraphVersion.DIFF_PLUS ==
             graphVersion) {

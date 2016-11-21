@@ -4,6 +4,8 @@ import ca.waterloo.dsg.graphflow.query.QueryProcessor;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
@@ -11,6 +13,8 @@ import java.io.IOException;
  * gRPC server to handle incoming queries and pass them on to the {@code QueryProcessor}.
  */
 public class GraphflowServer {
+
+    private static final Logger logger = LogManager.getLogger(GraphflowServer.class);
 
     private static int PORT = 8080;
     private Server grpcServer;
@@ -48,7 +52,14 @@ public class GraphflowServer {
         @Override
         public void executeQuery(ServerQueryString request, StreamObserver<ServerQueryResult>
             responseObserver) {
-            String result = processor.process(request.getMessage());
+            String result;
+            try {
+                result = processor.process(request.getMessage());
+            } catch (Exception e) {
+                logger.error("Unknown error when executing the query '" + request.getMessage() +
+                    "'. Exception stack trace:", e);
+                result = "ERROR:" + e.getMessage();
+            }
             ServerQueryResult queryResult = ServerQueryResult.newBuilder().setMessage(result)
                 .build();
             responseObserver.onNext(queryResult);   // get next {@code queryResult} from the stream.

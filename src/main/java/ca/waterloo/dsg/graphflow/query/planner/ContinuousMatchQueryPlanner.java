@@ -2,12 +2,14 @@ package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
+import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
-import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
+import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,13 +22,16 @@ import java.util.Set;
  */
 public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
 
-    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery) {
+    private OutputSink outputSink;
+
+    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery, OutputSink outputSink) {
         super(structuredQuery);
+        this.outputSink = outputSink;
     }
 
     @Override
     public QueryPlan plan() {
-        ContinuousMatchQueryPlan deltaPlan = new ContinuousMatchQueryPlan();
+        ContinuousMatchQueryPlan deltaPlan = new ContinuousMatchQueryPlan(outputSink);
         // We construct as many delta queries as there are edges in the query graph. Let n be the
         // number of edges in the query graph. Then we have dQ1, dQ2, ..., dQn. Delta query dQi
         // consists of the following: (1) i-1 relations that contains all of the LATEST graph
@@ -44,9 +49,9 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             orderedVariables.add(diffRelation.toVariable);
             super.orderRemainingVariables(orderedVariables);
             // Create query plan using the ordering created above.
-            deltaPlan.addQuery(addSingleQueryPlan(GraphVersion.DIFF_PLUS, diffRelation,
+            deltaPlan.addOneTimeMatchQueryPlan(addSingleQueryPlan(GraphVersion.DIFF_PLUS, diffRelation,
                 orderedVariables, oldRelations, latestRelations));
-            deltaPlan.addQuery(addSingleQueryPlan(GraphVersion.DIFF_MINUS, diffRelation,
+            deltaPlan.addOneTimeMatchQueryPlan(addSingleQueryPlan(GraphVersion.DIFF_MINUS, diffRelation,
                 orderedVariables, oldRelations, latestRelations));
             latestRelations.add(diffRelation);
         }
@@ -61,20 +66,19 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
      * @param orderedVariables The order in which variables will be covered in the plan.
      * @param oldRelations The set of relations that uses the old version of the graph.
      * @param latestRelations The set of relations that will use the latest version of the graph.
-     *
      * @return List<List<GenericJoinIntersectionRule>> A set of stages representing a single generic
      * join query plan.
      */
-    @VisibleForTesting
-    public List<List<GenericJoinIntersectionRule>> addSingleQueryPlan(GraphVersion graphVersion,
+    @PackagePrivateForTesting
+    OneTimeMatchQueryPlan addSingleQueryPlan(GraphVersion graphVersion,
         QueryEdge diffRelation, List<String> orderedVariables, Set<QueryEdge> oldRelations,
         Set<QueryEdge> latestRelations) {
-        List<List<GenericJoinIntersectionRule>> singleRoundPlan = new ArrayList<>();
+        OneTimeMatchQueryPlan singleRoundPlan = new OneTimeMatchQueryPlan();
         List<GenericJoinIntersectionRule> stage;
         // Add the first stage.
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, graphVersion));
-        singleRoundPlan.add(stage);
+        singleRoundPlan.addStage(stage);
         // Add the rest of the stages.
         for (int i = 2; i < orderedVariables.size(); i++) {
             stage = new ArrayList<>();
@@ -93,7 +97,7 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
                 this.addRuleIfPossibleEdgeExists(j, Direction.BACKWARD, possibleEdge,
                     diffRelation, stage, oldRelations, latestRelations);
             }
-            singleRoundPlan.add(stage);
+            singleRoundPlan.addStage(stage);
         }
         return singleRoundPlan;
     }
@@ -113,8 +117,8 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
      * @param oldRelations The set of relations that uses the old version of the graph.
      * @param latestRelations The set of relations that will use the latest version of the graph.
      */
-    @VisibleForTesting
-    public void addRuleIfPossibleEdgeExists(int prefixIndex, Direction direction,
+    @PackagePrivateForTesting
+    void addRuleIfPossibleEdgeExists(int prefixIndex, Direction direction,
         QueryEdge possibleEdge, QueryEdge diffRelation, List<GenericJoinIntersectionRule> stage,
         Set<QueryEdge> oldRelations, Set<QueryEdge> latestRelations) {
         // Check for the existence of the edge in the given direction.

@@ -5,12 +5,15 @@ graphflow : sp? statement sp? ( ';'  sp?)? ;
 statement : query ;
 
 query : match
+       | continuousMatch
        | create
        | delete
        | shortestPath
        ;
 
 match : MATCH sp matchPattern ;
+
+continuousMatch : CONTINUOUS sp match sp userOperation sp operationLocation;
 
 create : CREATE sp createPattern ;
 
@@ -29,6 +32,10 @@ pathPattern: '(' sp? leftDigit sp? ',' sp? rightDigit sp? ')' ;
 digitsExpression : '(' sp? leftDigit sp? ')' sp? dash rightArrowHead '(' sp? rightDigit sp? ')' ;
 
 variableExpression: '(' sp? leftVariable sp? ')' sp? dash rightArrowHead '(' sp? rightVariable sp? ')' ;
+
+userOperation : FILE ;
+
+operationLocation : variable ;
 
 leftDigit : Digits ;
 
@@ -61,6 +68,10 @@ Characters : ( Character )+ ;
 Character : [a-z] ;
 
 MATCH : ( 'M' | 'm' ) ( 'A' | 'a' ) ( 'T' | 't' ) ( 'C' | 'c' ) ( 'H' | 'h' )  ;
+
+CONTINUOUS : 'CONTINUOUS' | 'continuous' ;
+
+FILE : 'FILE' | 'file' ;
 
 CREATE : ( 'C' | 'c' ) ( 'R' | 'r' ) ( 'E' | 'e' ) ( 'A' | 'a' ) ( 'T' | 't' ) ( 'E' | 'e' )  ;
 

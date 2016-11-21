@@ -2,7 +2,7 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
-import ca.waterloo.dsg.graphflow.outputsink.ShortestPathOutputSink;
+import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +20,6 @@ public class ShortestPathExecutorTest {
 
     private Graph graph;
     private ShortestPathExecutor executor;
-    private ShortestPathOutputSink outputSink;
 
     @Before
     public void setUp() throws Exception {
@@ -31,7 +30,6 @@ public class ShortestPathExecutorTest {
             graph.addEdgeTemporarily(edge[0], edge[1]);
         }
         graph.finalizeChanges();
-        outputSink = new ShortestPathOutputSink();
         executor = ShortestPathExecutor.getInstance();
         if (!executor.isInitialized()) {
             executor.init(graph);
@@ -40,32 +38,23 @@ public class ShortestPathExecutorTest {
 
     @Test
     public void testEvaluateQuerySource0Target9() throws Exception {
-        ShortestPathOutputSink expectedResultOutputSink = new ShortestPathOutputSink();
-        expectedResultOutputSink.setResults(new HashMap<>());
-        expectedResultOutputSink.getResults().put(0, new HashSet<>(Arrays.asList(new Integer[]{1,
-            2})));
-        expectedResultOutputSink.getResults().put(1, new HashSet<>(Arrays.asList(new Integer[]{3,
-            4})));
-        expectedResultOutputSink.getResults().put(2, new HashSet<>(Arrays.asList(new Integer[]{4,
-            5})));
-        expectedResultOutputSink.getResults().put(3, new HashSet<>(Arrays.asList(new
-            Integer[]{6})));
-        expectedResultOutputSink.getResults().put(4, new HashSet<>(Arrays.asList(new Integer[]{6,
-            7})));
-        expectedResultOutputSink.getResults().put(5, new HashSet<>(Arrays.asList(new
-            Integer[]{7})));
-        expectedResultOutputSink.getResults().put(6, new HashSet<>(Arrays.asList(new
-            Integer[]{9})));
-        expectedResultOutputSink.getResults().put(7, new HashSet<>(Arrays.asList(new
-            Integer[]{9})));
-        executor.evaluate(0, 9, outputSink);
-        Assert.assertTrue(expectedResultOutputSink.isSameAs(outputSink));
-    }
+        Map<Integer, Set<Integer>> expectedResults = new HashMap<>();
+        expectedResults.put(0, new HashSet<>(Arrays.asList(new Integer[]{1, 2})));
+        expectedResults.put(1, new HashSet<>(Arrays.asList(new Integer[]{3, 4})));
+        expectedResults.put(2, new HashSet<>(Arrays.asList(new Integer[]{4, 5})));
+        expectedResults.put(3, new HashSet<>(Arrays.asList(new Integer[]{6})));
+        expectedResults.put(4, new HashSet<>(Arrays.asList(new Integer[]{6, 7})));
+        expectedResults.put(5, new HashSet<>(Arrays.asList(new Integer[]{7})));
+        expectedResults.put(6, new HashSet<>(Arrays.asList(new Integer[]{9})));
+        expectedResults.put(7, new HashSet<>(Arrays.asList(new Integer[]{9})));
+        InMemoryOutputSink expectedInMemoryOutputSink = new InMemoryOutputSink();
+        expectedInMemoryOutputSink.append(ShortestPathExecutor.getStringOutput(expectedResults));
+        expectedInMemoryOutputSink.append(ShortestPathExecutor.getStringOutput(expectedResults));
 
-    @Test
-    public void testEvaluateQuerySource1Target4() throws Exception {
-        executor.evaluate(1, 4, outputSink);
-        Assert.assertEquals(1, outputSink.getResults().size());
+        InMemoryOutputSink actualInMemoryOutputSink = new InMemoryOutputSink();
+        executor.execute(0, 9, actualInMemoryOutputSink);
+
+        Assert.assertTrue(actualInMemoryOutputSink.isSameAs(expectedInMemoryOutputSink));
     }
 
     @Test
@@ -74,24 +63,21 @@ public class ShortestPathExecutorTest {
         int[] visitedQueryId = new int[]{1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0};
         int queryId = 1;
         executor = new ShortestPathExecutor(graph, visitedLevels, visitedQueryId, queryId);
-        Map<Integer, Set<Integer>> results = new HashMap<>();
+        Map<Integer, Set<Integer>> actualResults = new HashMap<>();
         Set<Integer> intersectNodes = new HashSet<>();
         intersectNodes.add(6);
         intersectNodes.add(7);
-        executor.backTrackIntersection(intersectNodes, Direction.BACKWARD, (short) 4, results);
+        executor.backTrackIntersection(intersectNodes, Direction.BACKWARD, (short) 4,
+            actualResults);
+
         Map<Integer, Set<Integer>> expectedResults = new HashMap<>();
-        Integer[] adjList0 = {1, 2};
-        Integer[] adjList1 = {3, 4};
-        Integer[] adjList2 = {4, 5};
-        Integer[] adjList3 = {6};
-        Integer[] adjList4 = {6, 7};
-        Integer[] adjList5 = {7};
-        expectedResults.put(0, new HashSet<>(Arrays.asList(adjList0)));
-        expectedResults.put(1, new HashSet<>(Arrays.asList(adjList1)));
-        expectedResults.put(2, new HashSet<>(Arrays.asList(adjList2)));
-        expectedResults.put(3, new HashSet<>(Arrays.asList(adjList3)));
-        expectedResults.put(4, new HashSet<>(Arrays.asList(adjList4)));
-        expectedResults.put(5, new HashSet<>(Arrays.asList(adjList5)));
-        Assert.assertTrue(expectedResults.equals(results));
+        expectedResults.put(0, new HashSet<>(Arrays.asList(new Integer[]{1, 2})));
+        expectedResults.put(1, new HashSet<>(Arrays.asList(new Integer[]{3, 4})));
+        expectedResults.put(2, new HashSet<>(Arrays.asList(new Integer[]{4, 5})));
+        expectedResults.put(3, new HashSet<>(Arrays.asList(new Integer[]{6})));
+        expectedResults.put(4, new HashSet<>(Arrays.asList(new Integer[]{6, 7})));
+        expectedResults.put(5, new HashSet<>(Arrays.asList(new Integer[]{7})));
+
+        Assert.assertTrue(expectedResults.equals(actualResults));
     }
 }

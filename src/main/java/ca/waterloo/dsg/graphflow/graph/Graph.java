@@ -18,9 +18,6 @@ import java.util.StringJoiner;
  * Encapsulates the Graph representation and provides utility methods.
  */
 public class Graph {
-    //TODO: Remove after merging types interface PR.
-    public static final short ANY_TYPE = -1;
-
     // Used to represent different versions of the graph.
     public enum GraphVersion {
         // Graph formed after making all additions and deletions permanent.
@@ -55,8 +52,10 @@ public class Graph {
         }
     }
 
+    //TODO: Remove after merging types interface PR.
+    public static final short ANY_TYPE = -1;
     private static final Logger logger = LogManager.getLogger(Graph.class);
-    private static final int DEFAULT_GRAPH_SIZE = 10;
+    private static final int DEFAULT_GRAPH_SIZE = 2;
 
     // Stores the highest vertex ID of the permanent graph.
     private int highestPermanentVertexId = -1;
@@ -372,8 +371,9 @@ public class Graph {
     }
 
     /**
+     * /**
      * Initializes {@link Graph#forwardAdjLists} and {@link Graph#backwardAdjLists} with empty
-     * {@link SortedAdjacencyList} in the range given by {@code from} and {@code to}.
+     * {@link SortedAdjacencyList} in the range given by {@code startIndex} and {@code endIndex}.
      *
      * @param startIndex The start index for initializing {@link SortedAdjacencyList}, inclusive.
      * @param endIndex The end index for initializing {@link SortedAdjacencyList}, exclusive.

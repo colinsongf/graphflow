@@ -4,7 +4,6 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 
 /**
  * Class representing plan for a CREATE operation.
@@ -24,13 +23,14 @@ public class CreateQueryPlan implements QueryPlan {
      * @param outputSink the {@link OutputSink} to which the execution output is written.
      */
     public void execute(Graph graph, OutputSink outputSink) {
-        for (StructuredQueryEdge structuredQueryEdge : structuredQuery.getStructuredQueryEdges()) {
-//            graph.addEdgeTemporarily(
-//                Integer.parseInt(structuredQueryEdge.getFromVertex()),
-//                Integer.parseInt(structuredQueryEdge.getToVertex()));
-        }
+        // TODO: use type IDs.
+        //        for (QueryEdge queryEdge : structuredQuery.getQueryEdges()) {
+        //            graph.addEdgeTemporarily(Integer.parseInt(queryEdge.getFromQueryVariable()
+        //                .getVariableId()), Integer.parseInt(queryEdge.getToQueryVariable()
+        //                .getVariableId()));
+        //        }
         ContinuousMatchQueryExecutor.getInstance().execute(graph);
         graph.finalizeChanges();
-        outputSink.append(structuredQuery.getStructuredQueryEdges().size() + " edges created.");
+        outputSink.append(structuredQuery.getQueryEdges().size() + " edges created.");
     }
 }

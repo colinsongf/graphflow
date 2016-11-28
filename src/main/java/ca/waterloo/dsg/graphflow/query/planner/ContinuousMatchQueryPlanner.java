@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
+import ca.waterloo.dsg.graphflow.graph.TypeStore;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
@@ -14,6 +15,7 @@ import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -39,20 +41,20 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         // graph (the newly edges in the graph). We refer to this relation as the diffRelation
         // below; (3) n-i relations that consists of the OLD graph.
         Set<QueryEdge> latestRelations = new HashSet<>();
-        Set<QueryEdge> oldRelations = queryGraph.getEdges();
-        for (QueryEdge diffRelation : queryGraph.getEdges()) {
+        Set<QueryEdge> oldRelations = new HashSet<>(structuredQuery.getQueryEdges());
+        for (QueryEdge diffRelation : structuredQuery.getQueryEdges()) {
             // The first two variables considered in each round will be the variables from the
             // delta edge.
             oldRelations.remove(diffRelation);
             List<String> orderedVariables = new ArrayList<>();
-            orderedVariables.add(diffRelation.fromVariable);
-            orderedVariables.add(diffRelation.toVariable);
+            orderedVariables.add(diffRelation.getFromQueryVariable().getVariableId());
+            orderedVariables.add(diffRelation.getToQueryVariable().getVariableId());
             super.orderRemainingVariables(orderedVariables);
             // Create query plan using the ordering created above.
-            deltaPlan.addOneTimeMatchQueryPlan(addSingleQueryPlan(GraphVersion.DIFF_PLUS, diffRelation,
-                orderedVariables, oldRelations, latestRelations));
-            deltaPlan.addOneTimeMatchQueryPlan(addSingleQueryPlan(GraphVersion.DIFF_MINUS, diffRelation,
-                orderedVariables, oldRelations, latestRelations));
+            deltaPlan.addOneTimeMatchQueryPlan(addSingleQueryPlan(GraphVersion.DIFF_PLUS,
+                orderedVariables, diffRelation, oldRelations, latestRelations));
+            deltaPlan.addOneTimeMatchQueryPlan(addSingleQueryPlan(GraphVersion.DIFF_MINUS,
+                orderedVariables, diffRelation, oldRelations, latestRelations));
             latestRelations.add(diffRelation);
         }
         return deltaPlan;
@@ -61,41 +63,45 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
     /**
      * Returns the query plan for a single delta query in the {@code ContinuousMatchQueryPlan}.
      *
+     * @param orderedVariables The order in which variables will be covered in the plan.
      * @param diffRelation The relation which will use the diff graph for a single delta query in
      * the {@code ContinuousMatchQueryPlan}.
-     * @param orderedVariables The order in which variables will be covered in the plan.
      * @param oldRelations The set of relations that uses the old version of the graph.
      * @param latestRelations The set of relations that will use the latest version of the graph.
-     * @return List<List<GenericJoinIntersectionRule>> A set of stages representing a single generic
-     * join query plan.
+     * @return OneTimeMatchQueryPlan A set of stages representing a single generic join query plan.
      */
     @PackagePrivateForTesting
     OneTimeMatchQueryPlan addSingleQueryPlan(GraphVersion graphVersion,
-        QueryEdge diffRelation, List<String> orderedVariables, Set<QueryEdge> oldRelations,
+        List<String> orderedVariables, QueryEdge diffRelation, Set<QueryEdge> oldRelations,
         Set<QueryEdge> latestRelations) {
         OneTimeMatchQueryPlan singleRoundPlan = new OneTimeMatchQueryPlan();
         List<GenericJoinIntersectionRule> stage;
-        // Add the first stage.
+        // Add the first stage. The first stage always starts with extending the diffRelation's
+        // fromVariable to toVariable with the type on the relation.
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, graphVersion));
+        short id = TypeStore.ANY_TYPE;
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, graphVersion, id));
         singleRoundPlan.addStage(stage);
         // Add the rest of the stages.
         for (int i = 2; i < orderedVariables.size(); i++) {
+            String nextVariable = orderedVariables.get(i);
+            // We add a new stage that consists of the following intersection rules. For each
+            // relation that is between the {@code nextVariable} and one of the previously
+            // {@code coveredVariable}, we add a new intersection rule. If the relation is
+            // (nextVariable, coveredVariable), the direction of the intersection rule is
+            // BACKWARD. Otherwise, the direction of the intersection rules is FORWARD. This is
+            // because we essentially extend prefixes from {@code coveredVariable}s to the
+            // {@code nextVariable}s. The type of the intersection rule is the type on the relation.
             stage = new ArrayList<>();
-            String variable = orderedVariables.get(i);
             for (int j = 0; j < i; j++) {
                 String coveredVariable = orderedVariables.get(j);
-                // We add a stage where there is a relation from the {@code queryVariable}
-                // currently being considered to previously considered query variables.
-                // Direction should be considered from covered variable to variable because
-                // in the intersection rule, it is the covered variable's adjacency list
-                // which will be used.
-                QueryEdge possibleEdge = new QueryEdge(coveredVariable, variable);
-                this.addRuleIfPossibleEdgeExists(j, Direction.FORWARD, possibleEdge,
-                    diffRelation, stage, oldRelations, latestRelations);
-                possibleEdge = new QueryEdge(variable, coveredVariable);
-                this.addRuleIfPossibleEdgeExists(j, Direction.BACKWARD, possibleEdge,
-                    diffRelation, stage, oldRelations, latestRelations);
+                if (queryGraph.containsEdge(coveredVariable, nextVariable)) {
+                    for (QueryEdge queryEdge : queryGraph.getAdjacentEdges(coveredVariable,
+                        nextVariable)) {
+                        addRuleIfPossibleEdgeExists(j, queryEdge.getDirection(), queryEdge, stage,
+                            oldRelations, latestRelations);
+                    }
+                }
             }
             singleRoundPlan.addStage(stage);
         }
@@ -111,28 +117,44 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
      * @param direction Direction from the covered variable to the variable under
      * consideration.
      * @param possibleEdge The edge whose existence is checked.
-     * @param diffRelation The relation which will use the diff graph for this iteration of {@code
-     * ContinuousMatchQueryPlan}.
      * @param stage The generic join stage to which the intersection rule will be added.
      * @param oldRelations The set of relations that uses the old version of the graph.
      * @param latestRelations The set of relations that will use the latest version of the graph.
      */
     @PackagePrivateForTesting
     void addRuleIfPossibleEdgeExists(int prefixIndex, Direction direction,
-        QueryEdge possibleEdge, QueryEdge diffRelation, List<GenericJoinIntersectionRule> stage,
-        Set<QueryEdge> oldRelations, Set<QueryEdge> latestRelations) {
+        QueryEdge possibleEdge, List<GenericJoinIntersectionRule> stage, Set<QueryEdge>
+        oldRelations, Set<QueryEdge> latestRelations) {
         // Check for the existence of the edge in the given direction.
         GraphVersion version = null;
-        if (possibleEdge.equals(diffRelation)) {
-            version = GraphVersion.DIFF_PLUS;
-        } else if (latestRelations.contains(possibleEdge)) {
+        if (isEdgePresentInSet(latestRelations, possibleEdge)) {
             version = GraphVersion.MERGED;
-        } else if (oldRelations.contains(possibleEdge)) {
+        } else if (isEdgePresentInSet(oldRelations, possibleEdge)) {
             version = GraphVersion.PERMANENT;
         }
-
         if (version != null) {
-            stage.add(new GenericJoinIntersectionRule(prefixIndex, direction, version));
+            short id = TypeStore.ANY_TYPE;
+            stage.add(new GenericJoinIntersectionRule(prefixIndex, direction, version, id));
         }
+    }
+
+    private boolean isEdgePresentInSet(Set<QueryEdge> queryEdges, QueryEdge edgeToCheck) {
+        for (QueryEdge queryEdge : queryEdges) {
+
+            String fromVariable;
+            String toVariable;
+            if (Direction.FORWARD == edgeToCheck.getDirection()) {
+                fromVariable = edgeToCheck.getFromQueryVariable().getVariableId();
+                toVariable = edgeToCheck.getToQueryVariable().getVariableId();
+            } else {
+                fromVariable = edgeToCheck.getToQueryVariable().getVariableId();
+                toVariable = edgeToCheck.getFromQueryVariable().getVariableId();
+            }
+            if (Objects.equals(queryEdge.getFromQueryVariable().getVariableId(), fromVariable) &&
+                Objects.equals(queryEdge.getToQueryVariable().getVariableId(), toVariable)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

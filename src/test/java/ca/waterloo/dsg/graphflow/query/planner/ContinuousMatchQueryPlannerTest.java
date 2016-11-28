@@ -1,22 +1,26 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
+import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
+import ca.waterloo.dsg.graphflow.graph.TypeStore;
 import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -24,17 +28,20 @@ import java.util.Set;
  */
 public class ContinuousMatchQueryPlannerTest {
 
+    private short defaultId = TypeStore.ANY_TYPE;
     private ContinuousMatchQueryPlanner planner;
+    private Map<String, QueryEdge> queryEdges = new HashMap<>();
     private OutputSink outputSink = new InMemoryOutputSink();
 
     @Before
     public void setUp() throws Exception {
+        queryEdges.put("a->b", new QueryEdge(new QueryVariable("a"), new QueryVariable("b")));
+        queryEdges.put("a->d", new QueryEdge(new QueryVariable("a"), new QueryVariable("d")));
+        queryEdges.put("b->c", new QueryEdge(new QueryVariable("b"), new QueryVariable("c")));
+        queryEdges.put("d->c", new QueryEdge(new QueryVariable("d"), new QueryVariable("c")));
+        queryEdges.put("c->a", new QueryEdge(new QueryVariable("c"), new QueryVariable("a")));
         StructuredQuery structuredQuery = new StructuredQuery();
-        structuredQuery.addEdge(new StructuredQueryEdge("a", "b"));
-        structuredQuery.addEdge(new StructuredQueryEdge("a", "d"));
-        structuredQuery.addEdge(new StructuredQueryEdge("b", "c"));
-        structuredQuery.addEdge(new StructuredQueryEdge("d", "c"));
-        structuredQuery.addEdge(new StructuredQueryEdge("c", "a"));
+        queryEdges.forEach((key, queryEdge) -> structuredQuery.addEdge(queryEdge));
         planner = new ContinuousMatchQueryPlanner(structuredQuery, outputSink);
     }
 
@@ -42,9 +49,9 @@ public class ContinuousMatchQueryPlannerTest {
     public void testPlanTriangleQuery() throws Exception {
         // Create a Delta Generic Join query plan for a triangle query.
         StructuredQuery complexStructuredQuery = new StructuredQuery();
-        complexStructuredQuery.addEdge(new StructuredQueryEdge("a", "b"));
-        complexStructuredQuery.addEdge(new StructuredQueryEdge("b", "c"));
-        complexStructuredQuery.addEdge(new StructuredQueryEdge("c", "a"));
+        complexStructuredQuery.addEdge(queryEdges.get("a->b"));
+        complexStructuredQuery.addEdge(queryEdges.get("b->c"));
+        complexStructuredQuery.addEdge(queryEdges.get("c->a"));
         ContinuousMatchQueryPlan continuousMatchQueryPlanActual = (ContinuousMatchQueryPlan) new
             ContinuousMatchQueryPlanner(complexStructuredQuery, outputSink).plan();
 
@@ -56,78 +63,96 @@ public class ContinuousMatchQueryPlannerTest {
         // Stage 1
         query = new OneTimeMatchQueryPlan();
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
+            defaultId));
         query.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
+            defaultId));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
+            defaultId));
         query.addStage(stage);
         continuousMatchQueryPlanExpected.addOneTimeMatchQueryPlan(query);
         // Stage 2
         query = new OneTimeMatchQueryPlan();
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
+            defaultId));
         query.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
+            defaultId));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
+            defaultId));
         query.addStage(stage);
         continuousMatchQueryPlanExpected.addOneTimeMatchQueryPlan(query);
         // Stage 3
         query = new OneTimeMatchQueryPlan();
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
+            defaultId));
         query.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
+            defaultId));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
+            defaultId));
         query.addStage(stage);
         continuousMatchQueryPlanExpected.addOneTimeMatchQueryPlan(query);
         // Stage 4
         query = new OneTimeMatchQueryPlan();
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
+            defaultId));
         query.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
+            defaultId));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
+            defaultId));
         query.addStage(stage);
         continuousMatchQueryPlanExpected.addOneTimeMatchQueryPlan(query);
         // Stage 5
         query = new OneTimeMatchQueryPlan();
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
+            defaultId));
         query.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
+            defaultId));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED,
+            defaultId));
         query.addStage(stage);
         continuousMatchQueryPlanExpected.addOneTimeMatchQueryPlan(query);
         // Stage 6
         query = new OneTimeMatchQueryPlan();
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
+            defaultId));
         query.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
+            defaultId));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED,
+            defaultId));
         query.addStage(stage);
         continuousMatchQueryPlanExpected.addOneTimeMatchQueryPlan(query);
 
-        Assert.assertTrue(continuousMatchQueryPlanActual
-            .isSameAs(continuousMatchQueryPlanExpected));
+        Assert.assertTrue(ContinuousMatchQueryPlan.isSameAs(continuousMatchQueryPlanActual,
+            continuousMatchQueryPlanExpected));
     }
 
     @Test
     public void testCreateSingleQueryPlan() throws Exception {
         // Create a single stage query plan for a match query.
         Set<QueryEdge> latestRelations = new HashSet<>();
-        latestRelations.add(new QueryEdge("a", "b"));
-        QueryEdge diffRelation = new QueryEdge("b", "c");
+        latestRelations.add(queryEdges.get("a->b"));
+        QueryEdge diffRelation = queryEdges.get("b->c");
         Set<QueryEdge> oldRelations = new HashSet<>();
-        oldRelations.add(new QueryEdge("a", "d"));
-        oldRelations.add(new QueryEdge("d", "c"));
-        oldRelations.add(new QueryEdge("c", "a"));
+        oldRelations.add(queryEdges.get("a->d"));
+        oldRelations.add(queryEdges.get("d->c"));
+        oldRelations.add(queryEdges.get("c->a"));
         ArrayList<String> orderedVariables = new ArrayList<>();
         orderedVariables.add("b");
         orderedVariables.add("c");
@@ -136,9 +161,9 @@ public class ContinuousMatchQueryPlannerTest {
         ContinuousMatchQueryPlan continuousMatchQueryPlanActual = new ContinuousMatchQueryPlan(
             outputSink);
         continuousMatchQueryPlanActual.addOneTimeMatchQueryPlan(planner.addSingleQueryPlan(
-            GraphVersion.DIFF_PLUS, diffRelation, orderedVariables, oldRelations, latestRelations));
+            GraphVersion.DIFF_PLUS, orderedVariables, diffRelation, oldRelations, latestRelations));
         continuousMatchQueryPlanActual.addOneTimeMatchQueryPlan(planner.addSingleQueryPlan(
-            GraphVersion.DIFF_MINUS, diffRelation, orderedVariables, oldRelations,
+            GraphVersion.DIFF_MINUS, orderedVariables, diffRelation, oldRelations,
             latestRelations));
 
         // Create the expected query plan manually.
@@ -149,108 +174,91 @@ public class ContinuousMatchQueryPlannerTest {
         List<GenericJoinIntersectionRule> stage;
         // Stage 1
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
+            defaultId));
         queryDiffPlus.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
+            defaultId));
         queryDiffMinus.addStage(stage);
         // Stage 2
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
+            defaultId));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
+            defaultId));
         queryDiffPlus.addStage(stage);
         queryDiffMinus.addStage(stage);
         // Stage 3
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.PERMANENT));
-        stage.add(new GenericJoinIntersectionRule(2, Direction.FORWARD, GraphVersion.PERMANENT));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.PERMANENT,
+            defaultId));
+        stage.add(new GenericJoinIntersectionRule(2, Direction.FORWARD, GraphVersion.PERMANENT,
+            defaultId));
         queryDiffPlus.addStage(stage);
         queryDiffMinus.addStage(stage);
         continuousMatchQueryPlanExpected.addOneTimeMatchQueryPlan(queryDiffPlus);
         continuousMatchQueryPlanExpected.addOneTimeMatchQueryPlan(queryDiffMinus);
 
-        Assert.assertTrue(continuousMatchQueryPlanExpected
-            .isSameAs(continuousMatchQueryPlanActual));
+        Assert.assertTrue(ContinuousMatchQueryPlan.isSameAs(continuousMatchQueryPlanExpected,
+            continuousMatchQueryPlanActual));
     }
 
     @Test
     public void testAddRuleIfPossibleEdgeExistsWithLatest() throws Exception {
         Set<QueryEdge> latestRelations = new HashSet<>();
-        latestRelations.add(new QueryEdge("a", "b"));
-        QueryEdge diffRelation = new QueryEdge("b", "c");
+        latestRelations.add(queryEdges.get("a->b"));
         Set<QueryEdge> oldRelations = new HashSet<>();
-        oldRelations.add(new QueryEdge("a", "d"));
-        oldRelations.add(new QueryEdge("d", "c"));
-        oldRelations.add(new QueryEdge("c", "a"));
+        oldRelations.add(queryEdges.get("a->d"));
+        oldRelations.add(queryEdges.get("d->c"));
+        oldRelations.add(queryEdges.get("c->a"));
         List<GenericJoinIntersectionRule> resultStage = new ArrayList<>();
-        QueryEdge possibleEdge = new QueryEdge("a", "b");
+        QueryEdge possibleEdge = queryEdges.get("a->b");
         int prefixIndex = 0;
 
-        planner.addRuleIfPossibleEdgeExists(prefixIndex, Direction.FORWARD,
-            possibleEdge, diffRelation, resultStage, oldRelations, latestRelations);
-        GenericJoinIntersectionRule expectedRule = new GenericJoinIntersectionRule(0,
-            Direction.FORWARD, GraphVersion.MERGED);
+        planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.Direction.FORWARD, possibleEdge,
+            resultStage, oldRelations, latestRelations);
+        GenericJoinIntersectionRule expectedRule = new GenericJoinIntersectionRule(0, Direction
+            .FORWARD, GraphVersion.MERGED, defaultId);
 
-        Assert.assertTrue(expectedRule.isSameAs(resultStage.get(0)));
+        Assert.assertTrue(GenericJoinIntersectionRule.isSameAs(expectedRule, resultStage.get(0)));
     }
 
     @Test
     public void testAddRuleIfPossibleEdgeExistsWithOld() throws Exception {
         Set<QueryEdge> latestRelations = new HashSet<>();
-        latestRelations.add(new QueryEdge("a", "b"));
-        QueryEdge diffRelation = new QueryEdge("b", "c");
+        latestRelations.add(queryEdges.get("a->b"));
         Set<QueryEdge> oldRelations = new HashSet<>();
-        oldRelations.add(new QueryEdge("a", "d"));
-        oldRelations.add(new QueryEdge("d", "c"));
-        oldRelations.add(new QueryEdge("c", "a"));
+        oldRelations.add(queryEdges.get("a->d"));
+        oldRelations.add(queryEdges.get("d->c"));
+        oldRelations.add(queryEdges.get("c->a"));
         List<GenericJoinIntersectionRule> resultStage = new ArrayList<>();
-        QueryEdge possibleEdge = new QueryEdge("d", "c");
+        QueryEdge possibleEdge = queryEdges.get("d->c");
         int prefixIndex = 0;
 
-        planner.addRuleIfPossibleEdgeExists(prefixIndex, Direction.FORWARD,
-            possibleEdge, diffRelation, resultStage, oldRelations, latestRelations);
-        GenericJoinIntersectionRule expectedRule = new GenericJoinIntersectionRule(0,
-            Direction.FORWARD, GraphVersion.PERMANENT);
+        planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.Direction.FORWARD, possibleEdge,
+            resultStage, oldRelations, latestRelations);
+        GenericJoinIntersectionRule expectedRule = new GenericJoinIntersectionRule(0, Direction
+            .FORWARD, GraphVersion.PERMANENT, defaultId);
 
-        Assert.assertTrue(expectedRule.isSameAs(resultStage.get(0)));
-    }
-
-    @Test
-    public void testAddRuleIfPossibleEdgeExistsWithDiff() throws Exception {
-        Set<QueryEdge> latestRelations = new HashSet<>();
-        latestRelations.add(new QueryEdge("a", "b"));
-        QueryEdge diffRelation = new QueryEdge("b", "c");
-        Set<QueryEdge> oldRelations = new HashSet<>();
-        oldRelations.add(new QueryEdge("a", "d"));
-        oldRelations.add(new QueryEdge("d", "c"));
-        oldRelations.add(new QueryEdge("c", "a"));
-        List<GenericJoinIntersectionRule> resultStage = new ArrayList<>();
-        QueryEdge possibleEdge = new QueryEdge("b", "c");
-        int prefixIndex = 0;
-
-        planner.addRuleIfPossibleEdgeExists(prefixIndex, Direction.FORWARD,
-            possibleEdge, diffRelation, resultStage, oldRelations, latestRelations);
-        GenericJoinIntersectionRule expectedRule = new GenericJoinIntersectionRule(0,
-            Direction.FORWARD, GraphVersion.DIFF_PLUS);
-
-        Assert.assertTrue(expectedRule.isSameAs(resultStage.get(0)));
+        Assert.assertTrue(GenericJoinIntersectionRule.isSameAs(expectedRule, resultStage.get(0)));
     }
 
     @Test
     public void testAddRuleIfPossibleEdgeExistsWithNonExistent() throws Exception {
         Set<QueryEdge> latestRelations = new HashSet<>();
-        latestRelations.add(new QueryEdge("a", "b"));
-        QueryEdge diffRelation = new QueryEdge("b", "c");
+        latestRelations.add(queryEdges.get("a->b"));
         Set<QueryEdge> oldRelations = new HashSet<>();
-        oldRelations.add(new QueryEdge("a", "d"));
-        oldRelations.add(new QueryEdge("d", "c"));
-        oldRelations.add(new QueryEdge("c", "a"));
+        oldRelations.add(queryEdges.get("a->d"));
+        oldRelations.add(queryEdges.get("d->c"));
+        oldRelations.add(queryEdges.get("c->a"));
         List<GenericJoinIntersectionRule> resultStage = new ArrayList<>();
-        QueryEdge possibleEdge = new QueryEdge("d", "a");
+        QueryEdge possibleEdge = new QueryEdge(new QueryVariable("d"), new QueryVariable("a"));
         int prefixIndex = 0;
 
-        planner.addRuleIfPossibleEdgeExists(prefixIndex, Direction.FORWARD,
-            possibleEdge, diffRelation, resultStage, oldRelations, latestRelations);
+        planner.addRuleIfPossibleEdgeExists(prefixIndex, Graph.Direction.FORWARD, possibleEdge,
+            resultStage, oldRelations, latestRelations);
+
         Assert.assertEquals(0, resultStage.size());
     }
 }

@@ -14,7 +14,7 @@ public class SortedIntArrayListTest {
         // Test empty list.
         testList = new SortedIntArrayList();
         int[] emptyList = {};
-        Assert.assertTrue(testList.isSameAs(emptyList));
+        Assert.assertTrue(testList.isSameAsArray(emptyList));
         Assert.assertEquals(-1, testList.search(42));
         // Insert values.
         int[] randomList = {74, 21, 7, 93, 42, 3, 27};
@@ -25,7 +25,7 @@ public class SortedIntArrayListTest {
         testList.add(99);
         // Test insertion. The list is expected to be stored sorted.
         int[] expectedList = {2, 3, 7, 10, 21, 27, 42, 74, 93, 99};
-        Assert.assertTrue(testList.isSameAs(expectedList));
+        Assert.assertTrue(testList.isSameAsArray(expectedList));
         // Test search.
         Assert.assertEquals(0, testList.search(2));
         Assert.assertEquals(1, testList.search(3));

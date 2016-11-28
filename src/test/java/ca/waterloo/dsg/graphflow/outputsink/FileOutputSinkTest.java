@@ -17,7 +17,6 @@ import java.util.Arrays;
  */
 public class FileOutputSinkTest {
 
-    private static String FILENAME = "test.out";
     // Special JUnit defined temporary folder used to test IO operations on files. Requires
     // {@code public} visibility.
     @Rule
@@ -27,6 +26,7 @@ public class FileOutputSinkTest {
 
     @Before
     public void setUp() throws Exception {
+        String FILENAME = "test.out";
         location = temporaryFolder.newFile(FILENAME);
         outputSink = new FileOutputSink(location);
     }

@@ -1,5 +1,7 @@
 package ca.waterloo.dsg.graphflow.outputsink;
 
+import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -32,21 +34,22 @@ public class InMemoryOutputSink implements OutputSink {
     }
 
     /**
-     * Used for unit testing. It simulates the functionality of the {@code equals()} method
-     * without overriding the actual equals() and hashCode() methods.
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
      *
-     * @param o The expected object.
-     * @return {@code true} if the current object values match perfectly with the expected object
-     * values, {@code false} otherwise.
+     * @param a The actual object.
+     * @param b The expected object.
+     * @return {@code true} if the {@code actual} object values are the same as the
+     * {@code expected} object values, {@code false} otherwise.
      */
-    public boolean isSameAs(Object o) {
-        if (this == o) {
+    @ExistsForTesting
+    public static boolean isSameAs(InMemoryOutputSink a, InMemoryOutputSink b) {
+        if (a == b) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (a == null || b == null) {
             return false;
         }
-        InMemoryOutputSink that = (InMemoryOutputSink) o;
-        return Objects.equals(results, that.results);
+        return Objects.equals(a.results, b.results);
     }
 }

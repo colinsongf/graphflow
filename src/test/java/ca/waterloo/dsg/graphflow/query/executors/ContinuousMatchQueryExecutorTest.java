@@ -5,8 +5,9 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
+import ca.waterloo.dsg.graphflow.query.utils.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
 import org.junit.Test;
 
 /**
@@ -23,9 +24,9 @@ public class ContinuousMatchQueryExecutorTest {
 
         // Create a triangle Delta Generic Join plan.
         StructuredQuery structuredQuery = new StructuredQuery();
-        structuredQuery.addEdge(new StructuredQueryEdge("b", "a"));
-        structuredQuery.addEdge(new StructuredQueryEdge("a", "c"));
-        structuredQuery.addEdge(new StructuredQueryEdge("c", "b"));
+        structuredQuery.addEdge(new QueryEdge(new QueryVariable("b"),new QueryVariable("a")));
+        structuredQuery.addEdge(new QueryEdge(new QueryVariable("a"),new QueryVariable("c")));
+        structuredQuery.addEdge(new QueryEdge(new QueryVariable("c"),new QueryVariable("b")));
         ContinuousMatchQueryPlan continuousMatchQueryPlan = (ContinuousMatchQueryPlan) new
             ContinuousMatchQueryPlanner(structuredQuery, new InMemoryOutputSink()).plan();
 

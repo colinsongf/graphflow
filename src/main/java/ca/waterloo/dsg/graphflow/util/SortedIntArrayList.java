@@ -21,7 +21,7 @@ public class SortedIntArrayList {
     }
 
     public void add(int i) {
-        ensureCapacity(size + 1);
+        data = ArrayUtils.resizeIfNecessary(data, size + 1);
         data[size++] = i;
         sort();
     }
@@ -35,7 +35,7 @@ public class SortedIntArrayList {
 
     public void addAll(int[] i) {
         int numnew = i.length;
-        ensureCapacity(size + numnew);
+        data = ArrayUtils.resizeIfNecessary(data, size + numnew);
         System.arraycopy(i, 0, data, size, numnew);
         size += numnew;
         sort();
@@ -79,27 +79,10 @@ public class SortedIntArrayList {
     }
 
     /**
-     * Checks if the current capacity exceeds size and increases the capacity if it doesn't.
-     *
-     * @param minCapacity
-     */
-    private void ensureCapacity(int minCapacity) {
-        int oldCapacity = data.length;
-        if (minCapacity > oldCapacity) {
-            int newCapacity = (oldCapacity * 3) / 2 + 1;
-            if (newCapacity < minCapacity) {
-                newCapacity = minCapacity;
-            }
-            data = Arrays.copyOf(data, newCapacity);
-        }
-    }
-
-    /**
      * Searches for the given value in the list using binary search and returns the index of the
      * value in the list. Returns -1 if value not found.
      *
      * @param value value to find in list.
-     *
      * @return int index of matched value or -1 if value does not exist
      */
     public int search(int value) {
@@ -126,7 +109,6 @@ public class SortedIntArrayList {
      * {@code SortedIntArrayList}.
      *
      * @param newList
-     *
      * @return SortedIntArrayList
      */
     public SortedIntArrayList getIntersection(SortedIntArrayList newList) {
@@ -158,22 +140,22 @@ public class SortedIntArrayList {
     }
 
     /**
-     * Used in unit tests to assert the equality of the actual and expected objects.
+     * Used in unit testing to assert the correct state of the {@code SortedIntArrayList}.
      *
-     * @param that The expected object.
-     *
-     * @return {@code true} if the current object values match perfectly with the expected object
-     * values, {@code false} otherwise.
+     * @param expectedArray the expected array representation of {@code SortedIntArrayList}.
+     * @return {@code true} if the {@code SortedIntArrayList} length and values match the
+     * {@code expectedArray} length and values, {@code false} otherwise.
      */
-    public boolean isSameAs(int[] that) {
-        if (null == that) {
+    @ExistsForTesting
+    public boolean isSameAsArray(int[] expectedArray) {
+        if (null == expectedArray) {
             return false;
         }
-        if (this.size != that.length) {
+        if (this.size != expectedArray.length) {
             return false;
         }
         for (int i = 0; i < size; i++) {
-            if (this.data[i] != that[i]) {
+            if (this.data[i] != expectedArray[i]) {
                 return false;
             }
         }

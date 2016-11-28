@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
+import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,24 +45,28 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
     }
 
     /**
-     * Used in unit tests to assert the equality of the actual and expected objects.
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
      *
-     * @param that The expected object.
-     * @return {@code true} if the current object values match perfectly with the expected object
-     * values, {@code false} otherwise.
+     * @param a The actual object.
+     * @param b The expected object.
+     * @return {@code true} if the {@code actual} object values are the same as the
+     * {@code expected} object values, {@code false} otherwise.
      */
-    public boolean isSameAs(ContinuousMatchQueryPlan that) {
-        if (null == that) {
-            return false;
-        }
-        if (this == that) {
+    @ExistsForTesting
+    public static boolean isSameAs(ContinuousMatchQueryPlan a, ContinuousMatchQueryPlan b) {
+        if (a == b) {
             return true;
         }
-        if (this.oneTimeMatchQueryPlans.size() != that.oneTimeMatchQueryPlans.size()) {
+        if (a == null || b == null) {
             return false;
         }
-        for (int i = 0; i < this.oneTimeMatchQueryPlans.size(); i++) {
-            if (!this.oneTimeMatchQueryPlans.get(i).isSameAs(that.oneTimeMatchQueryPlans.get(i))) {
+        if (a.oneTimeMatchQueryPlans.size() != b.oneTimeMatchQueryPlans.size()) {
+            return false;
+        }
+        for (int i = 0; i < a.oneTimeMatchQueryPlans.size(); i++) {
+            if (!OneTimeMatchQueryPlan.isSameAs(a.oneTimeMatchQueryPlans.get(i),
+                b.oneTimeMatchQueryPlans.get(i))) {
                 return false;
             }
         }

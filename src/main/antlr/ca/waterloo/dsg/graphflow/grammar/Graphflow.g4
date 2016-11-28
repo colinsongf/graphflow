@@ -4,94 +4,65 @@ graphflow : whitespace? statement whitespace? ( ';'  whitespace?)? ;
 
 statement : query ;
 
-query : match
-       | continuousMatch
-       | create
-       | delete
-       | shortestPath
+query : matchQuery
+       | continuousMatchQuery
+       | createQuery
+       | deleteQuery
+       | shortestPathQuery
        ;
 
-match : MATCH whitespace matchPattern ;
+matchQuery : MATCH whitespace matchPattern ;
+continuousMatchQuery : CONTINUOUS whitespace matchQuery whitespace userOperation whitespace operationLocation;
+createQuery : CREATE whitespace createPattern ;
+deleteQuery : DELETE whitespace deletePattern ;
+shortestPathQuery: SHORTEST_PATH whitespace pathPattern ;
 
-continuousMatch : CONTINUOUS whitespace match whitespace userOperation whitespace operationLocation;
+matchPattern: variableEdge ( whitespace? ',' whitespace? variableEdge )* ;
+deletePattern : digitsEdge ( whitespace? ',' whitespace? digitsEdge )* ;
+createPattern : digitsEdgeWithType ( whitespace? ',' whitespace? digitsEdgeWithType )* ;
+pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
 
-create : CREATE whitespace createPattern ;
+digitsEdge : digitsVertex DASH RIGHT_ARROWHEAD digitsVertex ;
+digitsEdgeWithType : digitsVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD digitsVertex ;
+variableEdge : variableVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD variableVertex ;
 
-delete : DELETE whitespace deletePattern ;
+digitsVertex : '(' whitespace? Digits whitespace? type?  whitespace? ')' ;
+variableVertex : '(' whitespace? variable whitespace? type? whitespace? ')' ;
 
-shortestPath: SHORTEST_PATH whitespace pathPattern ;
+edgeType : '[' whitespace? type? whitespace? ']' ;
 
-matchPattern: variableExpression ( whitespace? ',' whitespace? variableExpression )* ;
-
-deletePattern : digitsExpression ( whitespace? ',' whitespace? digitsExpression )* ;
-
-createPattern : digitsExpression ( whitespace? ',' whitespace? digitsExpression )* ;
-
-pathPattern: '(' whitespace? leftDigit whitespace? ',' whitespace? rightDigit whitespace? ')' ;
-
-digitsExpression : '(' whitespace? leftDigit whitespace? ')' whitespace? dash rightArrowHead '(' whitespace? rightDigit whitespace? ')' ;
-
-variableExpression: '(' whitespace? leftVariable whitespace? ')' whitespace? dash rightArrowHead '(' whitespace? rightVariable whitespace? ')' ;
+type : ':' variable ;
 
 userOperation : FILE ;
+operationLocation: variable;
 
-operationLocation : variable ;
+variable : Characters ( Digits | Characters | UNDERSCORE | DASH )* ;
 
-leftDigit : Digits ;
+Digits : (Digit)+ ;
 
-rightDigit : Digits ;
+MATCH : M A T C H ;
 
-leftVariable : variable ;
+CONTINUOUS : C O N T I N U O U S ;
 
-rightVariable : variable ;
+FILE : F I L E ;
 
-variable : Digits
-         | Characters
-         ;
+CREATE : C R E A T E ;
 
-Digits : ( Digit )+ ;
+DELETE : D E L E T E;
 
-Digit : '0'
-      | '1'
-      | '2'
-      | '3'
-      | '4'
-      | '5'
-      | '6'
-      | '7'
-      | '8'
-      | '9'
-      ;
+SHORTEST_PATH: S H O R T E S T '_' P A T H ;
 
-Characters : ( Character )+ ;
+whitespace : (WHITESPACE)+ ;
+
+Characters : (Character)+ ;
 
 Character : [a-z] ;
 
-MATCH : ( 'M' | 'm' ) ( 'A' | 'a' ) ( 'T' | 't' ) ( 'C' | 'c' ) ( 'H' | 'h' )  ;
-
-CONTINUOUS : 'CONTINUOUS' | 'continuous' ;
-
-FILE : 'FILE' | 'file' ;
-
-CREATE : ( 'C' | 'c' ) ( 'R' | 'r' ) ( 'E' | 'e' ) ( 'A' | 'a' ) ( 'T' | 't' ) ( 'E' | 'e' )  ;
-
-DELETE : ( 'D' | 'd' ) ( 'E' | 'e' ) ( 'L' | 'l' ) ( 'E' | 'e' ) ( 'T' | 't' ) ( 'E' | 'e' )  ;
-
-SHORTEST_PATH: ( 'S' | 's' ) ( 'H' | 'h' ) ( 'O' | 'o' ) ( 'R' | 'r' ) ( 'T' | 't' ) ( 'E' | 'e' )
-    ( 'S' | 's' ) ( 'T' | 't' ) ( '_' ) ('P' | 'p') ( 'A' | 'a' ) ( 'T' | 't' ) ('H' | 'h') ;
-
-whitespace : ( WHITESPACE )+ ;
-
 WHITESPACE : SPACE
            | TAB
+           | CR
            | LF
            | VT
-           | FF
-           | CR
-           | FS
-           | GS
-           | RS
-           | US
            | '\n'
            | Comment
            ;
@@ -100,38 +71,53 @@ Comment : ( '/*' ( Comment_0 | ( '*' Comment_1 ) )* '*/' )
         | ( '//' Comment_2 CR? ( LF | EOF ) )
         ;
 
-rightArrowHead : '>' ;
+RIGHT_ARROWHEAD : '>' ;
 
-dash : '-' ;
+DASH : '-' ;
 
-L_0X : ( '0' | '0' ) ( 'X' | 'x' )  ;
-
-fragment FF : [\f] ;
-
-fragment EscapedSymbolicName_0 : [\u0000-_a-\uFFFF] ;
-
-fragment RS : [\u001E] ;
+UNDERSCORE : '_' ;
 
 fragment Comment_1 : [\u0000-.0-\uFFFF] ;
 
 fragment Comment_0 : [\u0000-)+-\uFFFF] ;
 
-fragment StringLiteral_1 : [\u0000-&(-\[\]-\uFFFF] ;
-
 fragment Comment_2 : [\u0000-\t\u000B-\f\u000E-\uFFFF] ;
-
-fragment GS : [\u001D] ;
-
-fragment FS : [\u001C] ;
-
-fragment CR : [\r] ;
 
 fragment SPACE : [ ] ;
 
 fragment TAB : [\t] ;
 
+fragment CR : [\r] ;
+
 fragment LF : [\n] ;
 
 fragment VT : [\u000B] ;
 
-fragment US : [\u001F] ;
+fragment A : ('a'|'A') ;
+fragment B : ('b'|'B') ;
+fragment C : ('c'|'C') ;
+fragment D : ('d'|'D') ;
+fragment E : ('e'|'E') ;
+fragment F : ('f'|'F') ;
+fragment G : ('g'|'G') ;
+fragment H : ('h'|'H') ;
+fragment I : ('i'|'I') ;
+fragment J : ('j'|'J') ;
+fragment K : ('k'|'K') ;
+fragment L : ('l'|'L') ;
+fragment M : ('m'|'M') ;
+fragment N : ('n'|'N') ;
+fragment O : ('o'|'O') ;
+fragment P : ('p'|'P') ;
+fragment Q : ('q'|'Q') ;
+fragment R : ('r'|'R') ;
+fragment S : ('s'|'S') ;
+fragment T : ('t'|'T') ;
+fragment U : ('u'|'U') ;
+fragment V : ('v'|'V') ;
+fragment W : ('w'|'W') ;
+fragment X : ('x'|'X') ;
+fragment Y : ('y'|'Y') ;
+fragment Z : ('z'|'Z') ;
+
+fragment Digit : '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;

@@ -136,7 +136,8 @@ public class SortedAdjacencyList {
         if (index != -1) {
             int numElementsToShiftLeft = size - index - 1;
             if (numElementsToShiftLeft > 0) {
-                System.arraycopy(neighbourIds, index + 1, neighbourIds, index, numElementsToShiftLeft);
+                System.arraycopy(neighbourIds, index + 1, neighbourIds, index,
+                    numElementsToShiftLeft);
                 System.arraycopy(edgeTypes, index + 1, edgeTypes, index, numElementsToShiftLeft);
             }
             --size;
@@ -144,7 +145,8 @@ public class SortedAdjacencyList {
     }
 
     /**
-     * Intersects the current {@link SortedAdjacencyList} with the given {@code sortedListToIntersect}. If, 1)
+     * Intersects the current {@link SortedAdjacencyList} with the given {@code
+     * sortedListToIntersect}. If, 1)
      * {@code edgeType} equals {@link Graph#ANY_TYPE}, only node ID will be considered when
      * intersecting. 2) Else a valid intersection will match both node ID and edge type ID.
      *
@@ -204,10 +206,10 @@ public class SortedAdjacencyList {
     }
 
     public boolean isSameAs(SortedAdjacencyList that) {
-        if (null == this && null == that) {
+        if (null == that) {
             return true;
         }
-        if ((null == this && null != that) || (null == that && null != this)) {
+        if (this == that) {
             return false;
         }
         if (this.getSize() != that.getSize()) {
@@ -223,7 +225,7 @@ public class SortedAdjacencyList {
     }
 
     /**
-     *Searches for the given {@code neighbourId} in {@code neighbourIds} starting from the
+     * Searches for the given {@code neighbourId} in {@code neighbourIds} starting from the
      * given zero and continuing in monotonically increasing fashion. Returns either
      * the index of {@code neighbourId} or -1 if it is not found.
      *
@@ -238,6 +240,7 @@ public class SortedAdjacencyList {
     /**
      * Returns true if the given {@code neighbourId} and {@code typeId} pair exists, and false
      * otherwise.
+     *
      * @param neighbourId The neighbour ID to be searched.
      * @param typeId The typeId to filter by.
      * @return boolean Value representing whether the {@code neighbourId} and {@code typeId} pair
@@ -257,22 +260,22 @@ public class SortedAdjacencyList {
      * @param startIndex The index to start the search from.
      * @return Index of the neighbour or -1 if the neighbour is not in the list.
      */
-     @PackagePrivateForTesting
-     int search(int neighbourId, int typeId, int startIndex) {
-         int next = startIndex;
-         while (next < size) {
-             if (neighbourIds[next] == neighbourId) {
-                 if (Graph.ANY_TYPE == typeId || typeId == edgeTypes[next]) {
-                     return next;
-                 } else if (edgeTypes[next] > typeId) {
-                     return -1;
-                 }
-             } else if (neighbourIds[next] > neighbourId) {
-                 return -1;
-             }
-             next++;
-         }
-         return -1;
+    @PackagePrivateForTesting
+    int search(int neighbourId, int typeId, int startIndex) {
+        int next = startIndex;
+        while (next < size) {
+            if (neighbourIds[next] == neighbourId) {
+                if (Graph.ANY_TYPE == typeId || typeId == edgeTypes[next]) {
+                    return next;
+                } else if (edgeTypes[next] > typeId) {
+                    return -1;
+                }
+            } else if (neighbourIds[next] > neighbourId) {
+                return -1;
+            }
+            next++;
+        }
+        return -1;
     }
 
     /**

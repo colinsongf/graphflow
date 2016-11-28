@@ -1,12 +1,12 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
+import ca.waterloo.dsg.graphflow.graph.TypeStore;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
+import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
 import ca.waterloo.dsg.graphflow.query.utils.QueryGraph;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -25,14 +25,9 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
 
     public OneTimeMatchQueryPlanner(StructuredQuery structuredQuery) {
         super(structuredQuery);
-
-        // Initialize {@code queryGraph}.
-        for (StructuredQueryEdge structuredQueryEdge : structuredQuery.getStructuredQueryEdges()) {
-            String toVariable = structuredQueryEdge.getToVertex();
-            String fromVariable = structuredQueryEdge.getFromVertex();
-            queryGraph.addEdge(fromVariable, toVariable);
+        for (QueryEdge queryEdge : structuredQuery.getQueryEdges()) {
+            queryGraph.addEdge(queryEdge);
         }
-        logger.info("Query Graph: \n" + queryGraph);
     }
 
     /**
@@ -42,30 +37,29 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
      * 2) Break tie from (1) by selecting the variable with highest degree.
      * 3) Break tie from (2) by selecting the variable with lowest lexicographical rank.
      */
-    public void orderRemainingVariables(List<String> orderedVariables) {
+    protected void orderRemainingVariables(List<String> orderedVariables) {
         int initialSize = orderedVariables.size();
         Set<String> visitedVariables = new HashSet<>();
         visitedVariables.addAll(orderedVariables);
-        for (int i = 0; i < queryGraph.getQueryVariableCount() - initialSize; i++) {
+        for (int i = 0; i < queryGraph.getTotalNumberOfVariables() - initialSize; i++) {
             String selectedVariable = "";
             int highestConnectionsCount = -1;
             int highestDegreeCount = -1;
             for (String coveredVariable : orderedVariables) {
                 // Loop for all neighboring vertices of the already covered vertices.
-                for (String neighborVariable : queryGraph.getQueryVariableAdjList(coveredVariable)
-                    .getAllNeighborVariables()) {
+                for (String neighborVariable : queryGraph.getAllNeighborVariables
+                    (coveredVariable)) {
                     // Skip vertices which have already been covered.
                     if (visitedVariables.contains(neighborVariable)) {
                         continue;
                     }
-                    int variableDegree = queryGraph.getQueryVariableAdjList(neighborVariable)
-                        .getTotalDegree();
+                    int variableDegree = queryGraph.getNumberOfNeighbors(neighborVariable);
                     // Calculate the number of connections of the new variable to the already
                     // covered vertices.
                     int connectionsCount = 0;
                     for (String alreadyCoveredVariable : orderedVariables) {
-                        if (queryGraph.getQueryVariableAdjList(neighborVariable)
-                            .hasNeighborVariable(alreadyCoveredVariable)) {
+                        if (queryGraph.containsEdge(neighborVariable,
+                            alreadyCoveredVariable)) {
                             connectionsCount++;
                         }
                     }
@@ -107,7 +101,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         int highestDegreeCount = -1;
         String variableWithHighestDegree = "";
         for (String variable : queryGraph.getAllVariables()) {
-            int variableDegree = queryGraph.getQueryVariableAdjList(variable).getTotalDegree();
+            int variableDegree = queryGraph.getNumberOfNeighbors(variable);
             if (variableDegree > highestDegreeCount) {
                 // Rule (1).
                 highestDegreeCount = variableDegree;
@@ -130,11 +124,13 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             // Loop across all variables covered in the previous stages.
             for (int j = 0; j < i; j++) {
                 String variableFromPreviousStage = orderedVariables.get(j);
-                if (queryGraph.getQueryVariableAdjList(variableFromPreviousStage)
-                    .hasNeighborVariable(variableForCurrentStage)) {
-                    Direction direction = queryGraph.getQueryVariableAdjList(
-                        variableFromPreviousStage).getDirectionTo(variableForCurrentStage);
-                    stage.add(new GenericJoinIntersectionRule(j, direction));
+                if (queryGraph.containsEdge(variableFromPreviousStage,
+                    variableForCurrentStage)) {
+                    for (QueryEdge queryEdge : queryGraph.getAdjacentEdges(
+                        variableFromPreviousStage, variableForCurrentStage)) {
+                        short id = TypeStore.ANY_TYPE;
+                        stage.add(new GenericJoinIntersectionRule(j, queryEdge.getDirection(), id));
+                    }
                 }
             }
             oneTimeMatchQueryPlan.addStage(stage);

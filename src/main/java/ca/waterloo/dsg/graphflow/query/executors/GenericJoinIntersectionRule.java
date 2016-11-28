@@ -3,6 +3,7 @@ package ca.waterloo.dsg.graphflow.query.executors;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
+import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 
 /**
  * Represents a Generic Join rule. A Generic Join rule consists of the following: (1) A {@code
@@ -14,6 +15,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
  * types when extending.
  */
 public class GenericJoinIntersectionRule {
+
     private int prefixIndex;
     private Direction direction;
     private GraphVersion graphVersion;
@@ -39,8 +41,8 @@ public class GenericJoinIntersectionRule {
      * {@link GraphVersion#PERMANENT} graph and no edge type filtering. Edge type will default to
      * {@link Graph#ANY_TYPE} essentially not filtering extensions by an edge type.
      *
-     ** @param prefixIndex The index of the prefix indicating the vertex {at code u} from which this
-     * rule will extend.
+     * @param prefixIndex The index of the prefix indicating the vertex {at code u} from which
+     * this rule will extend.
      * @param direction The direction of extension. Either {@link Graph.Direction#FORWARD} outgoing
      * from {@code u} or {@link Graph.Direction#BACKWARD} incoming towards {@code u}.
      */
@@ -101,20 +103,25 @@ public class GenericJoinIntersectionRule {
     }
 
     /**
-     * Used in unit tests to assert the equality of the actual and expected objects.
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
      *
-     * @param that The expected object.
-     * @return {@code true} if the current object values match perfectly with the expected object
-     * values, {@code false} otherwise.
+     * @param a The actual object.
+     * @param b The expected object.
+     * @return {@code true} if the {@code actual} object values are the same as the
+     * {@code expected} object values, {@code false} otherwise.
      */
-    public boolean isSameAs(GenericJoinIntersectionRule that) {
-        if (null == that) {
-            return false;
-        }
-        if (this == that) {
+    @ExistsForTesting
+    public static boolean isSameAs(GenericJoinIntersectionRule a, GenericJoinIntersectionRule b) {
+        if (a == b) {
             return true;
         }
-        return (this.prefixIndex == that.prefixIndex && this.direction == that.direction
-            && this.graphVersion == that.graphVersion);
+        if (a == null || b == null) {
+            return false;
+        }
+        return a.prefixIndex == b.prefixIndex &&
+            a.direction == b.direction &&
+            a.graphVersion == b.graphVersion &&
+            a.edgeType == b.edgeType;
     }
 }

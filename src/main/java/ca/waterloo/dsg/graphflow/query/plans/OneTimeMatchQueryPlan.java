@@ -4,6 +4,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinExecutor;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
+import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,44 +30,33 @@ public class OneTimeMatchQueryPlan implements QueryPlan {
         new GenericJoinExecutor(stages, outputSink, graph).execute();
     }
 
-    @Override
-    public String toString() {
-        StringBuilder plan = new StringBuilder();
-        int i = 0;
-        for (List<GenericJoinIntersectionRule> stage : stages) {
-            plan.append("\nStage: ").append(i).append("\n");
-            for (GenericJoinIntersectionRule rule : stage) {
-                plan.append(rule.getPrefixIndex()).append(", ").append(rule.getDirection())
-                    .append("\n");
-            }
-            i++;
-        }
-        return plan.toString();
-    }
-
     /**
-     * Used in unit tests to assert the equality of the actual and expected objects.
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
      *
-     * @param that The expected object.
-     * @return {@code true} if the current object values match perfectly with the expected object
-     * values, {@code false} otherwise.
+     * @param a The actual object.
+     * @param b The expected object.
+     * @return {@code true} if the {@code actual} object values are the same as the
+     * {@code expected} object values, {@code false} otherwise.
      */
-    public boolean isSameAs(OneTimeMatchQueryPlan that) {
-        if (null == that) {
-            return false;
-        }
-        if (this == that) {
+    @ExistsForTesting
+    public static boolean isSameAs(OneTimeMatchQueryPlan a, OneTimeMatchQueryPlan b) {
+        if (a == b) {
             return true;
         }
-        if (this.stages.size() != that.stages.size()) {
+        if (a == null || b == null) {
             return false;
         }
-        for (int i = 0; i < this.stages.size(); i++) {
-            if (this.stages.get(i).size() != that.stages.get(i).size()) {
+        if (a.stages.size() != b.stages.size()) {
+            return false;
+        }
+        for (int i = 0; i < a.stages.size(); i++) {
+            if (a.stages.get(i).size() != b.stages.get(i).size()) {
                 return false;
             }
-            for (int j = 0; j < this.stages.get(i).size(); j++) {
-                if (!this.stages.get(i).get(j).isSameAs(that.stages.get(i).get(j))) {
+            for (int j = 0; j < a.stages.get(i).size(); j++) {
+                if (!GenericJoinIntersectionRule.isSameAs(a.stages.get(i).get(j),
+                    b.stages.get(i).get(j))) {
                     return false;
                 }
             }

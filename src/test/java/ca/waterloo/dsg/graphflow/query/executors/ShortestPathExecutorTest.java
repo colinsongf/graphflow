@@ -53,7 +53,8 @@ public class ShortestPathExecutorTest {
         InMemoryOutputSink actualInMemoryOutputSink = new InMemoryOutputSink();
         executor.execute(0, 9, actualInMemoryOutputSink);
 
-        Assert.assertTrue(actualInMemoryOutputSink.isSameAs(expectedInMemoryOutputSink));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(actualInMemoryOutputSink,
+            expectedInMemoryOutputSink));
     }
 
     @Test

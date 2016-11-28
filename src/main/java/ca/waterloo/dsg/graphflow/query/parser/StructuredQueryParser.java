@@ -14,8 +14,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 public class StructuredQueryParser {
 
     public StructuredQuery parse(String query) throws ParseCancellationException {
-        StructuredQuery structuredQuery;
-
         GraphflowLexer lexer = new GraphflowLexer(new ANTLRInputStream(query));
         lexer.removeErrorListeners();   // Remove default listeners first.
         lexer.addErrorListener(ErrorListener.INSTANCE);
@@ -27,10 +25,9 @@ public class StructuredQueryParser {
         try {
             ParseTree tree = parser.graphflow();
             GraphflowVisitor visitor = new GraphflowVisitor();
-            structuredQuery = visitor.visit(tree);
+            return (StructuredQuery) visitor.visit(tree);
         } catch (Exception e) {
             throw new ParseCancellationException(e.getMessage());
         }
-        return structuredQuery;
     }
 }

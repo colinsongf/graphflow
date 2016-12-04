@@ -1,6 +1,6 @@
 grammar Graphflow;
 
-graphflow : sp? statement sp? ( ';'  sp?)? ;
+graphflow : whitespace? statement whitespace? ( ';'  whitespace?)? ;
 
 statement : query ;
 
@@ -11,27 +11,27 @@ query : match
        | shortestPath
        ;
 
-match : MATCH sp matchPattern ;
+match : MATCH whitespace matchPattern ;
 
-continuousMatch : CONTINUOUS sp match sp userOperation sp operationLocation;
+continuousMatch : CONTINUOUS whitespace match whitespace userOperation whitespace operationLocation;
 
-create : CREATE sp createPattern ;
+create : CREATE whitespace createPattern ;
 
-delete : DELETE sp deletePattern ;
+delete : DELETE whitespace deletePattern ;
 
-shortestPath: SHORTEST_PATH sp pathPattern ;
+shortestPath: SHORTEST_PATH whitespace pathPattern ;
 
-matchPattern: variableExpression ( sp? ',' sp? variableExpression )* ;
+matchPattern: variableExpression ( whitespace? ',' whitespace? variableExpression )* ;
 
-deletePattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
+deletePattern : digitsExpression ( whitespace? ',' whitespace? digitsExpression )* ;
 
-createPattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
+createPattern : digitsExpression ( whitespace? ',' whitespace? digitsExpression )* ;
 
-pathPattern: '(' sp? leftDigit sp? ',' sp? rightDigit sp? ')' ;
+pathPattern: '(' whitespace? leftDigit whitespace? ',' whitespace? rightDigit whitespace? ')' ;
 
-digitsExpression : '(' sp? leftDigit sp? ')' sp? dash rightArrowHead '(' sp? rightDigit sp? ')' ;
+digitsExpression : '(' whitespace? leftDigit whitespace? ')' whitespace? dash rightArrowHead '(' whitespace? rightDigit whitespace? ')' ;
 
-variableExpression: '(' sp? leftVariable sp? ')' sp? dash rightArrowHead '(' sp? rightVariable sp? ')' ;
+variableExpression: '(' whitespace? leftVariable whitespace? ')' whitespace? dash rightArrowHead '(' whitespace? rightVariable whitespace? ')' ;
 
 userOperation : FILE ;
 
@@ -80,7 +80,7 @@ DELETE : ( 'D' | 'd' ) ( 'E' | 'e' ) ( 'L' | 'l' ) ( 'E' | 'e' ) ( 'T' | 't' ) (
 SHORTEST_PATH: ( 'S' | 's' ) ( 'H' | 'h' ) ( 'O' | 'o' ) ( 'R' | 'r' ) ( 'T' | 't' ) ( 'E' | 'e' )
     ( 'S' | 's' ) ( 'T' | 't' ) ( '_' ) ('P' | 'p') ( 'A' | 'a' ) ( 'T' | 't' ) ('H' | 'h') ;
 
-sp : ( WHITESPACE )+ ;
+whitespace : ( WHITESPACE )+ ;
 
 WHITESPACE : SPACE
            | TAB

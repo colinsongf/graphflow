@@ -8,9 +8,7 @@ import java.util.StringJoiner;
  */
 public class IntArrayList {
 
-    //TODO: Refactor RESIZE_MULTIPLIER by using ArrayUtils.resize() method from Siddahrtha's PR.
     private static final int INITIAL_CAPACITY = 2;
-    private static final float RESIZE_MULTIPLIER = 1.2f;
     private int[] data;
     private int size = 0;
 
@@ -36,7 +34,7 @@ public class IntArrayList {
      * @param element The new integer to be added.
      */
     public void add(int element) {
-        ensureCapacity(size + 1);
+        data = ArrayUtils.resizeIfNecessary(data, size + 1);
         data[size++] = element;
     }
 
@@ -46,7 +44,7 @@ public class IntArrayList {
      * @param elements The array of integers to be added.
      */
     public void addAll(int[] elements) {
-        ensureCapacity(size + elements.length);
+        data = ArrayUtils.resizeIfNecessary(data, size + elements.length);
         System.arraycopy(elements, 0, data, size, elements.length);
         size += elements.length;
     }
@@ -107,36 +105,5 @@ public class IntArrayList {
             sj.add("" + data[i]);
         }
         return "[" + sj.toString() + "]";
-    }
-
-    /**
-     * Used in unit tests to assert the equality of the actual and expected objects.
-     *
-     * @param that The expected object.
-     * @return {@code true} if the current object values match perfectly with the expected object
-     * values, {@code false} otherwise.
-     */
-    @ExistsForTesting
-    public boolean isSameAs(int[] that) {
-        if (null == that) {
-            return false;
-        }
-        if (this.size != that.length) {
-            return false;
-        }
-        for (int i = 0; i < size; i++) {
-            if (this.data[i] != that[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    //TODO: Refactor ensureCapacity by using ArrayUtils.resize() method from Siddahrtha's PR.
-    private void ensureCapacity(int minCapacity) {
-        if (minCapacity > data.length) {
-            int newCapacity = (int) Double.max(data.length * RESIZE_MULTIPLIER + 1, minCapacity);
-            data = Arrays.copyOf(data, newCapacity);
-        }
     }
 }

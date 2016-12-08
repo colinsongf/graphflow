@@ -4,9 +4,10 @@ import ca.waterloo.dsg.graphflow.grammar.GraphflowBaseVisitor;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.ContinuousMatchQueryContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.CreatePatternContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DeletePatternContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsEdgeContext;
+import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsEdgeWithOptionalTypeContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsEdgeWithTypeContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsVertexContext;
+import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsVertexWithTypeContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.GraphflowContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.MatchPatternContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.PathPatternContext;
@@ -61,8 +62,8 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     public AbstractStructuredQuery visitDeletePattern(DeletePatternContext ctx) {
         StructuredQuery structuredQuery = new StructuredQuery();
         structuredQuery.setQueryOperation(QueryOperation.DELETE);
-        for (int i = 0; i < ctx.digitsEdge().size(); i++) {
-            structuredQuery.addEdge((QueryEdge) visit(ctx.digitsEdge(i)));
+        for (int i = 0; i < ctx.digitsEdgeWithOptionalType().size(); i++) {
+            structuredQuery.addEdge((QueryEdge) visit(ctx.digitsEdgeWithOptionalType(i)));
         }
         return structuredQuery;
     }
@@ -79,23 +80,27 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
 
     @Override
     public AbstractStructuredQuery visitPathPattern(PathPatternContext ctx) {
-        QueryVariable fromVertex = new QueryVariable(ctx.Digits(0).getText());
-        QueryVariable toVertex = new QueryVariable(ctx.Digits(1).getText());
-        return new QueryEdge(fromVertex, toVertex);
+        return new QueryEdge(new QueryVariable(ctx.Digits(0).getText()), new QueryVariable(ctx
+            .Digits(1).getText()));
     }
 
     @Override
-    public AbstractStructuredQuery visitDigitsEdge(DigitsEdgeContext ctx) {
-        return new QueryEdge((QueryVariable) visit(ctx.digitsVertex(0)),
+    public AbstractStructuredQuery visitDigitsEdgeWithOptionalType(
+        DigitsEdgeWithOptionalTypeContext ctx) {
+        QueryEdge queryEdge = new QueryEdge((QueryVariable) visit(ctx.digitsVertex(0)),
             (QueryVariable) visit(ctx.digitsVertex(1)));
+        if (null != ctx.edgeType()) {
+            queryEdge.setEdgeType(ctx.edgeType().type().variable().getText());
+        }
+        return queryEdge;
     }
 
     @Override
     public AbstractStructuredQuery visitDigitsEdgeWithType(DigitsEdgeWithTypeContext ctx) {
-        QueryEdge queryEdge = new QueryEdge((QueryVariable) visit(ctx.digitsVertex(0)),
-            (QueryVariable) visit(ctx.digitsVertex(1)));
-        if (ctx.edgeType() != null) {
-            queryEdge.setEdgeType(ctx.edgeType().type().getText());
+        QueryEdge queryEdge = new QueryEdge((QueryVariable) visit(ctx.digitsVertexWithType(0)),
+            (QueryVariable) visit(ctx.digitsVertexWithType(1)));
+        if (null != ctx.edgeType()) {
+            queryEdge.setEdgeType(ctx.edgeType().type().variable().getText());
         }
         return queryEdge;
     }
@@ -104,26 +109,27 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     public AbstractStructuredQuery visitVariableEdge(VariableEdgeContext ctx) {
         QueryEdge queryEdge = new QueryEdge((QueryVariable) visit(ctx.variableVertex(0)),
             (QueryVariable) visit(ctx.variableVertex(1)));
-        if (ctx.edgeType() != null) {
-            queryEdge.setEdgeType(ctx.edgeType().type().getText());
+        if (null != ctx.edgeType()) {
+            queryEdge.setEdgeType(ctx.edgeType().type().variable().getText());
         }
         return queryEdge;
     }
 
     @Override
     public AbstractStructuredQuery visitDigitsVertex(DigitsVertexContext ctx) {
-        QueryVariable queryVariable = new QueryVariable(ctx.Digits().getText());
-        if (ctx.type() != null) {
-            queryVariable.setVariableType(ctx.type().getText());
-        }
-        return queryVariable;
+        return new QueryVariable(ctx.Digits().getText());
+    }
+
+    @Override
+    public AbstractStructuredQuery visitDigitsVertexWithType(DigitsVertexWithTypeContext ctx) {
+        return new QueryVariable(ctx.Digits().getText(), ctx.type().variable().getText());
     }
 
     @Override
     public AbstractStructuredQuery visitVariableVertex(VariableVertexContext ctx) {
         QueryVariable queryVariable = new QueryVariable(ctx.variable().getText());
-        if (ctx.type() != null) {
-            queryVariable.setVariableType(ctx.type().getText());
+        if (null != ctx.type()) {
+            queryVariable.setVariableType(ctx.type().variable().getText());
         }
         return queryVariable;
     }

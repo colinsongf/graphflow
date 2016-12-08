@@ -23,36 +23,27 @@ public class GraphTest {
      * changes to the graph.
      */
     @Test
-    public void testInsertionsWithoutDuplicates() throws Exception {
+    public void testInsertions() throws Exception {
         // Create a graph.
         int[][] edges = {{0, 6}, {0, 3}, {0, 5}, {0, 1}, {0, 4}, {0, 2}, {5, 6}, {1, 6}, {4, 6},
             {3, 6}, {2, 6}};
         short[] edgeTypes = {6, 3, 5, 1, 4, 2, 6, 6, 6, 6, 6};
-        short[][] vertexTypes = {{0, 12}, {0, 6}, {0, 10}, {0, 2}, {0, 8}, {0, 4}, {10, 12}, {2,
-            12}, {8, 12}, {6, 12}, {4, 12}};
+        short[][] vertexTypes = {{0, 12}, {0, 6}, {0, 10}, {0, 2}, {0, 8}, {0, 4}, {10, 12},
+            {2, 12}, {8, 12}, {6, 12}, {4, 12}};
         graph = TestUtils.initializeGraph(edges, edgeTypes, vertexTypes);
-        assertInsertions(graph);
-    }
 
-    @Test
-    public void testInsertionsWithDuplicates() throws Exception {
-        // Create a graph.
-        int[][] edges = {{0, 6}, {0, 3}, {0, 5}, {0, 1}, {0, 4}, {0, 2}, {5, 6}, {1, 6}, {4, 6},
-            {3, 6}, {2, 6}};
-        short[] edgeTypes = {6, 3, 5, 1, 4, 2, 6, 6, 6, 6, 6};
-        short[][] vertexTypes = {{0, 12}, {0, 6}, {0, 10}, {0, 2}, {0, 8}, {0, 4}, {10, 12}, {2,
-            12}, {8, 12}, {6, 12}, {4, 12}};
-        graph = TestUtils.initializeGraph(edges, edgeTypes, vertexTypes);
-        //Reinsert the previously inserted edges to test whether duplication happens.
+        assertInsertions(graph);
+
+        // Reinsert the previously inserted edges to test whether duplication happens.
         for (int i = 0; i < edges.length; i++) {
             graph.addEdgeTemporarily(edges[i][0], edges[i][1], vertexTypes[i][0],
                 vertexTypes[i][1], edgeTypes[i]);
         }
         graph.finalizeChanges();
+
         assertInsertions(graph);
     }
 
-    @SuppressWarnings("Duplicates")
     private void assertInsertions(Graph graph) throws Exception {
         // Test vertex count.
         Assert.assertEquals(7, graph.getVertexCount());
@@ -66,8 +57,9 @@ public class GraphTest {
                 expectedSortedAdjacencyList.add(expectedOutgoingAdjLists[i][j],
                     expectedOutgoingEdgeTypes[i][j]);
             }
-            Assert.assertTrue("Testing FORWARD vertex id: " + i, graph.getSortedAdjacencyList(i,
-                Direction.FORWARD, GraphVersion.PERMANENT).isSameAs(expectedSortedAdjacencyList));
+            Assert.assertTrue("Testing FORWARD vertex id: " + i, SortedAdjacencyList.isSameAs(
+                graph.getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT),
+                expectedSortedAdjacencyList));
         }
         // Test incoming adjacency lists. The adjacency lists should be in sorted order.
         int[][] expectedIncomingAdjLists = {{}, {0}, {0}, {0}, {0}, {0}, {0, 1, 2, 3, 4, 5}};
@@ -78,8 +70,9 @@ public class GraphTest {
                 expectedSortedAdjacencyList.add(expectedIncomingAdjLists[i][j],
                     expectedIncomingEdgeTypes[i][j]);
             }
-            Assert.assertTrue("Testing BACKWARD vertex id: " + i, graph.getSortedAdjacencyList(i,
-                Direction.BACKWARD, GraphVersion.PERMANENT).isSameAs(expectedSortedAdjacencyList));
+            Assert.assertTrue("Testing BACKWARD vertex id: " + i, SortedAdjacencyList.isSameAs(
+                graph.getSortedAdjacencyList(i, Direction.BACKWARD, GraphVersion.PERMANENT),
+                expectedSortedAdjacencyList));
         }
     }
 
@@ -112,8 +105,8 @@ public class GraphTest {
             for (int j = 0; j < expectedOutgoingAdjLists[i].length; j++) {
                 expected.add(expectedOutgoingAdjLists[i][j], expectedOutgoingEdgeTypes[i][j]);
             }
-            Assert.assertTrue("Testing FORWARD vertex id: " + i, graph.getSortedAdjacencyList(i,
-                Direction.FORWARD, GraphVersion.PERMANENT).isSameAs(expected));
+            Assert.assertTrue("Testing FORWARD vertex id: " + i, SortedAdjacencyList.isSameAs(graph
+                .getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT), expected));
         }
         // Test the backward adjacency lists.
         int[][] expectedIncomingAdjLists = {{4}, {}, {1}, {0, 1}, {}};
@@ -123,8 +116,8 @@ public class GraphTest {
             for (int j = 0; j < expectedIncomingAdjLists[i].length; j++) {
                 expected.add(expectedIncomingAdjLists[i][j], expectedIncomingEdgeTypes[i][j]);
             }
-            Assert.assertTrue("Testing BACKWARD vertex id: " + i, graph.getSortedAdjacencyList(i,
-                Direction.BACKWARD, GraphVersion.PERMANENT).isSameAs(expected));
+            Assert.assertTrue("Testing BACKWARD vertex id: " + i, SortedAdjacencyList.isSameAs(graph
+                .getSortedAdjacencyList(i, Direction.BACKWARD, GraphVersion.PERMANENT), expected));
         }
     }
 
@@ -144,12 +137,11 @@ public class GraphTest {
         graph.finalizeChanges();
 
         int[][] deleteNonExistingEdges = {{120, 34}, {1, 42}};
-        short[] deleteNonExisitingEdgeTypes = {14, 56};
+        short[] deleteNonExistingEdgeTypes = {14, 56};
         for (int i = 0; i < deleteNonExistingEdges.length; i++) {
             try {
                 graph.deleteEdgeTemporarily(deleteNonExistingEdges[i][0],
-                    deleteNonExistingEdges[i][1],
-                    deleteNonExisitingEdgeTypes[i]);
+                    deleteNonExistingEdges[i][1], deleteNonExistingEdgeTypes[i]);
                 Assert.fail("NoSuchElementException should have been thrown.");
             } catch (NoSuchElementException e) {
                 // Expected exception caught.
@@ -188,22 +180,18 @@ public class GraphTest {
 
         // Test the list of edges of the permanent graph before finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.FORWARD,
-            Graph.ANY_TYPE),
-            new int[][]{{0, 1}, {11, 9}});
+            TypeStore.ANY_TYPE), new int[][]{{0, 1}, {11, 9}});
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.BACKWARD,
-            Graph.ANY_TYPE),
-            new int[][]{{1, 0}, {9, 11}});
+            TypeStore.ANY_TYPE), new int[][]{{1, 0}, {9, 11}});
 
         // Make the temporary changes permanent.
         graph.finalizeChanges();
 
         // Test the list of edges of the permanent graph after finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.FORWARD,
-            Graph.ANY_TYPE),
-            new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
+            TypeStore.ANY_TYPE), new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.BACKWARD,
-            Graph.ANY_TYPE),
-            new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
+            TypeStore.ANY_TYPE), new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
     }
 
     @Test
@@ -235,18 +223,18 @@ public class GraphTest {
 
         // Test the list of edges of the merged graph before finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.FORWARD,
-            Graph.ANY_TYPE), new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
+            TypeStore.ANY_TYPE), new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.BACKWARD,
-            Graph.ANY_TYPE), new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
+            TypeStore.ANY_TYPE), new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
 
         // Make the temporary changes permanent.
         graph.finalizeChanges();
 
         // Test the list of edges of the merged graph after finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.FORWARD,
-            Graph.ANY_TYPE), new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
+            TypeStore.ANY_TYPE), new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.BACKWARD,
-            Graph.ANY_TYPE), new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
+            TypeStore.ANY_TYPE), new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
     }
 
     @Test
@@ -281,14 +269,14 @@ public class GraphTest {
 
         // Test the list of edges of the diff plus graph before finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_PLUS, Direction.FORWARD,
-            Graph.ANY_TYPE), new int[][]{{0, 6}, {2, 6}, {5, 6}, {4, 6}, {2, 5}});
+            TypeStore.ANY_TYPE), new int[][]{{0, 6}, {2, 6}, {5, 6}, {4, 6}, {2, 5}});
 
         // Make the temporary changes permanent.
         graph.finalizeChanges();
 
         // Test the list of edges of the diff plus graph after finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_PLUS, Direction.FORWARD,
-            Graph.ANY_TYPE), new int[][]{});
+            TypeStore.ANY_TYPE), new int[][]{});
     }
 
     @Test
@@ -317,13 +305,13 @@ public class GraphTest {
 
         // Test the list of edges of the diff minus graph before finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_MINUS, Direction.FORWARD,
-            Graph.ANY_TYPE), new int[][]{{2, 6}, {0, 1}});
+            TypeStore.ANY_TYPE), new int[][]{{2, 6}, {0, 1}});
         // Make the temporary changes permanent.
         graph.finalizeChanges();
 
         // Test the list of edges of the diff minus graph after finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_MINUS, Direction.FORWARD,
-            Graph.ANY_TYPE), new int[][]{});
+            TypeStore.ANY_TYPE), new int[][]{});
     }
 
     private void assertEdgesIterator(Iterator<int[]> iterator, int[][] expectedEdges) {

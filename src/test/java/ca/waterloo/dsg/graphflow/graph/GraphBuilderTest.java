@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.io.File;
 
 public class GraphBuilderTest {
+
     /**
      * Test the initialization of a {@code graph} instance from a JSON file.
      */
@@ -27,8 +28,9 @@ public class GraphBuilderTest {
                 expectedResult.add(expectedOutgoingAdjLists[i][j],
                     expectedOutgoingAdjListEdgeTypes[i][j]);
             }
-            Assert.assertTrue("Testing FORWARD vertex id: " + i, graph.getSortedAdjacencyList(i,
-                Direction.FORWARD, GraphVersion.PERMANENT).isSameAs(expectedResult));
+            Assert.assertTrue("Testing FORWARD vertex id: " + i, SortedAdjacencyList.
+                isSameAs(graph.getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT),
+                    expectedResult));
         }
         // Test incoming adjacency lists.
         int[][] expectedIncomingAdjLists = {{2, 3}, {0}, {1}, {2}, {2}, {4}};
@@ -39,8 +41,9 @@ public class GraphBuilderTest {
                 expectedResult.add(expectedIncomingAdjLists[i][j],
                     expectedIncomingAdjListEdgeTypes[i][j]);
             }
-            Assert.assertTrue("Testing BACKWARD vertex id: " + i, graph.getSortedAdjacencyList(i,
-                Direction.BACKWARD, GraphVersion.PERMANENT).isSameAs(expectedResult));
+            Assert.assertTrue("Testing BACKWARD vertex id: " + i, SortedAdjacencyList.
+                isSameAs(graph.getSortedAdjacencyList(i, Direction.BACKWARD,
+                    GraphVersion.PERMANENT), expectedResult));
         }
     }
 }

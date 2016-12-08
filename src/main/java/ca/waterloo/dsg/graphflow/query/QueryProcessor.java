@@ -21,6 +21,7 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 /**
  * Class to accept incoming queries from the gRPC server, process them and return the results.
@@ -79,9 +80,13 @@ public class QueryProcessor {
 
     private String handleMatchQuery(StructuredQuery structuredQuery) {
         OutputSink outputSink = new InMemoryOutputSink();
-        ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery).plan()).execute(
-            graph, outputSink);
-        return outputSink.toString();
+        try {
+            ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery).plan()).execute(
+                graph, outputSink);
+        } catch (NoSuchElementException e) {
+            // Exception raised when trying to create the plan, signifying an empty result set.
+        }
+        return (0 == outputSink.toString().length()) ? "{}" : outputSink.toString();
     }
 
     private String handleContinuousMatchQuery(StructuredQuery structuredQuery) {

@@ -15,9 +15,6 @@ import java.util.List;
  * Tests for {@code GenericJoinExecutor}.
  */
 public class GenericJoinExecutorTest {
-    private Graph graph;
-
-    private short defaultId = TypeStore.ANY_TYPE;
 
     @Test
     public void testProcessTriangles() throws Exception {
@@ -25,14 +22,11 @@ public class GenericJoinExecutorTest {
         List<List<GenericJoinIntersectionRule>> triangleQueryStages = new ArrayList<>();
         List<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, TypeStore.ANY_TYPE));
         triangleQueryStages.add(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD,
-            defaultId));
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, TypeStore.ANY_TYPE));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeStore.ANY_TYPE));
         triangleQueryStages.add(stage);
 
         int[][] expectedMotifsAfterAdditions = {{0, 1, 3}, {1, 3, 0}, {1, 3, 4}, {3, 0, 1},
@@ -48,18 +42,14 @@ public class GenericJoinExecutorTest {
         List<List<GenericJoinIntersectionRule>> squareQueryStages = new ArrayList<>();
         List<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, TypeStore.ANY_TYPE));
         squareQueryStages.add(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, TypeStore.ANY_TYPE));
         squareQueryStages.add(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(2, Direction.FORWARD,
-            defaultId));
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(2, Direction.FORWARD, TypeStore.ANY_TYPE));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeStore.ANY_TYPE));
         squareQueryStages.add(stage);
 
         int[][] expectedMotifsAfterAdditions = {{0, 1, 2, 3}, {1, 2, 3, 0}, {1, 2, 3, 4},
@@ -79,7 +69,7 @@ public class GenericJoinExecutorTest {
         int[][] edges = {{0, 1}, {1, 2}, {2, 3}, {1, 3}, {3, 4}, {3, 0}, {4, 1}};
         short[] edgeTypes = {5, 6, 7, 7, 8, 4, 5};
         short[][] vertexTypes = {{0, 4}, {4, 8}, {8, 12}, {4, 12}, {12, 16}, {12, 0}, {16, 4}};
-        graph = TestUtils.initializeGraph(edges, edgeTypes, vertexTypes);
+        Graph graph = TestUtils.initializeGraph(edges, edgeTypes, vertexTypes);
         // Execute the query and test.
         outputSink = new InMemoryOutputSink();
         new GenericJoinExecutor(stages, outputSink, graph).execute();

@@ -1,8 +1,7 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
-import ca.waterloo.dsg.graphflow.util.ShortArrayList;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
+import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -11,7 +10,7 @@ import java.util.NoSuchElementException;
 /**
  * Encapsulates an {@code Iterator} over the edges of the {@code Graph}.
  */
-public class EdgesIterator implements Iterator<int[]> {
+public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
 
     private GraphVersion graphVersion;
     private SortedAdjacencyList[] permanentAdjacencyLists;
@@ -26,7 +25,8 @@ public class EdgesIterator implements Iterator<int[]> {
     private short edgeType;
 
     /**
-     * Constructor for {@link EdgesIterator} with all possible vertex and edge filters specified.
+     * Constructor for {@link PermanentAndMergedEdgesIterator} with all possible vertex and edge
+     * filters specified.
      *
      * @param graphVersion The version of the graph to be used for retrieving edges.
      * @param permanentAdjacencyLists The adjacency lists for the permanent version of the graph in
@@ -36,7 +36,8 @@ public class EdgesIterator implements Iterator<int[]> {
      * @param edgeType The type ID which the selected edge should equal.
      * @param lastVertexId The vertex with the highest ID for the given graph version.
      */
-    public EdgesIterator(GraphVersion graphVersion, SortedAdjacencyList[] permanentAdjacencyLists,
+    public PermanentAndMergedEdgesIterator(GraphVersion graphVersion,
+        SortedAdjacencyList[] permanentAdjacencyLists,
         Map<Integer, SortedAdjacencyList> mergedAdjLists, short edgeType, int lastVertexId) {
         this.graphVersion = graphVersion;
         this.permanentAdjacencyLists = permanentAdjacencyLists;
@@ -53,12 +54,13 @@ public class EdgesIterator implements Iterator<int[]> {
     private void setIndicesToNextEdge() {
         while (nextFromVertexId <= lastVertexId) {
             nextFromVertexIdAdjListIndex++;
-            if (GraphVersion.MERGED == graphVersion && mergedAdjLists.containsKey(nextFromVertexId)) {
+            if (GraphVersion.MERGED == graphVersion && mergedAdjLists.
+                containsKey(nextFromVertexId)) {
                 // {@code nextFromVertexId} matches the given {@link #fromVertexType} and is
                 // present in the merged graph.
-                while (nextFromVertexIdAdjListIndex < mergedAdjLists.get(nextFromVertexId)
-                    .getSize()) {
-                    if ((Graph.ANY_TYPE == edgeType || mergedAdjLists.get(nextFromVertexId).
+                while (nextFromVertexIdAdjListIndex < mergedAdjLists.get(nextFromVertexId).
+                    getSize()) {
+                    if ((TypeStore.ANY_TYPE == edgeType || mergedAdjLists.get(nextFromVertexId).
                         getEdgeTypeId(nextFromVertexIdAdjListIndex) == edgeType)) {
                         // The neighbour at {@code nextFromVertexIdAdjListIndex} matches {@code
                         // toVertexType} and the edge it forms with {@code nextFromVertexId}
@@ -68,11 +70,11 @@ public class EdgesIterator implements Iterator<int[]> {
                     }
                     nextFromVertexIdAdjListIndex++;
                 }
-            } else if (null != permanentAdjacencyLists[nextFromVertexId] ) {
+            } else if (null != permanentAdjacencyLists[nextFromVertexId]) {
                 while (nextFromVertexIdAdjListIndex < permanentAdjacencyLists[nextFromVertexId].
                     getSize()) {
-                    if ((Graph.ANY_TYPE == edgeType || permanentAdjacencyLists[nextFromVertexId].
-                        getEdgeTypeId(nextFromVertexIdAdjListIndex) == edgeType)) {
+                    if (TypeStore.ANY_TYPE == edgeType || permanentAdjacencyLists[nextFromVertexId].
+                        getEdgeTypeId(nextFromVertexIdAdjListIndex) == edgeType) {
                         // The neighbour at {@code nextFromVertexIdAdjListIndex} matches {@code
                         // toVertexType} and the edge it forms with {@code nextFromVertexId}
                         // matches {@code edgeType}. In addition, the adjacency list of {@code

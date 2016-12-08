@@ -11,11 +11,11 @@ import java.util.NoSuchElementException;
  */
 public class TypeStore {
 
-    public static final short EMPTY_TYPE = -1;
-    public static final short ANY_TYPE = -2;
+    public static final short ANY_TYPE = -1;
+    private static final int DEFAULT_CAPACITY = 2;
     private static final TypeStore INSTANCE = new TypeStore();
     private Map<String, Short> stringToShortMap = new HashMap<>();
-    private String[] shortToStringMap = new String[2];
+    private String[] shortToStringMap = new String[DEFAULT_CAPACITY];
     private short nextShortTypeId = 0;
 
     /**
@@ -25,32 +25,42 @@ public class TypeStore {
     private TypeStore() {}
 
     /**
-     * @param type The type {@code String}.
-     * @return The {@code short} ID of {@code type}.
+     * @param stringType The type {@code String}.
+     * @return The {@code short} ID of {@code stringType}. If {@code stringType} is either
+     * {@code null} or an empty string, {@link TypeStore#ANY_TYPE} is returned.
+     * @throws NoSuchElementException if {@code stringType} is not {@code null} or an empty
+     * string, and is not present in the type store.
      */
-    public short getShortTypeId(String type) {
-        if (!stringToShortMap.containsKey(type)) {
-            throw new NoSuchElementException("The type '" + type +
-                "' is not present in the store.");
+    public short getShortIdOrAnyTypeIfNull(String stringType) {
+        if (null == stringType || "".equals(stringType)) {
+            return ANY_TYPE;
         }
-        return stringToShortMap.get(type);
+        if (!stringToShortMap.containsKey(stringType)) {
+            throw new NoSuchElementException("The string type '" + stringType + "' is not present" +
+                " in the store.");
+        }
+        return stringToShortMap.get(stringType);
     }
 
     /**
-     * Adds the {@code type} to the type store if it does not exist already, and returns the
-     * {@code short} ID of {@code type}.
+     * Adds {@code stringType} to the type store if it does not exist already, and returns the
+     * {@code short} ID of {@code stringType}. If {@code stringType} is either {@code null} or an
+     * empty string, {@link TypeStore#ANY_TYPE} is returned.
      *
-     * @param type The type {@code String}.
-     * @return The {@code short} ID of {@code type}.
+     * @param stringType The type {@code String}.
+     * @return The {@code short} ID of {@code stringType}.
      */
-    public short addNewTypeIfDoesNotExist(String type) {
-        if (stringToShortMap.containsKey(type)) {
-            return stringToShortMap.get(type);
+    public short addNewTypeIfDoesNotExist(String stringType) {
+        if (null == stringType || "".equals(stringType)) {
+            return ANY_TYPE;
+        }
+        if (stringToShortMap.containsKey(stringType)) {
+            return stringToShortMap.get(stringType);
         }
         shortToStringMap = (String[]) ArrayUtils.resizeIfNecessary(shortToStringMap,
             nextShortTypeId + 1);
-        shortToStringMap[nextShortTypeId] = type;
-        stringToShortMap.put(type, nextShortTypeId);
+        shortToStringMap[nextShortTypeId] = stringType;
+        stringToShortMap.put(stringType, nextShortTypeId);
         nextShortTypeId++;
         return (short) (nextShortTypeId - 1);
     }
@@ -60,7 +70,7 @@ public class TypeStore {
      * @return The {@code String} type mapped to {@code id}.
      * @throws NoSuchElementException if there is no {@code String} type mapping to {@code id}.
      */
-    public String getStringForShort(short id) {
+    public String getStringType(short id) {
         if (id < 0 && id > nextShortTypeId) {
             throw new NoSuchElementException("The short '" + id + "' is not present in the store.");
         }

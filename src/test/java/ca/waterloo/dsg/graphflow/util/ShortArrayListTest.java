@@ -3,14 +3,12 @@ package ca.waterloo.dsg.graphflow.util;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 /**
  * Tests {@link ShortArrayList}.
  */
 public class ShortArrayListTest {
 
-    ShortArrayList shortArrayList;
+    private ShortArrayList shortArrayList;
 
     @Test
     public void testAdd() throws Exception {

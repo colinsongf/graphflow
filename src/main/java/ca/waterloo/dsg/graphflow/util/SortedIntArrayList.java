@@ -138,27 +138,4 @@ public class SortedIntArrayList {
         }
         return "[" + sj.toString() + "]";
     }
-
-    /**
-     * Used in unit testing to assert the correct state of the {@code SortedIntArrayList}.
-     *
-     * @param expectedArray the expected array representation of {@code SortedIntArrayList}.
-     * @return {@code true} if the {@code SortedIntArrayList} length and values match the
-     * {@code expectedArray} length and values, {@code false} otherwise.
-     */
-    @ExistsForTesting
-    public boolean isSameAsArray(int[] expectedArray) {
-        if (null == expectedArray) {
-            return false;
-        }
-        if (this.size != expectedArray.length) {
-            return false;
-        }
-        for (int i = 0; i < size; i++) {
-            if (this.data[i] != expectedArray[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
 }

@@ -35,7 +35,7 @@ public class QueryGraph {
         // creating a new {@code QueryEdge} with interchanged {@code QueryVariable}s in the
         // BACKWARD direction.
         QueryEdge reverseQueryEdge = new QueryEdge(queryEdge.getToQueryVariable(),
-            queryEdge.getFromQueryVariable(), Direction.BACKWARD);
+            queryEdge.getFromQueryVariable(), Direction.BACKWARD, queryEdge.getEdgeType());
         reverseQueryEdge.setEdgeType(queryEdge.getEdgeType());
         addEdgeToQueryGraph(toVariable, fromVariable, reverseQueryEdge);
     }
@@ -43,8 +43,8 @@ public class QueryGraph {
     /**
      * Adds the new edge to the {@code queryGraph} map.
      *
-     * @param fromVariable The source variable.
-     * @param toVariable The destination variable.
+     * @param fromVariable The from variable.
+     * @param toVariable The to variable.
      * @param queryEdge The edge object which contains details about edge and variable types.
      */
     private void addEdgeToQueryGraph(String fromVariable, String toVariable, QueryEdge queryEdge) {
@@ -72,18 +72,21 @@ public class QueryGraph {
     }
 
     /**
-     * @param variable The source variable whose number of neighbor variable is required.
-     * @return The count of neighbor variables of {@code variable}.
+     * @param variable The from variable whose number of adjacent relations is required.
+     * @return The count of all incoming and outgoing relations of {@code variable}.
      */
-    public int getNumberOfNeighbors(String variable) {
+    public int getNumberOfAdjacentRelations(String variable) {
         if (!queryGraph.containsKey(variable)) {
             throw new RuntimeException("The variable '" + variable + "' is not present.");
         }
-        return queryGraph.get(variable).size();
+        // Use lambda expressions to get the sum of the incoming and outgoing relations of
+        // each {@code neighbourVariable} of {@code variable}.
+        return queryGraph.get(variable).keySet().stream().mapToInt(neighbourVariable ->
+            queryGraph.get(variable).get(neighbourVariable).size()).sum();
     }
 
     /**
-     * @param variable The source variable whose neighbors are required.
+     * @param variable The from variable whose neighbors are required.
      * @return The unordered list of neighbor variables.
      */
     public Set<String> getAllNeighborVariables(String variable) {
@@ -94,30 +97,30 @@ public class QueryGraph {
     }
 
     /**
-     * @param variable The source variable.
-     * @param neighborVariable The destination variable.
-     * @return {@code true} if there is an edge between {@code variable} and
-     * {@code neighborVariable} in any direction, {@code false} otherwise.
+     * @param variable1 One of the variables.
+     * @param variable2 The other variable.
+     * @return {@code true} if there is an edge between {@code variable1} and
+     * {@code variable2} in any direction, {@code false} otherwise.
      */
-    public boolean containsEdge(String variable, String neighborVariable) {
-        return queryGraph.containsKey(variable) && queryGraph.get(variable)
-            .containsKey(neighborVariable);
+    public boolean containsEdge(String variable1, String variable2) {
+        return queryGraph.containsKey(variable1) && queryGraph.get(variable1)
+            .containsKey(variable2);
     }
 
     /**
-     * @param variable The source variable.
-     * @param neighborVariable The destination variable.
+     * @param fromVariable The from variable.
+     * @param toVariable The to variable.
      * @return A read-only list of {@code QueryEdge}s representing all the edges present between
      * {@code variable} and {@code neighborVariable}.
      */
-    public List<QueryEdge> getAdjacentEdges(String variable, String neighborVariable) {
-        if (!queryGraph.containsKey(variable)) {
-            throw new RuntimeException("The variable '" + variable + "' is not present.");
+    public List<QueryEdge> getAdjacentEdges(String fromVariable, String toVariable) {
+        if (!queryGraph.containsKey(fromVariable)) {
+            throw new RuntimeException("The variable '" + fromVariable + "' is not present.");
         }
-        if (!queryGraph.get(variable).containsKey(neighborVariable)) {
-            throw new RuntimeException("The neighbour variable '" + neighborVariable + "' is not " +
-                "present in the adjacency list of '" + variable + "'.");
+        if (!queryGraph.get(fromVariable).containsKey(toVariable)) {
+            throw new RuntimeException("The neighbour variable '" + toVariable + "' is not " +
+                "present in the adjacency list of '" + fromVariable + "'.");
         }
-        return Collections.unmodifiableList(queryGraph.get(variable).get(neighborVariable));
+        return Collections.unmodifiableList(queryGraph.get(fromVariable).get(toVariable));
     }
 }

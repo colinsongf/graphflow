@@ -2,7 +2,6 @@ package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -54,7 +53,7 @@ public class DiffEdgesIterator implements Iterator<int[]> {
             // {@link DiffEdgesIterator}. If there is no such {@code e=(u, v)}, the {@code next}
             // index is set to the size of {@code diffEdges.size()}.
 
-            if (Graph.ANY_TYPE == edgeType || diffEdgeTypes.get(next) == edgeType) {
+            if (TypeStore.ANY_TYPE == edgeType || diffEdgeTypes.get(next) == edgeType) {
                 return;
             }
             next++;

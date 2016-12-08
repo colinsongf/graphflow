@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 /**
@@ -47,19 +48,18 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             int highestDegreeCount = -1;
             for (String coveredVariable : orderedVariables) {
                 // Loop for all neighboring vertices of the already covered vertices.
-                for (String neighborVariable : queryGraph.getAllNeighborVariables
-                    (coveredVariable)) {
+                for (String neighborVariable : queryGraph.getAllNeighborVariables(
+                    coveredVariable)) {
                     // Skip vertices which have already been covered.
                     if (visitedVariables.contains(neighborVariable)) {
                         continue;
                     }
-                    int variableDegree = queryGraph.getNumberOfNeighbors(neighborVariable);
+                    int variableDegree = queryGraph.getNumberOfAdjacentRelations(neighborVariable);
                     // Calculate the number of connections of the new variable to the already
                     // covered vertices.
                     int connectionsCount = 0;
                     for (String alreadyCoveredVariable : orderedVariables) {
-                        if (queryGraph.containsEdge(neighborVariable,
-                            alreadyCoveredVariable)) {
+                        if (queryGraph.containsEdge(neighborVariable, alreadyCoveredVariable)) {
                             connectionsCount++;
                         }
                     }
@@ -90,6 +90,14 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         }
     }
 
+    /**
+     * Creates a one time {@code MATCH} query plan for the given {@code structuredQuery}.
+     *
+     * @return A {@link QueryPlan} encapsulating an {@link OneTimeMatchQueryPlan}.
+     * @throws NoSuchElementException If any edge type {@code String} does not already exist in the
+     * {@link TypeStore}, signifying that the one time {@code MATCH} query will return an empty
+     * result set.
+     */
     public QueryPlan plan() {
         OneTimeMatchQueryPlan oneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
         List<String> orderedVariables = new ArrayList<>();
@@ -101,7 +109,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         int highestDegreeCount = -1;
         String variableWithHighestDegree = "";
         for (String variable : queryGraph.getAllVariables()) {
-            int variableDegree = queryGraph.getNumberOfNeighbors(variable);
+            int variableDegree = queryGraph.getNumberOfAdjacentRelations(variable);
             if (variableDegree > highestDegreeCount) {
                 // Rule (1).
                 highestDegreeCount = variableDegree;
@@ -128,8 +136,12 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     variableForCurrentStage)) {
                     for (QueryEdge queryEdge : queryGraph.getAdjacentEdges(
                         variableFromPreviousStage, variableForCurrentStage)) {
-                        short id = TypeStore.ANY_TYPE;
-                        stage.add(new GenericJoinIntersectionRule(j, queryEdge.getDirection(), id));
+                        // TypeStore.getShortIdOrAnyTypeIfNull() will throw an
+                        // NoSuchElementException if the edge type does not already exist in the
+                        // {@code TypeStore}.
+                        stage.add(new GenericJoinIntersectionRule(j, queryEdge.getDirection(),
+                            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(
+                                queryEdge.getEdgeType())));
                     }
                 }
             }

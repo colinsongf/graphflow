@@ -69,17 +69,17 @@ public class StructuredQuery implements AbstractStructuredQuery {
      * Used during unit testing to check the equality of objects. This is used instead of
      * overriding the standard {@code equals()} and {@code hashCode()} methods.
      *
-     * @param a The actual object.
-     * @param b The expected object.
-     * @return {@code true} if the {@code actual} object values are the same as the
-     * {@code expected} object values, {@code false} otherwise.
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if the {@code a} object values are the same as the
+     * {@code b} object values, {@code false} otherwise.
      */
     @ExistsForTesting
     public static boolean isSameAs(StructuredQuery a, StructuredQuery b) {
         if (a == b) {
             return true;
         }
-        if (a == null || b == null) {
+        if (null == a || null == b) {
             return false;
         }
         if (!(a.queryOperation == b.queryOperation &&

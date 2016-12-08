@@ -3,7 +3,7 @@ package ca.waterloo.dsg.graphflow.util;
 import java.util.Arrays;
 
 /**
- * Utility methods for resize operations on Arrays.
+ * Utility methods for resize operations on arrays.
  */
 public class ArrayUtils {
 
@@ -21,9 +21,17 @@ public class ArrayUtils {
     }
 
     /**
-     * See {@link #resizeIfNecessary(Object[], int)}
+     * @see #resizeIfNecessary(Object[], int)
      */
     public static int[] resizeIfNecessary(int[] array, int minCapacity) {
+        return (minCapacity > array.length) ? Arrays.copyOf(array, ArrayUtils.getNewCapacity(
+            array.length, minCapacity)) : array;
+    }
+
+    /**
+     * @see #resizeIfNecessary(Object[], int)
+     */
+    public static short[] resizeIfNecessary(short[] array, int minCapacity) {
         return (minCapacity > array.length) ? Arrays.copyOf(array, ArrayUtils.getNewCapacity(
             array.length, minCapacity)) : array;
     }

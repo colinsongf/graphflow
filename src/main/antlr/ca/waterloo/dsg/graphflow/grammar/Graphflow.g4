@@ -15,28 +15,29 @@ matchQuery : MATCH whitespace matchPattern ;
 continuousMatchQuery : CONTINUOUS whitespace matchQuery whitespace userOperation whitespace operationLocation;
 createQuery : CREATE whitespace createPattern ;
 deleteQuery : DELETE whitespace deletePattern ;
-shortestPathQuery: SHORTEST_PATH whitespace pathPattern ;
+shortestPathQuery: SHORTEST whitespace PATH whitespace pathPattern ;
 
 matchPattern: variableEdge ( whitespace? ',' whitespace? variableEdge )* ;
-deletePattern : digitsEdge ( whitespace? ',' whitespace? digitsEdge )* ;
+deletePattern : digitsEdgeWithOptionalType ( whitespace? ',' whitespace? digitsEdgeWithOptionalType )* ;
 createPattern : digitsEdgeWithType ( whitespace? ',' whitespace? digitsEdgeWithType )* ;
 pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
 
-digitsEdge : digitsVertex DASH RIGHT_ARROWHEAD digitsVertex ;
-digitsEdgeWithType : digitsVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD digitsVertex ;
+digitsEdgeWithOptionalType : digitsVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD digitsVertex ;
+digitsEdgeWithType : digitsVertexWithType (DASH edgeType) DASH RIGHT_ARROWHEAD digitsVertexWithType ;
 variableEdge : variableVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD variableVertex ;
 
-digitsVertex : '(' whitespace? Digits whitespace? type?  whitespace? ')' ;
+digitsVertex : '(' whitespace? Digits whitespace? ')' ;
+digitsVertexWithType : '(' whitespace? Digits whitespace? type  whitespace? ')' ;
 variableVertex : '(' whitespace? variable whitespace? type? whitespace? ')' ;
 
-edgeType : '[' whitespace? type? whitespace? ']' ;
+edgeType : '[' whitespace? type whitespace? ']' ;
 
 type : ':' variable ;
 
 userOperation : FILE ;
 operationLocation: variable;
 
-variable : Characters ( Digits | Characters | UNDERSCORE | DASH )* ;
+variable : Characters ( Digits | Characters | UNDERSCORE | DASH | DOT )* ;
 
 Digits : (Digit)+ ;
 
@@ -50,13 +51,12 @@ CREATE : C R E A T E ;
 
 DELETE : D E L E T E;
 
-SHORTEST_PATH: S H O R T E S T '_' P A T H ;
+SHORTEST: S H O R T E S T ;
+PATH: P A T H ;
 
 whitespace : (WHITESPACE)+ ;
 
-Characters : (Character)+ ;
-
-Character : [a-z] ;
+Characters : ( [a-z] | [A-Z] )+ ;
 
 WHITESPACE : SPACE
            | TAB
@@ -76,6 +76,8 @@ RIGHT_ARROWHEAD : '>' ;
 DASH : '-' ;
 
 UNDERSCORE : '_' ;
+
+DOT : '.' ;
 
 fragment Comment_1 : [\u0000-.0-\uFFFF] ;
 

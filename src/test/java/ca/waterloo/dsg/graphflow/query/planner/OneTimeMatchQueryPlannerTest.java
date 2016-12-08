@@ -15,8 +15,6 @@ import java.util.List;
 
 public class OneTimeMatchQueryPlannerTest {
 
-    private short defaultId = TypeStore.ANY_TYPE;
-
     @Test
     public void testPlanTriangleQuery() throws Exception {
         // Create a Generic Join query plan for a triangle query.
@@ -34,14 +32,11 @@ public class OneTimeMatchQueryPlannerTest {
         OneTimeMatchQueryPlan oneTimeMatchQueryPlanExpected = new OneTimeMatchQueryPlan();
         List<GenericJoinIntersectionRule> stage;
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, TypeStore.ANY_TYPE));
         oneTimeMatchQueryPlanExpected.addStage(stage);
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-            defaultId));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeStore.ANY_TYPE));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, TypeStore.ANY_TYPE));
         oneTimeMatchQueryPlanExpected.addStage(stage);
 
         Assert.assertTrue(OneTimeMatchQueryPlan.isSameAs(oneTimeMatchQueryPlanActual,
@@ -74,32 +69,25 @@ public class OneTimeMatchQueryPlannerTest {
         List<GenericJoinIntersectionRule> stage;
         // Stage 1
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeStore.ANY_TYPE));
         oneTimeMatchQueryPlanExpected.addStage(stage);
         // Stage 2
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-            defaultId));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeStore.ANY_TYPE));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, TypeStore.ANY_TYPE));
         oneTimeMatchQueryPlanExpected.addStage(stage);
         // Stage 3
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeStore.ANY_TYPE));
         oneTimeMatchQueryPlanExpected.addStage(stage);
         // Stage 4
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-            defaultId));
-        stage.add(new GenericJoinIntersectionRule(3, Direction.FORWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeStore.ANY_TYPE));
+        stage.add(new GenericJoinIntersectionRule(3, Direction.FORWARD, TypeStore.ANY_TYPE));
         oneTimeMatchQueryPlanExpected.addStage(stage);
         // Stage 5
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD,
-            defaultId));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, TypeStore.ANY_TYPE));
         oneTimeMatchQueryPlanExpected.addStage(stage);
 
         Assert.assertTrue(OneTimeMatchQueryPlan.isSameAs(oneTimeMatchQueryPlanActual,

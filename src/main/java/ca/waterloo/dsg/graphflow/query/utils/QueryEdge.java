@@ -16,24 +16,29 @@ public class QueryEdge implements AbstractStructuredQuery {
     private String edgeType;
 
     /**
-     * Constructs a {@code QueryEdge} with the direction set to {@link Direction#FORWARD}.
+     * Constructs a {@code QueryEdge} with the direction set to {@link Direction#FORWARD} and the
+     * edge type set to {@code null}.
      *
-     * @see QueryEdge#QueryEdge(QueryVariable, QueryVariable, Direction)
+     * @see QueryEdge#QueryEdge(QueryVariable, QueryVariable, Direction, String)
      */
     public QueryEdge(QueryVariable fromQueryVariable, QueryVariable toQueryVariable) {
-        this(fromQueryVariable, toQueryVariable, Direction.FORWARD);
+        this(fromQueryVariable, toQueryVariable, Direction.FORWARD, null);
     }
 
     /**
-     * @param fromQueryVariable The source variable of the edge.
-     * @param toQueryVariable The destination variable of the edge.
+     * Constructs a {@code QueryEdge}.
+     *
+     * @param fromQueryVariable The from variable of the edge.
+     * @param toQueryVariable The to variable of the edge.
      * @param direction the direction of the edge.
+     * @param edgeType the {@code String} edge type.
      */
     public QueryEdge(QueryVariable fromQueryVariable, QueryVariable toQueryVariable,
-        Direction direction) {
+        Direction direction, String edgeType) {
         this.fromQueryVariable = fromQueryVariable;
         this.toQueryVariable = toQueryVariable;
         this.direction = direction;
+        this.edgeType = edgeType;
     }
 
     public QueryVariable getFromQueryVariable() {
@@ -56,25 +61,21 @@ public class QueryEdge implements AbstractStructuredQuery {
         return direction;
     }
 
-    public void setDirection(Direction direction) {
-        this.direction = direction;
-    }
-
     /**
      * Used during unit testing to check the equality of objects. This is used instead of
      * overriding the standard {@code equals()} and {@code hashCode()} methods.
      *
-     * @param a The actual object.
-     * @param b The expected object.
+     * @param a One of the objects.
+     * @param b The other object.
      * @return {@code true} if the {@code a} object values are the same as the
-     * {@code expected} object values, {@code false} otherwise.
+     * {@code b} object values, {@code false} otherwise.
      */
     @ExistsForTesting
     public static boolean isSameAs(QueryEdge a, QueryEdge b) {
         if (a == b) {
             return true;
         }
-        if (a == null || b == null) {
+        if (null == a || null == b) {
             return false;
         }
         return QueryVariable.isSameAs(a.fromQueryVariable, b.fromQueryVariable) &&

@@ -119,8 +119,7 @@ public class IntQueue {
         return size;
     }
 
-    @VisibleForTesting
-    public void resize(int newCapacity) {
+    private void resize(int newCapacity) {
         int[] temp = new int[newCapacity];
         for (int i = 0; i < size; i++) {
             temp[i] = queue[(firstItemIndex + i) % this.capacity];

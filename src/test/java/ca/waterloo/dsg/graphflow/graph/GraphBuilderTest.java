@@ -20,17 +20,27 @@ public class GraphBuilderTest {
         Assert.assertEquals(6, graph.getVertexCount());
         // Test outgoing adjacency lists.
         int[][] expectedOutgoingAdjLists = {{1}, {2}, {0, 3, 4}, {0}, {5}, {}};
+        short[][] expectedOutgoingAdjListEdgeTypes = {{1}, {4}, {1, 6, 10}, {6}, {14}, {}};
         for (int i = 0; i < expectedOutgoingAdjLists.length; i++) {
-            Assert.assertTrue("Testing FORWARD vertex id: " + i, graph.getAdjacencyList(i,
-                Direction.FORWARD, GraphVersion.PERMANENT).isSameAs
-                (expectedOutgoingAdjLists[i]));
+            SortedAdjacencyList expectedResult = new SortedAdjacencyList();
+            for (int j = 0; j < expectedOutgoingAdjLists[i].length; j++) {
+                expectedResult.add(expectedOutgoingAdjLists[i][j],
+                    expectedOutgoingAdjListEdgeTypes[i][j]);
+            }
+            Assert.assertTrue("Testing FORWARD vertex id: " + i, graph.getSortedAdjacencyList(i,
+                Direction.FORWARD, GraphVersion.PERMANENT).isSameAs(expectedResult));
         }
         // Test incoming adjacency lists.
         int[][] expectedIncomingAdjLists = {{2, 3}, {0}, {1}, {2}, {2}, {4}};
+        short[][] expectedIncomingAdjListEdgeTypes = {{1, 6}, {1}, {4}, {6}, {10}, {14}};
         for (int i = 0; i < expectedIncomingAdjLists.length; i++) {
-            Assert.assertTrue("Testing BACKWARD vertex id: " + i, graph.getAdjacencyList(i,
-                Direction.BACKWARD, GraphVersion.PERMANENT).isSameAs
-                (expectedIncomingAdjLists[i]));
+            SortedAdjacencyList expectedResult = new SortedAdjacencyList();
+            for (int j = 0; j < expectedIncomingAdjLists[i].length; j++) {
+                expectedResult.add(expectedIncomingAdjLists[i][j],
+                    expectedIncomingAdjListEdgeTypes[i][j]);
+            }
+            Assert.assertTrue("Testing BACKWARD vertex id: " + i, graph.getSortedAdjacencyList(i,
+                Direction.BACKWARD, GraphVersion.PERMANENT).isSameAs(expectedResult));
         }
     }
 }

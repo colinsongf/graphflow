@@ -1,7 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
-import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.outputsink.ShortestPathOutputSink;
+import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ShortestPathExecutor;
 
 /**
@@ -17,11 +16,12 @@ public class ShortestPathPlan implements QueryPlan {
         this.destination = destination;
     }
 
-    @Override
-    public String execute(Graph graph) {
-        ShortestPathOutputSink outputSink = new ShortestPathOutputSink();
-        ShortestPathExecutor shortestPathExecutor = ShortestPathExecutor.getInstance();
-        shortestPathExecutor.evaluate(source, destination, outputSink);
-        return outputSink.getResults().toString();
+    /**
+     * Executes the {@link OneTimeMatchQueryPlan}.
+     *
+     * @param outputSink the {@link OutputSink} to which the execution output is written.
+     */
+    public void execute(OutputSink outputSink) {
+        ShortestPathExecutor.getInstance().execute(source, destination, outputSink);
     }
 }

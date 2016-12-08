@@ -6,21 +6,21 @@ import org.junit.Test;
 
 public class GenericJoinIntersectionRuleTest {
 
-    GenericJoinIntersectionRule obj_equal_1 = new GenericJoinIntersectionRule(0,
-        Direction.BACKWARD);
-    GenericJoinIntersectionRule obj_equal_2 = new GenericJoinIntersectionRule(0,
-        Direction.BACKWARD);
-    GenericJoinIntersectionRule obj_different = new GenericJoinIntersectionRule(1,
-        Direction.FORWARD);
+    private GenericJoinIntersectionRule genericJoinIntersectionRule1 = new
+        GenericJoinIntersectionRule(0, Direction.BACKWARD);
+    private GenericJoinIntersectionRule genericJoinIntersectionRule2 = new
+        GenericJoinIntersectionRule(0, Direction.BACKWARD);
+    private GenericJoinIntersectionRule genericJoinIntersectionRule3 = new
+        GenericJoinIntersectionRule(1, Direction.FORWARD);
 
     @Test
-    public void equalObjects() throws Exception {
-        Assert.assertTrue(obj_equal_1.isSameAs(obj_equal_2));
+    public void testIsSameAsTrue() throws Exception {
+        Assert.assertTrue(genericJoinIntersectionRule1.isSameAs(genericJoinIntersectionRule2));
     }
 
     @Test
-    public void notEqualObjects() throws Exception {
-        Assert.assertFalse(obj_equal_1.isSameAs(obj_different));
-        Assert.assertFalse(obj_equal_2.isSameAs(obj_different));
+    public void testIsSameAsFalse() throws Exception {
+        Assert.assertFalse(genericJoinIntersectionRule1.isSameAs(genericJoinIntersectionRule3));
+        Assert.assertFalse(genericJoinIntersectionRule2.isSameAs(genericJoinIntersectionRule3));
     }
 }

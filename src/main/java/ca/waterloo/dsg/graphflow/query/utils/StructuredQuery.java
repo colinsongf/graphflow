@@ -13,11 +13,14 @@ public class StructuredQuery {
         CREATE,
         MATCH,
         DELETE,
-        SHORTEST_PATH
+        SHORTEST_PATH,
+        CONTINUOUS_MATCH
     }
 
     private List<StructuredQueryEdge> structuredQueryEdges;
     private QueryOperation queryOperation;
+    private String continuousMatchAction;
+    private String continuousMatchOutputLocation;
 
     public StructuredQuery() {
         this.structuredQueryEdges = new ArrayList<>();
@@ -39,6 +42,22 @@ public class StructuredQuery {
         this.queryOperation = queryOperation;
     }
 
+    public String getContinuousMatchAction() {
+        return continuousMatchAction;
+    }
+
+    public void setContinuousMatchAction(String continuousMatchAction) {
+        this.continuousMatchAction = continuousMatchAction;
+    }
+
+    public String getContinuousMatchOutputLocation() {
+        return continuousMatchOutputLocation;
+    }
+
+    public void setContinuousMatchOutputLocation(String continuousMatchOutputLocation) {
+        this.continuousMatchOutputLocation = continuousMatchOutputLocation;
+    }
+
     /**
      * Used in unit tests to assert the equality of the actual and expected objects.
      *
@@ -55,6 +74,14 @@ public class StructuredQuery {
             return true;
         }
         if (this.queryOperation != that.queryOperation) {
+            return false;
+        }
+        if (this.continuousMatchAction != null ? !this.continuousMatchAction.equals(
+            that.continuousMatchAction) : that.continuousMatchAction != null) {
+            return false;
+        }
+        if (this.continuousMatchOutputLocation != null ? !this.continuousMatchOutputLocation.equals(
+            that.continuousMatchOutputLocation) : that.continuousMatchOutputLocation != null) {
             return false;
         }
         if (this.structuredQueryEdges.size() != that.structuredQueryEdges.size()) {

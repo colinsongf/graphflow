@@ -43,6 +43,8 @@ public class GraphBuilder {
         private static final String NUM_VERTICES = "num-vertices";
         private static final String SOURCE = "src";
         private static final String DESTINATION = "dst";
+        private static final String ID = "id";
+        private static final String TYPE = "type";
 
         /**
          * Gets the root of a json object and returns a graph object populated with data.
@@ -64,9 +66,14 @@ public class GraphBuilder {
 
             for (JsonElement edge : edges) {
                 JsonObject edgeObj = edge.getAsJsonObject();
-                int src = edgeObj.get(GraphDeserializer.SOURCE).getAsInt();
-                int dst = edgeObj.get(GraphDeserializer.DESTINATION).getAsInt();
-                graph.addEdgeTemporarily(src, dst);
+                JsonObject srcObj = edgeObj.get(GraphDeserializer.SOURCE).getAsJsonObject();
+                int src = srcObj.get(GraphDeserializer.ID).getAsInt();
+                short srcType = srcObj.get(GraphDeserializer.TYPE).getAsShort();
+                JsonObject dstObj = edgeObj.get(GraphDeserializer.DESTINATION).getAsJsonObject();
+                int dst = dstObj.get(GraphDeserializer.ID).getAsInt();
+                short dstType = dstObj.get(GraphDeserializer.TYPE).getAsShort();
+                short edgeType = edgeObj.get(GraphDeserializer.TYPE).getAsShort();
+                graph.addEdgeTemporarily(src, dst, srcType, dstType, edgeType);
             }
             graph.finalizeChanges();
             return graph;

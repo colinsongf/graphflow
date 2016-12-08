@@ -18,15 +18,17 @@ import java.util.Arrays;
 public class FileOutputSinkTest {
 
     private static String FILENAME = "test.out";
-    // Temporary folder to do write and read operations on files. This is automatically
-    // created and deleted by JUnit.
+    // Special JUnit defined temporary folder used to test IO operations on files. Requires
+    // {@code public} visibility.
     @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private File location;
     private FileOutputSink outputSink;
 
     @Before
     public void setUp() throws Exception {
-        outputSink = new FileOutputSink(tempFolder.getRoot(), FILENAME);
+        location = temporaryFolder.newFile(FILENAME);
+        outputSink = new FileOutputSink(location);
     }
 
     /**
@@ -34,15 +36,12 @@ public class FileOutputSinkTest {
      */
     @Test
     public void testAppend() throws Exception {
-        int[][] test = new int[1][];
-        int[] testArray = {1, 2, 3, 4, 5, 6};
-        test[0] = testArray;
+        String output = Arrays.toString(new int[]{1, 2, 3, 4, 5, 6}) + ", " +
+            MatchQueryResultType.MATCHED;
         // Write the output.
-        outputSink.append(MatchQueryResultType.MATCHED, test);
+        outputSink.append(output);
         // Read the output from the file and test the output.
-        BufferedReader br = new BufferedReader(new FileReader(tempFolder.getRoot()
-            .getAbsolutePath() + File.separator + FILENAME));
-        Assert.assertTrue(br.readLine().equals("Output type: " + MatchQueryResultType.MATCHED));
-        Assert.assertTrue(br.readLine().equals(Arrays.toString(testArray)));
+        BufferedReader br = new BufferedReader(new FileReader(location));
+        Assert.assertTrue(br.readLine().equals(output));
     }
 }

@@ -1,34 +1,41 @@
 grammar Graphflow;
 
-graphflow : sp? statement sp? ( ';'  sp?)? ;
+graphflow : whitespace? statement whitespace? ( ';'  whitespace?)? ;
 
 statement : query ;
 
 query : match
+       | continuousMatch
        | create
        | delete
        | shortestPath
        ;
 
-match : MATCH sp matchPattern ;
+match : MATCH whitespace matchPattern ;
 
-create : CREATE sp createPattern ;
+continuousMatch : CONTINUOUS whitespace match whitespace userOperation whitespace operationLocation;
 
-delete : DELETE sp deletePattern ;
+create : CREATE whitespace createPattern ;
 
-shortestPath: SHORTEST_PATH sp pathPattern ;
+delete : DELETE whitespace deletePattern ;
 
-matchPattern: variableExpression ( sp? ',' sp? variableExpression )* ;
+shortestPath: SHORTEST_PATH whitespace pathPattern ;
 
-deletePattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
+matchPattern: variableExpression ( whitespace? ',' whitespace? variableExpression )* ;
 
-createPattern : digitsExpression ( sp? ',' sp? digitsExpression )* ;
+deletePattern : digitsExpression ( whitespace? ',' whitespace? digitsExpression )* ;
 
-pathPattern: '(' sp? leftDigit sp? ',' sp? rightDigit sp? ')' ;
+createPattern : digitsExpression ( whitespace? ',' whitespace? digitsExpression )* ;
 
-digitsExpression : '(' sp? leftDigit sp? ')' sp? dash rightArrowHead '(' sp? rightDigit sp? ')' ;
+pathPattern: '(' whitespace? leftDigit whitespace? ',' whitespace? rightDigit whitespace? ')' ;
 
-variableExpression: '(' sp? leftVariable sp? ')' sp? dash rightArrowHead '(' sp? rightVariable sp? ')' ;
+digitsExpression : '(' whitespace? leftDigit whitespace? ')' whitespace? dash rightArrowHead '(' whitespace? rightDigit whitespace? ')' ;
+
+variableExpression: '(' whitespace? leftVariable whitespace? ')' whitespace? dash rightArrowHead '(' whitespace? rightVariable whitespace? ')' ;
+
+userOperation : FILE ;
+
+operationLocation : variable ;
 
 leftDigit : Digits ;
 
@@ -62,6 +69,10 @@ Character : [a-z] ;
 
 MATCH : ( 'M' | 'm' ) ( 'A' | 'a' ) ( 'T' | 't' ) ( 'C' | 'c' ) ( 'H' | 'h' )  ;
 
+CONTINUOUS : 'CONTINUOUS' | 'continuous' ;
+
+FILE : 'FILE' | 'file' ;
+
 CREATE : ( 'C' | 'c' ) ( 'R' | 'r' ) ( 'E' | 'e' ) ( 'A' | 'a' ) ( 'T' | 't' ) ( 'E' | 'e' )  ;
 
 DELETE : ( 'D' | 'd' ) ( 'E' | 'e' ) ( 'L' | 'l' ) ( 'E' | 'e' ) ( 'T' | 't' ) ( 'E' | 'e' )  ;
@@ -69,7 +80,7 @@ DELETE : ( 'D' | 'd' ) ( 'E' | 'e' ) ( 'L' | 'l' ) ( 'E' | 'e' ) ( 'T' | 't' ) (
 SHORTEST_PATH: ( 'S' | 's' ) ( 'H' | 'h' ) ( 'O' | 'o' ) ( 'R' | 'r' ) ( 'T' | 't' ) ( 'E' | 'e' )
     ( 'S' | 's' ) ( 'T' | 't' ) ( '_' ) ('P' | 'p') ( 'A' | 'a' ) ( 'T' | 't' ) ('H' | 'h') ;
 
-sp : ( WHITESPACE )+ ;
+whitespace : ( WHITESPACE )+ ;
 
 WHITESPACE : SPACE
            | TAB

@@ -1,20 +1,25 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.util.SortedIntArrayList;
+import ca.waterloo.dsg.graphflow.util.ShortArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.StringJoiner;
 
 /**
  * Encapsulates the Graph representation and provides utility methods.
  */
 public class Graph {
+    //TODO: Remove after merging types interface PR.
+    public static final short ANY_TYPE = -1;
 
     // Used to represent different versions of the graph.
     public enum GraphVersion {
@@ -32,8 +37,8 @@ public class Graph {
 
     /**
      * This is used for both identifying the edge direction in adjacency lists in the graph
-     * representation and the direction when evaluating MATCH queries using Generic Join and
-     * the direction of traversals in SHORTEST PATH queries.
+     * representation and the direction when evaluating MATCH queries using Generic Join and the
+     * direction of traversals in SHORTEST PATH queries.
      */
     public enum Direction {
         FORWARD(true),
@@ -61,27 +66,39 @@ public class Graph {
     // vertex IDs being added.
     private int highestMergedVertexId = -1;
 
-    // Adjacency lists for the permanent graph.
-    private SortedIntArrayList[] forwardAdjLists;
-    private SortedIntArrayList[] backwardAdjLists;
+    // Adjacency lists for the permanent graph, containing both the neighbour vertex IDs and edge
+    // type IDs to those neighbours.
+    private SortedAdjacencyList[] forwardAdjLists;
+    private SortedAdjacencyList[] backwardAdjLists;
+    // Array of vertex types.
+    private ShortArrayList vertexTypes;
     // Edges for additions and deletions.
     private List<int[]> diffPlusEdges;
     private List<int[]> diffMinusEdges;
+    // The types of the edges in the {@code GraphVersion.DIFF_PLUS} and {@code GraphVersion
+    // .DIFF_MINUS} graphs. Each edge at index i of {@link diffPlusEdges} or {@link diffMinusEdges}
+    // has a type ID at index i of {@link diffPlusEdgeTypes} or {@link diffMinusEdgeTypes}.
+    private ShortArrayList diffPlusEdgeTypes;
+    private ShortArrayList diffMinusEdgeTypes;
     // Updated adjacency lists for the vertices affected by additions and deletions.
-    private Map<Integer, SortedIntArrayList> mergedForwardAdjLists;
-    private Map<Integer, SortedIntArrayList> mergedBackwardAdjLists;
+    private Map<Integer, SortedAdjacencyList> mergedForwardAdjLists;
+    private Map<Integer, SortedAdjacencyList> mergedBackwardAdjLists;
 
     public Graph() {
         this(DEFAULT_GRAPH_SIZE);
     }
 
     public Graph(int vertexLength) {
-        forwardAdjLists = new SortedIntArrayList[vertexLength];
-        backwardAdjLists = new SortedIntArrayList[vertexLength];
+        forwardAdjLists = new SortedAdjacencyList[vertexLength];
+        backwardAdjLists = new SortedAdjacencyList[vertexLength];
+        initializeSortedAdjacencyLists(0, vertexLength);
         diffPlusEdges = new ArrayList<>();
         diffMinusEdges = new ArrayList<>();
+        diffPlusEdgeTypes = new ShortArrayList();
+        diffMinusEdgeTypes = new ShortArrayList();
         mergedForwardAdjLists = new HashMap<>();
         mergedBackwardAdjLists = new HashMap<>();
+        vertexTypes = new ShortArrayList();
     }
 
     /**
@@ -96,16 +113,31 @@ public class Graph {
     /**
      * Adds an edge temporarily to the graph. A call to {@link #finalizeChanges()} is required to
      * make the changes permanent.
+     * Note: If an edge to {@code toVertex} with the given {@code edgeType} already exists, this
+     * method returns without doing anything.
+     * Warning: Currently, as part of this call, we will override the current vertex types of
+     * {@cdoe fromVertex} and {@code toVertex} with {@cdoe fromVertexType} and {@cdoe
+     * toVertexType}, respectively. If a vertex u has type T, callers should always call
+     * {@link Graph#addEdgeTemporarily} with type T for u to keep u's type.
      *
      * @param fromVertex The starting vertex ID for the edge.
      * @param toVertex The ending vertex ID for the edge.
+     * @param edgeType The type ID of the edge.
+     * @param fromVertexType The type ID of {@code fromVertex}.
+     * @param toVertexType The type ID of {@code toVertex}.
+     * @param edgeType The type ID of the edge being added.
      */
-    public void addEdgeTemporarily(int fromVertex, int toVertex) {
-        if (fromVertex <= highestPermanentVertexId && forwardAdjLists[fromVertex] != null &&
-            forwardAdjLists[fromVertex].search(toVertex) != -1) {
+    public void addEdgeTemporarily(int fromVertex, int toVertex, short fromVertexType,
+        short toVertexType, short edgeType) {
+        if ((fromVertex <= highestPermanentVertexId) && (null != forwardAdjLists[fromVertex]) &&
+            (forwardAdjLists[fromVertex].contains(toVertex, edgeType))) {
             return; // Edge is already present. Skip.
         }
-        addOrDeleteEdgeTemporarily(true /* addition */, fromVertex, toVertex, diffPlusEdges);
+        // We override vertex types of {@code fromVertex} and {@code toVertex} as warned in the
+        // method comments.
+        vertexTypes.set(fromVertex, fromVertexType);
+        vertexTypes.set(toVertex, toVertexType);
+        addOrDeleteEdgeTemporarily(true /* addition */, fromVertex, toVertex, edgeType);
         highestMergedVertexId = Integer.max(highestMergedVertexId, Integer.max(fromVertex,
             toVertex));
     }
@@ -116,13 +148,21 @@ public class Graph {
      *
      * @param fromVertex The starting vertex ID for the edge.
      * @param toVertex The ending vertex ID for the edge.
+     * @param edgeType The type ID of the edge being deleted.
+     * @throws NoSuchElementException Exception thrown when the specified edge does not exist.
      */
-    public void deleteEdgeTemporarily(int fromVertex, int toVertex) {
-        if (fromVertex > highestPermanentVertexId || null == forwardAdjLists[fromVertex] || -1 ==
-            forwardAdjLists[fromVertex].search(toVertex)) {
-            return; // Edge is not present. Skip.
+    public void deleteEdgeTemporarily(int fromVertex, int toVertex, short edgeType) {
+        // Check whether the edge exists in either the MERGED or the PERMANENT graph.
+        if (!((fromVertex <= highestMergedVertexId) && ((toVertex <= highestMergedVertexId) &&
+            mergedForwardAdjLists.containsKey(fromVertex) && (-1 != mergedForwardAdjLists.get
+            (fromVertex).search(toVertex, edgeType)))) && !((fromVertex <= highestPermanentVertexId)
+            && (toVertex <= highestPermanentVertexId) && (null != forwardAdjLists[fromVertex]) &&
+            (forwardAdjLists[fromVertex].contains(toVertex, edgeType)))) {
+            // The edge does not exist.
+            throw new NoSuchElementException("The edge " + fromVertex + "->" + toVertex +
+                " does not exist.");
         }
-        addOrDeleteEdgeTemporarily(false /* deletion */, fromVertex, toVertex, diffMinusEdges);
+        addOrDeleteEdgeTemporarily(false /* deletion */, fromVertex, toVertex, edgeType);
     }
 
     /**
@@ -131,17 +171,20 @@ public class Graph {
      * @param isAddition {@code true} for addition, {@code false} for deletion.
      * @param fromVertex The starting vertex ID for the edge.
      * @param toVertex The ending vertex ID for the edge.
-     * @param diffEdges The diff list of edges to modify.
+     * @param edgeType The type ID of the edge being added or deleted.
      */
     private void addOrDeleteEdgeTemporarily(boolean isAddition, int fromVertex, int toVertex,
-        List<int[]> diffEdges) {
-        // Saves the edge to the diffEdges list.
+        short edgeType) {
+        List<int[]> diffEdges = isAddition ? diffPlusEdges : diffMinusEdges;
+        ShortArrayList diffEdgeTypes = isAddition ? diffPlusEdgeTypes : diffMinusEdgeTypes;
+        // Saves the edge to the diffEdges list and the types to the diffEdgeTypes list.
         diffEdges.add(new int[]{fromVertex, toVertex});
+        diffEdgeTypes.add(edgeType);
         // Create the updated forward adjacency list for the vertex.
-        updateMergedAdjLists(isAddition, fromVertex, toVertex, mergedForwardAdjLists,
+        updateMergedAdjLists(isAddition, fromVertex, toVertex, edgeType, mergedForwardAdjLists,
             forwardAdjLists);
         // Create the updated backward adjacency list for the vertex.
-        updateMergedAdjLists(isAddition, toVertex, fromVertex, mergedBackwardAdjLists,
+        updateMergedAdjLists(isAddition, toVertex, fromVertex, edgeType, mergedBackwardAdjLists,
             backwardAdjLists);
     }
 
@@ -152,42 +195,43 @@ public class Graph {
      * @param isAddition {@code true} for addition, {@code false} for deletion.
      * @param fromVertex The starting vertex ID for the edge.
      * @param toVertex The ending vertex ID for the edge.
+     * @param edgeType The type ID of the edge being added or deleted.
      * @param mergedAdjLists The merged adjacency lists to modify.
      * @param permanentAdjLists The permanent adjacency list, used if {@code fromVertex} does not
      * already exist in {@code mergedAdjLists}.
      */
     private void updateMergedAdjLists(boolean isAddition, int fromVertex, int toVertex,
-        Map<Integer, SortedIntArrayList> mergedAdjLists, SortedIntArrayList[] permanentAdjLists) {
+        short edgeType, Map<Integer, SortedAdjacencyList> mergedAdjLists,
+        SortedAdjacencyList[] permanentAdjLists) {
         if (mergedAdjLists.containsKey(fromVertex)) {
             if (isAddition) {
-                mergedAdjLists.get(fromVertex).add(toVertex);
+                mergedAdjLists.get(fromVertex).add(toVertex, edgeType);
             } else {
-                mergedAdjLists.get(fromVertex).removeElement(toVertex);
+                mergedAdjLists.get(fromVertex).removeNeighbour(toVertex, edgeType);
             }
         } else {
-            SortedIntArrayList updatedList = new SortedIntArrayList();
-            if (fromVertex <= highestPermanentVertexId && permanentAdjLists[fromVertex] != null) {
+            SortedAdjacencyList updatedList = new SortedAdjacencyList();
+            if (fromVertex <= highestPermanentVertexId && null != permanentAdjLists[fromVertex]) {
                 // Copy the adjacency list from the permanent graph to the merged graph.
-                updatedList.addAll(permanentAdjLists[fromVertex].toArray());
+                updatedList.addAll(permanentAdjLists[fromVertex]);
             }
             if (isAddition) {
-                updatedList.add(toVertex);
+                updatedList.add(toVertex, edgeType);
             } else {
-                updatedList.removeElement(toVertex);
+                updatedList.removeNeighbour(toVertex, edgeType);
             }
             mergedAdjLists.put(fromVertex, updatedList);
         }
     }
 
     /**
-     * Permanently applies the temporary additions and deletions that have been applied, using the
-     * {@link #addEdgeTemporarily(int, int)} and {@link #deleteEdgeTemporarily(int, int)} methods,
-     * since the previous call to {@code finalizeChanges()}.
+     * Permanently applies the temporary additions and deletions that have been applied using the
+     * {@link #addEdgeTemporarily} and {@link #deleteEdgeTemporarily} methods since the previous
+     * call to {@link #finalizeChanges}.
      */
     public void finalizeChanges() {
         // Increase the size of the adjacency lists if newly added edges have a higher
-        // vertex ID
-        // as captured by {@code highestMergedVertexId}.
+        // vertex ID as captured by {@code highestMergedVertexId}.
         // TODO: handle very large vertex ids.
         ensureCapacity(highestMergedVertexId + 1);
         highestPermanentVertexId = highestMergedVertexId;
@@ -201,77 +245,97 @@ public class Graph {
         // Reset the diff and merged graph states.
         diffPlusEdges.clear();
         diffMinusEdges.clear();
+        diffPlusEdgeTypes.clear();
+        diffMinusEdgeTypes.clear();
         mergedForwardAdjLists.clear();
         mergedBackwardAdjLists.clear();
     }
 
     /**
+     * Returns an iterator over the edges of the graph for the given {@code graphVersion} and
+     * {@code direction}. The order of the returned edges is first in increasing order of source
+     * vertex IDs and then, for the edges with the same source vertex ID, in increasing order of
+     * destination IDs.
+     *
      * @param graphVersion The {@code GraphVersion} for which list of edges is required.
      * @param direction The {@code Direction} of the edges.
-     *
-     * @return The list of edges for the given {@code graphVersion} and {@code direction}.
+     * @return An iterator to the list of edges for the given {@code graphVersion} and
+     * {@code direction}.
+     * @throws UnsupportedOperationException Exception thrown when {@code graphVersion} is
+     * {@link GraphVersion#DIFF_MINUS} or {@link GraphVersion#DIFF_PLUS} and direction is
+     * {@link Direction#BACKWARD}.
      */
-    public int[][] getEdges(GraphVersion graphVersion, Direction direction) {
-        List<int[]> list = new ArrayList<>();
+    public Iterator<int[]> getEdgesIterator(GraphVersion graphVersion, Direction direction,
+        short edgeType) {
+        if ((GraphVersion.DIFF_PLUS == graphVersion || GraphVersion.DIFF_MINUS == graphVersion) &&
+            Direction.BACKWARD == direction) {
+            throw new UnsupportedOperationException("Getting edges for the DIFF_PLUS "
+                + "or DIFF_MINUS graph in the BACKWARD direction is not supported.");
+        }
         if (GraphVersion.DIFF_PLUS == graphVersion) {
-            list = diffPlusEdges;
+            return new DiffEdgesIterator(diffPlusEdges, diffPlusEdgeTypes, edgeType);
         } else if (GraphVersion.DIFF_MINUS == graphVersion) {
-            list = diffMinusEdges;
+            return new DiffEdgesIterator(diffMinusEdges, diffMinusEdgeTypes, edgeType);
         } else {
-            SortedIntArrayList[] permanentAdjList;
-            Map<Integer, SortedIntArrayList> mergedAdjLists;
+            SortedAdjacencyList[] permanentAdjacencyLists;
+            Map<Integer, SortedAdjacencyList> mergedAdjLists;
             if (Direction.FORWARD == direction) {
-                permanentAdjList = forwardAdjLists;
+                permanentAdjacencyLists = forwardAdjLists;
                 mergedAdjLists = mergedForwardAdjLists;
             } else {
-                permanentAdjList = backwardAdjLists;
+                permanentAdjacencyLists = backwardAdjLists;
                 mergedAdjLists = mergedBackwardAdjLists;
             }
-            int lastVertexId = (GraphVersion.MERGED == graphVersion) ? highestPermanentVertexId :
-                highestMergedVertexId;
-            for (int fromVertex = 0; fromVertex <= lastVertexId; fromVertex++) {
-                SortedIntArrayList adjList;
-                if (GraphVersion.MERGED == graphVersion && mergedAdjLists.containsKey(fromVertex)) {
-                    // Use the adjacency list of the merged graph.
-                    adjList = mergedAdjLists.get(fromVertex);
-                } else if (null != permanentAdjList[fromVertex]) {
-                    // Use the adjacency list of the permanent graph.
-                    adjList = permanentAdjList[fromVertex];
-                } else {
-                    // {@code fromVertex} does not exist.
-                    continue;
-                }
-                for (int toVertex : adjList.toArray()) {
-                    list.add(new int[]{fromVertex, toVertex});
-                }
+            int lastVertexId = (GraphVersion.MERGED == graphVersion) ? highestMergedVertexId :
+                highestPermanentVertexId;
+
+            if (0 > lastVertexId) {
+                // Handle the case when the graph is empty.
+                logger.warn("A getEdgesIterator(" + graphVersion + "," + direction +
+                    ") call received when the graph was empty.");
+                return Collections.<int[]>emptyList().iterator();
             }
+            return new EdgesIterator(graphVersion, permanentAdjacencyLists, mergedAdjLists,
+                edgeType, lastVertexId);
         }
-        int[][] edges = new int[list.size()][];
-        for (int i = 0; i < list.size(); i++) {
-            edges[i] = list.get(i);
-        }
-        return edges;
     }
 
     /**
+     * Returns the vertex type ID of the specified vertex ID.
+     *
+     * @param vertexId The vertex ID for which the vertex type ID is requested.
+     * @return short the vertex type ID of {@code vertexId}.
+     * @throws NoSuchElementException Exception thrown when no vertex exists with ID
+     * {@code vertexId}.
+     */
+    public short getVertexType(int vertexId) {
+        if (vertexId > highestMergedVertexId) {
+            throw new NoSuchElementException(vertexId + " does not exist.");
+        }
+        return vertexTypes.get(vertexId);
+    }
+
+    /**
+     * Returns the {@link SortedAdjacencyList} for the given {@code vertexId}, {@code direction}
+     * and {@code graphVersion}.
+     *
      * @param vertexId The vertex ID whose adjacency list is required.
      * @param direction The {@code Direction} of the adjacency list.
      * @param graphVersion The {@code GraphVersion} to consider.
-     *
-     * @return The adjacency list for the vertex with given {@code vertexId}, for the given {@code
-     * graphVersion} and {@code direction}.
+     * @return The adjacency list for the vertex with the given {@code vertexId}, for the given
+     * {@code graphVersion} and {@code direction}.
      */
-    public SortedIntArrayList getAdjacencyList(int vertexId, Direction direction,
+    public SortedAdjacencyList getSortedAdjacencyList(int vertexId, Direction direction,
         GraphVersion graphVersion) {
-        if (vertexId > highestPermanentVertexId) {
-            throw new ArrayIndexOutOfBoundsException(vertexId + " does not exist.");
+        if (vertexId < 0 || vertexId > highestMergedVertexId) {
+            throw new NoSuchElementException(vertexId + " does not exist.");
         } else if (GraphVersion.DIFF_MINUS == graphVersion || GraphVersion.DIFF_PLUS ==
             graphVersion) {
             throw new UnsupportedOperationException("Getting adjacency lists from the DIFF_PLUS "
                 + "or DIFF_MINUS graph is not supported.");
         }
-        SortedIntArrayList[] permanentAdjList;
-        Map<Integer, SortedIntArrayList> mergedAdjLists;
+        SortedAdjacencyList[] permanentAdjList;
+        Map<Integer, SortedAdjacencyList> mergedAdjLists;
         if (Direction.FORWARD == direction) {
             permanentAdjList = forwardAdjLists;
             mergedAdjLists = mergedForwardAdjLists;
@@ -283,9 +347,6 @@ public class Graph {
             // Use the adjacency list of the merged graph.
             return mergedAdjLists.get(vertexId);
         } else {
-            if (null == permanentAdjList[vertexId]) {
-                permanentAdjList[vertexId] = new SortedIntArrayList();
-            }
             // Use the adjacency list of the permanent graph.
             return permanentAdjList[vertexId];
         }
@@ -306,7 +367,20 @@ public class Graph {
             }
             forwardAdjLists = Arrays.copyOf(forwardAdjLists, newCapacity);
             backwardAdjLists = Arrays.copyOf(backwardAdjLists, newCapacity);
+            initializeSortedAdjacencyLists(oldCapacity, newCapacity);
         }
+    }
+
+    /**
+     * Initializes {@link Graph#forwardAdjLists} and {@link Graph#backwardAdjLists} with empty
+     * {@link SortedAdjacencyList} in the range given by {@code from} and {@code to}.
+     *
+     * @param startIndex The start index for initializing {@link SortedAdjacencyList}, inclusive.
+     * @param endIndex The end index for initializing {@link SortedAdjacencyList}, exclusive.
+     */
+    private void initializeSortedAdjacencyLists(int startIndex, int endIndex) {
+        Arrays.fill(forwardAdjLists, startIndex, endIndex, new SortedAdjacencyList());
+        Arrays.fill(backwardAdjLists, startIndex, endIndex, new SortedAdjacencyList());
     }
 
     /**
@@ -337,13 +411,12 @@ public class Graph {
      * Converts the permanent adjacency lists {@code permanentAdjLists} to a {@code String}.
      *
      * @param permanentAdjLists The permanent adjacency list to convert to a {@code String}.
-     *
      * @return The{@code String} representation of {@code permanentAdjLists}.
      */
-    private String convertPermanentAdjListsToString(SortedIntArrayList[] permanentAdjLists) {
+    private String convertPermanentAdjListsToString(SortedAdjacencyList[] permanentAdjLists) {
         StringBuilder adjString = new StringBuilder();
         for (int index = 0; index <= highestPermanentVertexId; index++) {
-            SortedIntArrayList adjList = permanentAdjLists[index];
+            SortedAdjacencyList adjList = permanentAdjLists[index];
             adjString.append(index).append(": ");
             adjString.append((null == adjList) ? "[]" : adjList.toString());
             adjString.append(System.lineSeparator());
@@ -355,13 +428,12 @@ public class Graph {
      * Converts the merged adjacency lists {@code mergedAdjLists} to a {@code String}.
      *
      * @param mergedAdjLists The merged adjacency list to convert to a {@code String}.
-     *
      * @return The {@code String} representation of {@code permanentAdjLists}.
      */
-    private String convertMergedAdjListsToString(Map<Integer, SortedIntArrayList> mergedAdjLists) {
+    private String convertMergedAdjListsToString(Map<Integer, SortedAdjacencyList> mergedAdjLists) {
         StringBuilder adjString = new StringBuilder();
         for (int index : mergedAdjLists.keySet()) {
-            SortedIntArrayList adjList = mergedAdjLists.get(index);
+            SortedAdjacencyList adjList = mergedAdjLists.get(index);
             adjString.append(index).append(": ");
             adjString.append((null == adjList) ? "[]" : adjList.toString());
             adjString.append(System.lineSeparator());
@@ -373,7 +445,6 @@ public class Graph {
      * Converts the list of diff edges {@code diffEdges} to a {@code String}.
      *
      * @param diffEdges The list of diff edges to convert to a {@code String}.
-     *
      * @return The {@code String} representation of {@code diffEdges}.
      */
     private String convertDiffEdgesToString(List<int[]> diffEdges) {

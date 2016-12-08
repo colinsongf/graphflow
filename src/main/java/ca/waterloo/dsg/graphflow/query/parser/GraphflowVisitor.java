@@ -2,7 +2,9 @@ package ca.waterloo.dsg.graphflow.query.parser;
 
 import ca.waterloo.dsg.graphflow.grammar.GraphflowBaseVisitor;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser;
+import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.ContinuousMatchContext;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery.QueryOperation;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 
 /**
@@ -17,11 +19,11 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
     }
 
     @Override
-    public StructuredQuery visitPathPattern(GraphflowParser.PathPatternContext ctx) {
-        StructuredQuery structuredQuery = new StructuredQuery();
-        structuredQuery.addEdge(new StructuredQueryEdge(ctx.leftDigit().getText(), ctx.rightDigit
-            ().getText()));
-        structuredQuery.setQueryOperation(StructuredQuery.QueryOperation.SHORTEST_PATH);
+    public StructuredQuery visitContinuousMatch(ContinuousMatchContext ctx) {
+        StructuredQuery structuredQuery = visit(ctx.match());
+        structuredQuery.setQueryOperation(QueryOperation.CONTINUOUS_MATCH);
+        structuredQuery.setContinuousMatchAction(ctx.userOperation().getText());
+        structuredQuery.setContinuousMatchOutputLocation(ctx.operationLocation().getText());
         return structuredQuery;
     }
 
@@ -59,6 +61,15 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
     }
 
     @Override
+    public StructuredQuery visitPathPattern(GraphflowParser.PathPatternContext ctx) {
+        StructuredQuery structuredQuery = new StructuredQuery();
+        structuredQuery.addEdge(new StructuredQueryEdge(ctx.leftDigit().getText(),
+            ctx.rightDigit().getText()));
+        structuredQuery.setQueryOperation(StructuredQuery.QueryOperation.SHORTEST_PATH);
+        return structuredQuery;
+    }
+
+    @Override
     public StructuredQuery visitDigitsExpression(GraphflowParser.DigitsExpressionContext ctx) {
         StructuredQuery structuredQuery = new StructuredQuery();
         StructuredQueryEdge structuredQueryEdge = new StructuredQueryEdge(ctx.leftDigit()
@@ -75,6 +86,4 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<StructuredQuery> {
         structuredQuery.addEdge(structuredQueryEdge);
         return structuredQuery;
     }
-
-
 }

@@ -5,8 +5,6 @@ import ca.waterloo.dsg.graphflow.query.plans.ShortestPathPlan;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQueryEdge;
 
-import java.util.InputMismatchException;
-
 /**
  * Creates the execution plan for a shortest path query.
  */
@@ -21,8 +19,7 @@ public class ShortestPathPlanner extends AbstractQueryPlanner {
     QueryPlan plan() {
         StructuredQueryEdge shortestPathEdge = structuredQuery.getStructuredQueryEdges()
             .get(0);
-        ShortestPathPlan plan = new ShortestPathPlan(Integer.parseInt(shortestPathEdge
+        return new ShortestPathPlan(Integer.parseInt(shortestPathEdge
             .getFromVertex()), Integer.parseInt(shortestPathEdge.getToVertex()));
-        return plan;
     }
 }

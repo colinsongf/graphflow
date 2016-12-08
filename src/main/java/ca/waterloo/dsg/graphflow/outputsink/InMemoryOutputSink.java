@@ -1,37 +1,52 @@
 package ca.waterloo.dsg.graphflow.outputsink;
 
-import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
-
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
+import java.util.StringJoiner;
 
 /**
- * Keeps output from a query as an in memory data structure.
+ * Stores the output as an in memory data structure in the form of a list of {@code Strings}s.
  */
 public class InMemoryOutputSink implements OutputSink {
 
-    private Map<MatchQueryResultType, List<int[]>> results = new HashMap<>();
+    private List<String> results = new ArrayList<>();
+
+    /**
+     * Adds {@code result} to the list of in-memory outputs.
+     *
+     * @param result the output {@code String}.
+     */
+    @Override
+    public void append(String result) {
+        results.add(result);
+    }
 
     @Override
-    public void append(MatchQueryResultType matchQueryResultType, int[][] results) {
-        if (!this.results.containsKey(matchQueryResultType)) {
-            this.results.put(matchQueryResultType, new ArrayList<>());
+    public String toString() {
+        StringJoiner stringJoiner = new StringJoiner(System.lineSeparator());
+        for (String result : results) {
+            stringJoiner.add(result);
         }
-        Collections.addAll(this.results.get(matchQueryResultType), results);
+        return stringJoiner.toString();
     }
 
-    public Set<MatchQueryResultType> getMatchQueryResultTypes() {
-        return results.keySet();
-    }
-
-    public List<int[]> getResults(MatchQueryResultType matchQueryResultType) {
-        if (!results.containsKey(matchQueryResultType)) {
-            return new ArrayList<>();
+    /**
+     * Used for unit testing. It simulates the functionality of the {@code equals()} method
+     * without overriding the actual equals() and hashCode() methods.
+     *
+     * @param o The expected object.
+     * @return {@code true} if the current object values match perfectly with the expected object
+     * values, {@code false} otherwise.
+     */
+    public boolean isSameAs(Object o) {
+        if (this == o) {
+            return true;
         }
-        return Collections.unmodifiableList(results.get(matchQueryResultType));
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        InMemoryOutputSink that = (InMemoryOutputSink) o;
+        return Objects.equals(results, that.results);
     }
 }

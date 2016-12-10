@@ -18,6 +18,7 @@ import java.util.StringJoiner;
  * Encapsulates the Graph representation and provides utility methods.
  */
 public class Graph {
+
     // Used to represent different versions of the graph.
     public enum GraphVersion {
         // Graph formed after making all additions and deletions permanent.
@@ -293,8 +294,8 @@ public class Graph {
                     ") call received when the graph was empty.");
                 return Collections.<int[]>emptyList().iterator();
             }
-            return new PermanentAndMergedEdgesIterator(graphVersion, permanentAdjacencyLists, mergedAdjLists,
-                edgeType, lastVertexId);
+            return new PermanentAndMergedEdgesIterator(graphVersion, permanentAdjacencyLists,
+                mergedAdjLists, edgeType, lastVertexId);
         }
     }
 
@@ -314,6 +315,47 @@ public class Graph {
     }
 
     /**
+     * Checks if an edge is present between {@code fromVertexId} and {@code toVertexId} in the
+     * given {@code graphVersion} of the graph, for the given {@code direction} and
+     * {@code edgeTypeId}.
+     *
+     * @param fromVertexId The from vertex ID.
+     * @param toVertexId The to vertex ID.
+     * @param direction The {@link Direction} of the edge.
+     * @param graphVersion The {@link GraphVersion} where the edge's presence needs to be checked.
+     * @param edgeTypeId The {@code short} type ID of the edge.
+     * @return {@code true} if the edge is present, {@code false} otherwise.
+     */
+    public boolean isEdgePresent(int fromVertexId, int toVertexId, Direction direction,
+        GraphVersion graphVersion, short edgeTypeId) {
+        if (GraphVersion.DIFF_MINUS == graphVersion || GraphVersion.DIFF_PLUS == graphVersion) {
+            throw new UnsupportedOperationException("Checking presence of an edge in the DIFF_PLUS "
+                + "or DIFF_MINUS graph is not supported.");
+        }
+        if (fromVertexId < 0 || fromVertexId > highestMergedVertexId || toVertexId < 0 ||
+            toVertexId > highestMergedVertexId) {
+            return false;
+        }
+        if (GraphVersion.PERMANENT == graphVersion && (fromVertexId > highestPermanentVertexId ||
+            toVertexId > highestPermanentVertexId)) {
+            return false;
+        }
+        SortedAdjacencyList[] permanentAdjacencyLists;
+        Map<Integer, SortedAdjacencyList> mergedAdjLists;
+        if (Direction.FORWARD == direction) {
+            permanentAdjacencyLists = forwardAdjLists;
+            mergedAdjLists = mergedForwardAdjLists;
+        } else {
+            permanentAdjacencyLists = backwardAdjLists;
+            mergedAdjLists = mergedBackwardAdjLists;
+        }
+        if (graphVersion == GraphVersion.MERGED && mergedAdjLists.containsKey(fromVertexId)) {
+            return mergedAdjLists.get(fromVertexId).contains(toVertexId, edgeTypeId);
+        }
+        return permanentAdjacencyLists[fromVertexId].contains(toVertexId, edgeTypeId);
+    }
+
+    /**
      * Returns the {@link SortedAdjacencyList} for the given {@code vertexId}, {@code direction}
      * and {@code graphVersion}.
      *
@@ -325,7 +367,8 @@ public class Graph {
      */
     public SortedAdjacencyList getSortedAdjacencyList(int vertexId, Direction direction,
         GraphVersion graphVersion) {
-        if (vertexId < 0 || vertexId > highestMergedVertexId) {
+        if (vertexId < 0 || vertexId > highestMergedVertexId || (GraphVersion.PERMANENT ==
+            graphVersion && vertexId > highestPermanentVertexId)) {
             throw new NoSuchElementException(vertexId + " does not exist.");
         } else if (GraphVersion.DIFF_MINUS == graphVersion || GraphVersion.DIFF_PLUS ==
             graphVersion) {

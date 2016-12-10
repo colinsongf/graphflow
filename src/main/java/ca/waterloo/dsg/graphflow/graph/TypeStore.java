@@ -50,7 +50,7 @@ public class TypeStore {
      * @param stringType The type {@code String}.
      * @return The {@code short} ID of {@code stringType}.
      */
-    public short addNewTypeIfDoesNotExist(String stringType) {
+    public short getShortIdOrAddIfDoesNotExist(String stringType) {
         if (null == stringType || "".equals(stringType)) {
             return ANY_TYPE;
         }

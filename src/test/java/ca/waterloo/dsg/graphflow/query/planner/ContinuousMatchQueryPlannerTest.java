@@ -122,8 +122,8 @@ public class ContinuousMatchQueryPlannerTest {
     @Test
     public void testPlanTriangleQueryWithRelationTypes() throws Exception {
         // Initialize the {@code TypeStore} with types used in the MATCH query.
-        short FOLLOWS_TYPE_ID = TypeStore.getInstance().addNewTypeIfDoesNotExist("FOLLOWS");
-        short LIKES_TYPE_ID = TypeStore.getInstance().addNewTypeIfDoesNotExist("LIKES");
+        short FOLLOWS_TYPE_ID = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist("FOLLOWS");
+        short LIKES_TYPE_ID = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist("LIKES");
         // Create a continuous MATCH query plan for a complex triangle query with multiple
         // relations between variable having different edge types.
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +

@@ -88,10 +88,11 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         // Add the first stage. The first stage always starts with extending the diffRelation's
         // {@code fromVariable} to {@code toVariable} with the type on the relation.
         stage = new ArrayList<>();
+        // {@code TypeStore#getShortIdOrAnyTypeIfNull()} will throw a {@code NoSuchElementException}
+        // if the relation type {@code String} of {@code diffRelation} does not already exist in the
+        // {@code TypeStore}.
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, graphVersion,
-            // Add the edge type {@code String} to the {@code TypeStore} if required, because the
-            // type can emerge sometime in the future.
-            TypeStore.getInstance().addNewTypeIfDoesNotExist(diffRelation.getEdgeType())));
+            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(diffRelation.getEdgeType())));
         oneTimeMatchQueryPlan.addStage(stage);
         // Add the other relations that are present between the diffRelation's
         // {@code fromVariable} to {@code toVariable}.
@@ -169,13 +170,14 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         } else if (isRelationPresentInSet(fromVariable, toVariable, permanentRelations)) {
             version = GraphVersion.PERMANENT;
         } else {
-            throw new IllegalStateException("The new relation was not present in " +
-                "either mergedRelations or permanentRelations");
+            throw new IllegalStateException("The new relation is not present in either " +
+                "mergedRelations or permanentRelations");
         }
+        // {@code TypeStore#getShortIdOrAnyTypeIfNull()} will throw a {@code NoSuchElementException}
+        // if the relation type {@code String} of {@code newRelation} does not already exist in the
+        // {@code TypeStore}.
         stage.add(new GenericJoinIntersectionRule(prefixIndex, direction, version,
-            // Add the edge type {@code String} to the {@code TypeStore} if required, because the
-            // type can emerge sometime in the future.
-            TypeStore.getInstance().addNewTypeIfDoesNotExist(newRelation.getEdgeType())));
+            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(newRelation.getEdgeType())));
     }
 
     /**

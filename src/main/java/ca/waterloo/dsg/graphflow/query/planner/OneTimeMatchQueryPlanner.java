@@ -136,12 +136,12 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     variableForCurrentStage)) {
                     for (QueryEdge queryEdge : queryGraph.getAdjacentEdges(
                         variableFromPreviousStage, variableForCurrentStage)) {
-                        // TypeStore.getShortIdOrAnyTypeIfNull() will throw an
-                        // NoSuchElementException if the edge type does not already exist in the
-                        // {@code TypeStore}.
+                        // {@code TypeStore#getShortIdOrAnyTypeIfNull()} will throw a
+                        // {@code NoSuchElementException} if the relation type {@code String} of
+                        // {@code queryEdge} does not already exist in the {@code TypeStore}.
                         stage.add(new GenericJoinIntersectionRule(j, queryEdge.getDirection(),
-                            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(
-                                queryEdge.getEdgeType())));
+                            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(queryEdge.
+                                getEdgeType())));
                     }
                 }
             }

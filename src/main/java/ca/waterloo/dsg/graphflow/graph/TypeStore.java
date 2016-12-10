@@ -36,8 +36,8 @@ public class TypeStore {
             return ANY_TYPE;
         }
         if (!stringToShortMap.containsKey(stringType)) {
-            throw new NoSuchElementException("The string type '" + stringType + "' is not present" +
-                " in the store.");
+            throw new NoSuchElementException("The string type '" + stringType + "' does not exist" +
+                ".");
         }
         return stringToShortMap.get(stringType);
     }

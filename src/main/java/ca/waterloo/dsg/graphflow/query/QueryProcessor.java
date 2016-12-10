@@ -84,7 +84,7 @@ public class QueryProcessor {
             ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery).plan()).execute(
                 graph, outputSink);
         } catch (NoSuchElementException e) {
-            // Exception raised when trying to create the plan, signifying an empty result set.
+            // Exception raised because a type in the MATCH query input does not exist.
         }
         return (0 == outputSink.toString().length()) ? "{}" : outputSink.toString();
     }
@@ -98,9 +98,14 @@ public class QueryProcessor {
         } catch (IOException e) {
             return "IO ERROR for file: " + fileName;
         }
-        ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
-            (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
-                outputSink).plan());
+        try {
+            ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
+                (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
+                    outputSink).plan());
+        } catch (NoSuchElementException e) {
+            // Exception raised because a type in the CONTINUOUS MATCH query input does not exist.
+            return "ERROR: The CONTINUOUS MATCH query could not be registered. " + e.getMessage();
+        }
         return "The CONTINUOUS MATCH query has been added to the list of continuous queries.";
     }
 }

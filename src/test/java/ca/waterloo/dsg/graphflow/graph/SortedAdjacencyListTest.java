@@ -28,7 +28,7 @@ public class SortedAdjacencyListTest {
             inputNeighbourTypes);
         int expectedSize = inputNeighbourIds.length;
         Assert.assertEquals(expectedSize, adjacencyList.getSize());
-        Assert.assertTrue(expectedSize <= adjacencyList.capacity);
+        Assert.assertTrue(expectedSize <= adjacencyList.neighbourIds.length); // Check capacity.
         Assert.assertArrayEquals(sortedNeighbourIds, Arrays.copyOf(adjacencyList.neighbourIds,
             adjacencyList.getSize()));
         Assert.assertArrayEquals(sortedNeighbourTypes, Arrays.copyOf(adjacencyList.edgeTypes,

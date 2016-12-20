@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.graph;
 
+import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
@@ -15,14 +16,10 @@ import java.util.StringJoiner;
 public class SortedAdjacencyList {
 
     private static final int INITIAL_CAPACITY = 2;
-    // TODO: Refactor RESIZE_MULTIPLIER by using ArrayUtils.resize() method from Siddahrtha's PR.
-    private static final float RESIZE_MULTIPLIER = 1.2f;
     @PackagePrivateForTesting
     int[] neighbourIds;
     @PackagePrivateForTesting
     short[] edgeTypes;
-    @PackagePrivateForTesting
-    int capacity;
     private int size;
 
     /**
@@ -42,7 +39,6 @@ public class SortedAdjacencyList {
     public SortedAdjacencyList(int initialCapacity) {
         neighbourIds = new int[initialCapacity];
         edgeTypes = new short[initialCapacity];
-        capacity = initialCapacity;
     }
 
     /**
@@ -182,16 +178,6 @@ public class SortedAdjacencyList {
     }
 
     /**
-     * Returns the size of the arrays, {@code neighbourIds} and {@code edgeTypes}.
-     *
-     * @return The underlying array size of the above mentioned collections.
-     */
-    @PackagePrivateForTesting
-    public int getCapacity() {
-        return capacity;
-    }
-
-    /**
      * Returns a string representation of {@link SortedAdjacencyList}.
      *
      * @return String representation.
@@ -280,13 +266,8 @@ public class SortedAdjacencyList {
     }
 
     private void ensureCapacity(int minCapacity) {
-        // TODO: Refactor ensureCapacity by using ArrayUtils.resize() method from Siddahrtha's PR.
-        if (minCapacity > capacity) {
-            int newCapacity = (int) Double.max(capacity * RESIZE_MULTIPLIER + 1, minCapacity);
-            neighbourIds = Arrays.copyOf(neighbourIds, newCapacity);
-            edgeTypes = Arrays.copyOf(edgeTypes, newCapacity);
-            capacity = newCapacity;
-        }
+        neighbourIds = ArrayUtils.resizeIfNecessary(neighbourIds, minCapacity);
+        edgeTypes = ArrayUtils.resizeIfNecessary(edgeTypes, minCapacity);
     }
 
     /**

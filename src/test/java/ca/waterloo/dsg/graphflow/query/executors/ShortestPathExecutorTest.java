@@ -25,7 +25,7 @@ public class ShortestPathExecutorTest {
     public void setUp() throws Exception {
         int[][] edges = {{0, 1}, {0, 2}, {1, 3}, {1, 4}, {2, 4}, {2, 5}, {3, 6}, {4, 6}, {4, 7},
             {5, 7}, {6, 8}, {6, 9}, {7, 9}, {7, 10}, {8, 11}, {9, 11}, {10, 11}};
-        short[] edgeTypes = {1, 2, 3, 4, 4, 5, 6, 6, 7, 7, 8, 9, 10, 11, 11, 11};
+        short[] edgeTypes = {2, 4, 6, 8, 8, 10, 12, 12, 14, 14, 16, 18, 18, 20, 22, 22, 22};
         short[][] vertexTypes = {{0, 1}, {0, 2}, {1, 3}, {1, 4}, {2, 4}, {2, 5}, {3, 6}, {4, 6}, {4, 7},
             {5, 7}, {6, 8}, {6, 9}, {7, 9}, {7, 10}, {8, 11}, {9, 11}, {10, 11}};
         graph = TestUtils.initializeGraph(edges, edgeTypes, vertexTypes);

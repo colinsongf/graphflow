@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.graph;
 
+import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -401,15 +402,11 @@ public class Graph {
      */
     private void ensureCapacity(int minCapacity) {
         int oldCapacity = forwardAdjLists.length;
-        if (minCapacity > oldCapacity) {
-            int newCapacity = (oldCapacity * 3) / 2 + 1;
-            if (newCapacity < minCapacity) {
-                newCapacity = minCapacity;
-            }
-            forwardAdjLists = Arrays.copyOf(forwardAdjLists, newCapacity);
-            backwardAdjLists = Arrays.copyOf(backwardAdjLists, newCapacity);
-            initializeSortedAdjacencyLists(oldCapacity, newCapacity);
-        }
+        forwardAdjLists = (SortedAdjacencyList[]) ArrayUtils.resizeIfNecessary(forwardAdjLists,
+            minCapacity);
+        backwardAdjLists =(SortedAdjacencyList[]) ArrayUtils.resizeIfNecessary(backwardAdjLists,
+            minCapacity);
+        initializeSortedAdjacencyLists(oldCapacity, forwardAdjLists.length);
     }
 
     /**

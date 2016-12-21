@@ -31,7 +31,7 @@ public class ContinuousMatchQueryPlannerTest {
         ContinuousMatchQueryPlan continuousMatchQueryPlanActual = (ContinuousMatchQueryPlan) new
             ContinuousMatchQueryPlanner(triangleStructuredQuery, outputSink).plan();
 
-        // Create the continuous MATCH query plan manually
+        // Create the continuous MATCH query plan manually.
         ContinuousMatchQueryPlan continuousMatchQueryPlanExpected = new ContinuousMatchQueryPlan(
             outputSink);
         OneTimeMatchQueryPlan query;

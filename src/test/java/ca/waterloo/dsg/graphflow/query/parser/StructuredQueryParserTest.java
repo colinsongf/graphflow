@@ -1,6 +1,5 @@
 package ca.waterloo.dsg.graphflow.query.parser;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
 import ca.waterloo.dsg.graphflow.query.utils.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
@@ -50,11 +49,11 @@ public class StructuredQueryParserTest {
 
         StructuredQuery structuredQueryExpected = new StructuredQuery();
         structuredQueryExpected.addEdge(new QueryEdge(new QueryVariable("1", "Person"),
-            new QueryVariable("2", "Person"), Direction.FORWARD, "FOLLOWS"));
+            new QueryVariable("2", "Person"), "FOLLOWS"));
         structuredQueryExpected.addEdge(new QueryEdge(new QueryVariable("2", "Person"),
-            new QueryVariable("3", "Person"), Direction.FORWARD, "FOLLOWS"));
+            new QueryVariable("3", "Person"), "FOLLOWS"));
         structuredQueryExpected.addEdge(new QueryEdge(new QueryVariable("1", "Person"),
-            new QueryVariable("3", "Person"), Direction.FORWARD, "FOLLOWS"));
+            new QueryVariable("3", "Person"), "FOLLOWS"));
         structuredQueryExpected.setQueryOperation(StructuredQuery.QueryOperation.CREATE);
 
         Assert.assertTrue(StructuredQuery.isSameAs(structuredQueryActual, structuredQueryExpected));

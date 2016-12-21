@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.TypeStore;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
@@ -136,10 +137,16 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     variableForCurrentStage)) {
                     for (QueryEdge queryEdge : queryGraph.getAdjacentEdges(
                         variableFromPreviousStage, variableForCurrentStage)) {
-                        // {@code TypeStore#getShortIdOrAnyTypeIfNull()} will throw a
-                        // {@code NoSuchElementException} if the relation type {@code String} of
-                        // {@code queryEdge} does not already exist in the {@code TypeStore}.
-                        stage.add(new GenericJoinIntersectionRule(j, queryEdge.getDirection(),
+                        stage.add(new GenericJoinIntersectionRule(j,
+                            // The {@code Direction} of the rule is {@code FORWARD} if
+                            // {@code queryEdge} is an edge from {@code variableFromPreviousStage}
+                            // to {@code variableForCurrentStage}, else {@code BACKWARD}.
+                            queryEdge.getFromQueryVariable().getVariableId().equals(
+                                variableFromPreviousStage) ? Direction.FORWARD :
+                                Direction.BACKWARD,
+                            // {@code TypeStore#getShortIdOrAnyTypeIfNull()} will throw a
+                            // {@code NoSuchElementException} if the relation type {@code String} of
+                            // {@code queryEdge} does not already exist in the {@code TypeStore}.
                             TypeStore.getInstance().getShortIdOrAnyTypeIfNull(queryEdge.
                                 getEdgeType())));
                     }

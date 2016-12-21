@@ -1,9 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
-import ca.waterloo.dsg.graphflow.graph.SortedAdjacencyList;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
@@ -42,28 +40,53 @@ public class GenericJoinExecutor {
     }
 
     public void execute() {
-        GenericJoinIntersectionRule firstRule = stages.get(0).get(0);
-        // Get the initial set of edges filtered by fromVertex types and toVertex type and edge
-        // type.
-        Iterator<int[]> iterator = graph.getEdgesIterator(firstRule.getGraphVersion(), firstRule.
-            getDirection(), firstRule.getEdgeType());
-
+        GenericJoinIntersectionRule firstGJIntersectionRule = stages.get(0).get(0);
+        // Get the initial set of edges filtered by the {@code GraphVersion}, the {@code Direction}
+        // and the edge type using the {@code firstGJIntersectionRule} of the first stage.
+        Iterator<int[]> iterator = graph.getEdgesIterator(firstGJIntersectionRule.getGraphVersion(),
+            firstGJIntersectionRule.getDirection(), firstGJIntersectionRule.getEdgeType());
         if (!iterator.hasNext()) {
             // Obtained empty set of edges, nothing to execute.
             return;
         }
         MatchQueryResultType matchQueryResultType;
-        if (GraphVersion.DIFF_PLUS == firstRule.getGraphVersion()) {
+        // Select the {@code MatchQueryResultType} depending on the {@code GraphVersion} of the
+        // {@code firstGJIntersectionRule}.
+        if (GraphVersion.DIFF_PLUS == firstGJIntersectionRule.getGraphVersion()) {
             matchQueryResultType = MatchQueryResultType.EMERGED;
-        } else if (GraphVersion.DIFF_MINUS == firstRule.getGraphVersion()) {
+        } else if (GraphVersion.DIFF_MINUS == firstGJIntersectionRule.getGraphVersion()) {
             matchQueryResultType = MatchQueryResultType.DELETED;
         } else {
             matchQueryResultType = MatchQueryResultType.MATCHED;
         }
         int[][] initialPrefixes = new int[BATCH_SIZE][];
         int index = 0;
+        // The set of initial prefixes obtained by applying the first rule of the first stage needs
+        // to be further filtered using the rest of the {@code GenericJoinIntersectionRule}s of
+        // the first stage, if present.
         while (iterator.hasNext()) {
-            initialPrefixes[index++] = iterator.next();
+            int[] prefix = iterator.next();
+            boolean isPrefixPresentForAllRules = true;
+            for (int i = 1; i < stages.get(0).size(); i++) {
+                // For each additional {@code GenericJoinIntersectionRule} present in the first
+                // stage, check if the edge ({@code prefix[0]}, {@code prefix[1]}) satisfies the
+                // {@code GraphVersion}, the {@code Direction} and the edge type of the rule, by
+                // checking its existence in the graph.
+                GenericJoinIntersectionRule rule = stages.get(0).get(i);
+                if (!graph.isEdgePresent(prefix[0], prefix[1], rule.getDirection(), rule.
+                    getGraphVersion(), rule.getEdgeType())) {
+                    // The {@code prefix} did not satisfy the rule {@code i} of the first stage.
+                    isPrefixPresentForAllRules = false;
+                    break;
+                }
+            }
+            if (!isPrefixPresentForAllRules) {
+                // Skip adding {@code prefix} to the list of {@code initialPrefixes}, because it
+                // does not satisfy one of the {@code GenericJoinIntersectionRule}s of the first
+                // stage.
+                continue;
+            }
+            initialPrefixes[index++] = prefix;
             if (index == BATCH_SIZE) {
                 // Extend the initial prefixes in batches of size BATCH_SIZE.
                 extend(initialPrefixes, 1, matchQueryResultType);
@@ -167,8 +190,7 @@ public class GenericJoinExecutor {
         int minCount = Integer.MAX_VALUE;
         for (GenericJoinIntersectionRule rule : genericJoinIntersectionRules) {
             int extensionCount = this.graph.getSortedAdjacencyList(prefix[rule.getPrefixIndex()],
-                rule
-                .getDirection(), rule.getGraphVersion()).getSize();
+                rule.getDirection(), rule.getGraphVersion()).getSize();
             if (extensionCount < minCount) {
                 minCount = extensionCount;
                 minGenericJoinIntersectionRule = rule;

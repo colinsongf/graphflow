@@ -14,7 +14,6 @@ import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -96,14 +95,19 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         oneTimeMatchQueryPlan.addStage(stage);
         // Add the other relations that are present between the diffRelation's
         // {@code fromVariable} to {@code toVariable}.
-        for (QueryEdge queryEdge : queryGraph.getAdjacentEdges(orderedVariables.get(0),
-            orderedVariables.get(1))) {
+        String fromVariable = orderedVariables.get(0);
+        String toVariable = orderedVariables.get(1);
+        for (QueryEdge queryEdge : queryGraph.getAdjacentEdges(fromVariable, toVariable)) {
             if (QueryEdge.isSameAs(diffRelation, queryEdge)) {
                 // This relation has been added as the {@code diffRelation}.
                 continue;
             }
-            addGenericJoinIntersectionRule(0, queryEdge.getDirection(), queryEdge,
-                stage, permanentRelations, mergedRelations);
+            addGenericJoinIntersectionRule(0,
+                // The {@code Direction} of the rule is {@code FORWARD} if {@code queryEdge} is
+                // an edge from {@code fromVariable} to {@code toVariable}, else {@code BACKWARD}.
+                queryEdge.getFromQueryVariable().getVariableId().equals(fromVariable) ?
+                    Direction.FORWARD : Direction.BACKWARD,
+                queryEdge, stage, permanentRelations, mergedRelations);
         }
         // Add the rest of the stages.
         for (int i = 2; i < orderedVariables.size(); i++) {
@@ -121,8 +125,13 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
                 if (queryGraph.containsEdge(coveredVariable, nextVariable)) {
                     for (QueryEdge queryEdge : queryGraph.getAdjacentEdges(coveredVariable,
                         nextVariable)) {
-                        addGenericJoinIntersectionRule(j, queryEdge.getDirection(), queryEdge,
-                            stage, permanentRelations, mergedRelations);
+                        addGenericJoinIntersectionRule(j,
+                            // The {@code Direction} of the rule is {@code FORWARD} if
+                            // {@code queryEdge} is an edge from {@code coveredVariable} to
+                            // {@code nextVariable}, else {@code BACKWARD}.
+                            queryEdge.getFromQueryVariable().getVariableId().equals(
+                                coveredVariable) ? Direction.FORWARD : Direction.BACKWARD,
+                            queryEdge, stage, permanentRelations, mergedRelations);
                     }
                 }
             }
@@ -146,28 +155,15 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
      * @param mergedRelations The set of relations that uses the {@link GraphVersion#MERGED}
      * version of the graph.
      */
-    private void addGenericJoinIntersectionRule(int prefixIndex, Direction direction, QueryEdge
-        newRelation,
-        List<GenericJoinIntersectionRule> stage, Set<QueryEdge> permanentRelations,
-        Set<QueryEdge> mergedRelations) {
+    private void addGenericJoinIntersectionRule(int prefixIndex, Direction direction,
+        QueryEdge newRelation, List<GenericJoinIntersectionRule> stage,
+        Set<QueryEdge> permanentRelations, Set<QueryEdge> mergedRelations) {
         // Select the appropriate {@code GraphVersion} by checking for the existence of
         // {@code newRelation} in either {@code mergedRelations} or {@code mergedRelations}.
-        // Because these sets contain relations in only the {@code FORWARD} direction, if the
-        // direction of {@code newRelation} is {@code BACKWARD}, {@code fromVariable} and
-        // {@code toVariable} needs to be reversed.
-        GraphVersion version = null;
-        String fromVariable;
-        String toVariable;
-        if (Direction.FORWARD == newRelation.getDirection()) {
-            fromVariable = newRelation.getFromQueryVariable().getVariableId();
-            toVariable = newRelation.getToQueryVariable().getVariableId();
-        } else {
-            fromVariable = newRelation.getToQueryVariable().getVariableId();
-            toVariable = newRelation.getFromQueryVariable().getVariableId();
-        }
-        if (isRelationPresentInSet(fromVariable, toVariable, mergedRelations)) {
+        GraphVersion version;
+        if (isRelationPresentInSet(newRelation, mergedRelations)) {
             version = GraphVersion.MERGED;
-        } else if (isRelationPresentInSet(fromVariable, toVariable, permanentRelations)) {
+        } else if (isRelationPresentInSet(newRelation, permanentRelations)) {
             version = GraphVersion.PERMANENT;
         } else {
             throw new IllegalStateException("The new relation is not present in either " +
@@ -181,17 +177,15 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
     }
 
     /**
-     * @param fromVariable The from variable.
-     * @param toVariable The to variable.
+     * @param queryEdgeToCheck The {@link QueryEdge} to be searched.
      * @param queryRelations A set of {@link QueryEdge}s.
      * @return {@code true} if {@code fromVariable} and {@code toVariable} match the
      * corresponding values of any of the {@link QueryEdge} present in {@code queryRelations}.
      */
-    private boolean isRelationPresentInSet(String fromVariable, String toVariable,
+    private boolean isRelationPresentInSet(QueryEdge queryEdgeToCheck,
         Set<QueryEdge> queryRelations) {
         for (QueryEdge queryEdge : queryRelations) {
-            if (Objects.equals(queryEdge.getFromQueryVariable().getVariableId(), fromVariable) &&
-                Objects.equals(queryEdge.getToQueryVariable().getVariableId(), toVariable)) {
+            if (QueryEdge.isSameAs(queryEdgeToCheck, queryEdge)) {
                 return true;
             }
         }

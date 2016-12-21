@@ -87,10 +87,22 @@ public class TestUtils {
     }
 
     /**
+     * Deletes a set of edges from the given {@code graph} permanently by executing the given
+     * {@code deleteQuery}.
+     *
+     * @param graph The {@link Graph} instance from which the edges should be deleted.
+     * @param deleteQuery The {@code String} delete query to be executed.
+     */
+    public static void deleteEdgesPermanently(Graph graph, String deleteQuery) {
+        deleteEdgesTemporarily(graph, deleteQuery);
+        graph.finalizeChanges();
+    }
+
+    /**
      * Deletes a set of edges from the given {@code graph} temporarily by executing the given
      * {@code deleteQuery}.
      *
-     * @param graph The {@link Graph} instance to which the edges should be added.
+     * @param graph The {@link Graph} instance from which the edges should be deleted.
      * @param deleteQuery The {@code String} delete query to be executed.
      */
     public static void deleteEdgesTemporarily(Graph graph, String deleteQuery) {

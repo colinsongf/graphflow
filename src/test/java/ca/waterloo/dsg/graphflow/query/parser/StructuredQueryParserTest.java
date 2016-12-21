@@ -1,96 +1,109 @@
 package ca.waterloo.dsg.graphflow.query.parser;
 
-import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.utils.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
+/**
+ * Tests {@link StructuredQueryParser}.
+ */
 public class StructuredQueryParserTest {
 
-    @Rule
-    public ExpectedException parseException = ExpectedException.none();
-
+    /**
+     * Tests the parsing of a triangle MATCH query with no types.
+     */
     @Test
     public void testParseTriangleMatchQuery() throws Exception {
-        StructuredQuery structuredQueryActual;
+        StructuredQuery actualStructuredQuery;
         String query = "MATCH (a)->(b),(b)->(c),(c)->(a);";
         try {
-            structuredQueryActual = new StructuredQueryParser().parse(query);
+            actualStructuredQuery = new StructuredQueryParser().parse(query);
         } catch (ParseCancellationException e) {
             throw new Exception("ERROR parsing: " + e.getMessage());
         }
 
-        StructuredQuery structuredQueryExpected = new StructuredQuery();
-        structuredQueryExpected.addEdge(new QueryEdge(new QueryVariable("a"),
+        StructuredQuery expectedStructuredQuery = new StructuredQuery();
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("a"),
             new QueryVariable("b")));
-        structuredQueryExpected.addEdge(new QueryEdge(new QueryVariable("b"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("b"),
             new QueryVariable("c")));
-        structuredQueryExpected.addEdge(new QueryEdge(new QueryVariable("c"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("c"),
             new QueryVariable("a")));
-        structuredQueryExpected.setQueryOperation(StructuredQuery.QueryOperation.MATCH);
+        expectedStructuredQuery.setQueryOperation(StructuredQuery.QueryOperation.MATCH);
 
-        Assert.assertTrue(StructuredQuery.isSameAs(structuredQueryActual, structuredQueryExpected));
+        Assert.assertTrue(StructuredQuery.isSameAs(actualStructuredQuery, expectedStructuredQuery));
     }
 
+    /**
+     * Tests the parsing of a CREATE query.
+     */
     @Test
     public void testParseCreateQuery() throws Exception {
-        StructuredQuery structuredQueryActual;
+        StructuredQuery actualStructuredQuery;
         String query = "CREATE (1:Person)-[:FOLLOWS]->(2:Person),(2:Person)-[:FOLLOWS]->" +
             "(3:Person),(1:Person)-[:FOLLOWS]->(3:Person);";
         try {
-            structuredQueryActual = new StructuredQueryParser().parse(query);
+            actualStructuredQuery = new StructuredQueryParser().parse(query);
         } catch (ParseCancellationException e) {
             throw new Exception("ERROR parsing: " + e.getMessage());
         }
 
-        StructuredQuery structuredQueryExpected = new StructuredQuery();
-        structuredQueryExpected.addEdge(new QueryEdge(new QueryVariable("1", "Person"),
+        StructuredQuery expectedStructuredQuery = new StructuredQuery();
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("1", "Person"),
             new QueryVariable("2", "Person"), "FOLLOWS"));
-        structuredQueryExpected.addEdge(new QueryEdge(new QueryVariable("2", "Person"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("2", "Person"),
             new QueryVariable("3", "Person"), "FOLLOWS"));
-        structuredQueryExpected.addEdge(new QueryEdge(new QueryVariable("1", "Person"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("1", "Person"),
             new QueryVariable("3", "Person"), "FOLLOWS"));
-        structuredQueryExpected.setQueryOperation(StructuredQuery.QueryOperation.CREATE);
+        expectedStructuredQuery.setQueryOperation(StructuredQuery.QueryOperation.CREATE);
 
-        Assert.assertTrue(StructuredQuery.isSameAs(structuredQueryActual, structuredQueryExpected));
+        Assert.assertTrue(StructuredQuery.isSameAs(actualStructuredQuery, expectedStructuredQuery));
     }
 
+    /**
+     * Tests the parsing of a DELETE query.
+     */
     @Test
     public void testParseDeleteQuery() throws Exception {
-        StructuredQuery structuredQueryActual;
+        StructuredQuery actualStructuredQuery;
         String query = "DELETE (1)->(2),(2)->(3);";
         try {
-            structuredQueryActual = new StructuredQueryParser().parse(query);
+            actualStructuredQuery = new StructuredQueryParser().parse(query);
         } catch (ParseCancellationException e) {
             throw new Exception("ERROR parsing: " + e.getMessage());
         }
 
-        StructuredQuery structuredQueryExpected = new StructuredQuery();
-        structuredQueryExpected.addEdge(new QueryEdge(new QueryVariable("1"),
+        StructuredQuery expectedStructuredQuery = new StructuredQuery();
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("1"),
             new QueryVariable("2")));
-        structuredQueryExpected.addEdge(new QueryEdge(new QueryVariable("2"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("2"),
             new QueryVariable("3")));
-        structuredQueryExpected.setQueryOperation(StructuredQuery.QueryOperation.DELETE);
+        expectedStructuredQuery.setQueryOperation(StructuredQuery.QueryOperation.DELETE);
 
-        Assert.assertTrue(StructuredQuery.isSameAs(structuredQueryActual, structuredQueryExpected));
+        Assert.assertTrue(StructuredQuery.isSameAs(actualStructuredQuery, expectedStructuredQuery));
     }
 
+    /**
+     * Tests the parsing of a SHORTEST PATH query.
+     */
     @Test
     public void parseSimpleShortestPathQuery() throws Exception {
-        StructuredQuery result;
+        StructuredQuery actualStructuredQuery;
         String query = "SHORTEST PATH (0, 9)";
         try {
-            result = new StructuredQueryParser().parse(query);
+            actualStructuredQuery = new StructuredQueryParser().parse(query);
         } catch (ParseCancellationException e) {
             throw new Exception("ERROR parsing: " + e.getMessage());
         }
-        StructuredQuery expected = new StructuredQuery();
-        expected.addEdge(new QueryEdge(new QueryVariable("0"), new QueryVariable("9")));
-        expected.setQueryOperation(StructuredQuery.QueryOperation.SHORTEST_PATH);
-        Assert.assertTrue(StructuredQuery.isSameAs(result, expected));
+
+        StructuredQuery expectedStructuredQuery = new StructuredQuery();
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("0"),
+            new QueryVariable("9")));
+        expectedStructuredQuery.setQueryOperation(StructuredQuery.QueryOperation.SHORTEST_PATH);
+
+        Assert.assertTrue(StructuredQuery.isSameAs(actualStructuredQuery, expectedStructuredQuery));
     }
 }

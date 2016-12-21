@@ -12,11 +12,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
- * Tests the {@code Graph} class.
+ * Tests {@link Graph}.
  */
 public class GraphTest {
-
-    private Graph graph;
 
     /**
      * Tests that the insertion of edges that are already present in the graph do not result in any
@@ -30,7 +28,7 @@ public class GraphTest {
         short[] edgeTypes = {6, 3, 5, 1, 4, 2, 6, 6, 6, 6, 6};
         short[][] vertexTypes = {{0, 12}, {0, 6}, {0, 10}, {0, 2}, {0, 8}, {0, 4}, {10, 12},
             {2, 12}, {8, 12}, {6, 12}, {4, 12}};
-        graph = TestUtils.initializeGraph(edges, edgeTypes, vertexTypes);
+        Graph graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
 
         assertInsertions(graph);
 
@@ -86,7 +84,7 @@ public class GraphTest {
         int[][] edges = {{0, 3}, {0, 1}, {1, 3}, {1, 2}, {4, 0}, {4, 1}};
         short[] edgeTypes = {3, 1, 3, 2, 0, 9};
         short[][] vertexTypes = {{0, 3}, {0, 1}, {1, 3}, {1, 2}, {4, 0}, {4, 1}};
-        graph = TestUtils.initializeGraph(edges, edgeTypes, vertexTypes);
+        Graph graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
         // Delete a list of edges.
         int[][] deleteEdges = {{0, 1}, {4, 1}}; /* Edges exist in the graph.*/
         short[] deleteEdgeTypes = {1, 9};
@@ -127,7 +125,7 @@ public class GraphTest {
         int[][] edges = {{0, 3}, {0, 1}, {1, 3}, {1, 2}, {4, 0}, {4, 1}};
         short[] edgeTypes = {3, 1, 3, 2, 0, 9};
         short[][] vertexTypes = {{0, 3}, {0, 1}, {1, 3}, {1, 2}, {4, 0}, {4, 1}};
-        graph = TestUtils.initializeGraph(edges, edgeTypes, vertexTypes);
+        Graph graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
         // Delete a list of edges.
         int[][] deleteEdges = {{0, 1}, {4, 1}}; /* Edges exist in the graph.*/
         short[] deleteEdgeTypes = {1, 9};
@@ -315,8 +313,7 @@ public class GraphTest {
     }
 
     private void assertEdgesIterator(Iterator<int[]> iterator, int[][] expectedEdges) {
-        List<int[]> edgesList;
-        edgesList = new ArrayList<>();
+        List<int[]> edgesList = new ArrayList<>();
         while (iterator.hasNext()) {
             edgesList.add(iterator.next());
         }

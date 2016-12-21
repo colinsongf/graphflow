@@ -22,9 +22,7 @@ public class GraphBuilder {
      *
      * @param file JSON file with pattern {"num-vertices": x, "edges" : [("src": 1, "dst": 2),
      * ("src": 2, "dst": 3)...]}. Vertex indices are assumed to start from 0.
-     *
      * @return The {@code Graph} object created from the JSON file.
-     *
      * @throws IOException on IO errors during file operations on {@code file}.
      */
     public static Graph createInstance(File file) throws IOException {
@@ -51,9 +49,7 @@ public class GraphBuilder {
          *
          * @param json handle to the root element of the json file.
          * @param typeOfT is used when deserializing to a specific Type.
-         *
          * @return The {@code Graph} object created from the JSON input.
-         *
          * @throws JsonParseException if JSON input is not in correct format.
          */
         @Override

@@ -7,23 +7,23 @@ import org.junit.Test;
 import java.util.Arrays;
 
 /**
- * Tests for {@link SortedAdjacencyList}.
+ * Tests {@link SortedAdjacencyList}.
  */
 public class SortedAdjacencyListTest {
 
-    private SortedAdjacencyList getPopulatedAdjacencyList(int[] neighbourIds, short[]
-        neighbourTypes) {
+    private SortedAdjacencyList getPopulatedAdjacencyList(int[] neighbourIds,
+        short[] neighbourTypes) {
         SortedAdjacencyList adjacencyList = new SortedAdjacencyList();
         for (int i = 0; i < neighbourIds.length; i++) {
-            if(neighbourTypes != null && neighbourTypes.length == neighbourIds.length) {
+            if (neighbourTypes != null && neighbourTypes.length == neighbourIds.length) {
                 adjacencyList.add(neighbourIds[i], neighbourTypes[i]);
             }
         }
         return adjacencyList;
     }
 
-    private void testSort(int[] inputNeighbourIds, short[] inputNeighbourTypes, int[]
-        sortedNeighbourIds, short[] sortedNeighbourTypes) {
+    private void testSort(int[] inputNeighbourIds, short[] inputNeighbourTypes,
+        int[] sortedNeighbourIds, short[] sortedNeighbourTypes) {
         SortedAdjacencyList adjacencyList = getPopulatedAdjacencyList(inputNeighbourIds,
             inputNeighbourTypes);
         int expectedSize = inputNeighbourIds.length;
@@ -35,8 +35,8 @@ public class SortedAdjacencyListTest {
             adjacencyList.getSize()));
     }
 
-    private void testSearch(int[] inputNeighbourIds, short[] inputNeighbourTypes, int
-        neighbourIdForSearch, int edgeTypeForSearch, int expectedIndex) {
+    private void testSearch(int[] inputNeighbourIds, short[] inputNeighbourTypes,
+        int neighbourIdForSearch, int edgeTypeForSearch, int expectedIndex) {
         SortedAdjacencyList adjacencyList = getPopulatedAdjacencyList(inputNeighbourIds,
             inputNeighbourTypes);
         int resultIndex = adjacencyList.search(neighbourIdForSearch, edgeTypeForSearch);
@@ -65,7 +65,7 @@ public class SortedAdjacencyListTest {
     public void testSearchWithMultipleTypesForSingleEdge() throws Exception {
         int[] neighbourIds = {1, 32, 54, 34, 34, 34, 12, 89, 0, 14, 7};
         short[] neighbourTypes = {4, 3, 3, 1, 9, 4, 0, 10, 5, 3, 0};
-        int neighbourIdForSearch =  34;
+        int neighbourIdForSearch = 34;
         int edgeTypeForSearch = 4;
         int expectedIndex = 7;
         testSearch(neighbourIds, neighbourTypes, neighbourIdForSearch, edgeTypeForSearch,
@@ -76,7 +76,7 @@ public class SortedAdjacencyListTest {
     public void testSearchWithSingleTypeForSingleEdge() throws Exception {
         int[] neighbourIds = {1, 32, 54, 34, 34, 34, 12, 89, 0, 14, 7};
         short[] neighbourTypes = {4, 3, 3, 1, 9, 4, 0, 10, 5, 3, 0};
-        int neighbourIdForSearch =  7;
+        int neighbourIdForSearch = 7;
         int edgeTypeForSearch = TypeStore.ANY_TYPE;
         int expectedIndex = 2;
         testSearch(neighbourIds, neighbourTypes, neighbourIdForSearch, edgeTypeForSearch,
@@ -87,7 +87,7 @@ public class SortedAdjacencyListTest {
     public void testSearchWithNonExistentNeighbourType() throws Exception {
         int[] neighbourIds = {1, 32, 54, 34, 34, 34, 12, 89, 0, 14, 7};
         short[] neighbourTypes = {4, 3, 3, 1, 9, 4, 0, 10, 5, 3, 0};
-        int neighbourIdForSearch =  7;
+        int neighbourIdForSearch = 7;
         int edgeTypeForSearch = 10;
         int expectedIndex = -1;
         testSearch(neighbourIds, neighbourTypes, neighbourIdForSearch, edgeTypeForSearch,
@@ -98,7 +98,7 @@ public class SortedAdjacencyListTest {
     public void testSearchWithNonExistentNeighbour() throws Exception {
         int[] neighbourIds = {1, 32, 54, 34, 34, 34, 12, 89, 0, 14, 7};
         short[] neighbourTypes = {4, 3, 3, 1, 9, 4, 0, 10, 5, 3, 0};
-        int neighbourIdForSearch =  70;
+        int neighbourIdForSearch = 70;
         int edgeTypeForSearch = 10;
         int expectedIndex = -1;
         testSearch(neighbourIds, neighbourTypes, neighbourIdForSearch, edgeTypeForSearch,
@@ -109,7 +109,7 @@ public class SortedAdjacencyListTest {
     public void testSearchWithSmallSizeArrays() throws Exception {
         int[] neighbourIds = {1, 3};
         short[] neighbourTypes = {1, 3};
-        int neighbourIdForSearch =  1;
+        int neighbourIdForSearch = 1;
         int edgeTypeForSearch = 1;
         int expectedIndex = 0;
         testSearch(neighbourIds, neighbourTypes, neighbourIdForSearch, edgeTypeForSearch,
@@ -121,11 +121,12 @@ public class SortedAdjacencyListTest {
         int[] neighbourIds = {1, 3};
         short[] neighbourTypes = {1, 3};
         SortedAdjacencyList adjacencyList = getPopulatedAdjacencyList(neighbourIds, neighbourTypes);
-        int neighbourIdForRemove =  1;
+        int neighbourIdForRemove = 1;
         short edgeTypeForRemove = 1;
         adjacencyList.removeNeighbour(neighbourIdForRemove, edgeTypeForRemove);
         int expectedIndex = -1;
-        Assert.assertEquals(expectedIndex, adjacencyList.search(neighbourIdForRemove, edgeTypeForRemove));
+        Assert.assertEquals(expectedIndex, adjacencyList.search(neighbourIdForRemove,
+            edgeTypeForRemove));
         Assert.assertEquals(1, adjacencyList.getSize());
         int[] expectedNeighbours = {3};
         Assert.assertArrayEquals(expectedNeighbours, Arrays.copyOf(adjacencyList.neighbourIds,
@@ -144,7 +145,8 @@ public class SortedAdjacencyListTest {
             neighbourTypes2);
         short intersectionFilterEdgeType = 3;
         IntArrayList listToIntersect = new IntArrayList();
-        listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.getSize()));
+        listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.
+            getSize()));
         IntArrayList intersections = adjacencyList1.getIntersection(listToIntersect,
             intersectionFilterEdgeType);
         int[] expectedNeighbours = {14, 34, 54};
@@ -162,7 +164,8 @@ public class SortedAdjacencyListTest {
         SortedAdjacencyList adjacencyList2 = getPopulatedAdjacencyList(neighbourIds2,
             neighbourTypes2);
         IntArrayList listToIntersect = new IntArrayList();
-        listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.getSize()));
+        listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.
+            getSize()));
         IntArrayList intersections = adjacencyList1.getIntersection(listToIntersect, (short) -1);
         int[] expectedNeighbours = {1, 14, 34, 54, 89};
         Assert.assertArrayEquals(expectedNeighbours, intersections.toArray());

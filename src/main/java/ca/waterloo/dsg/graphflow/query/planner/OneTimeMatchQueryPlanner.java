@@ -5,8 +5,8 @@ import ca.waterloo.dsg.graphflow.graph.TypeStore;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
-import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
 import ca.waterloo.dsg.graphflow.query.utils.QueryGraph;
+import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,8 +27,8 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
 
     public OneTimeMatchQueryPlanner(StructuredQuery structuredQuery) {
         super(structuredQuery);
-        for (QueryEdge queryEdge : structuredQuery.getQueryEdges()) {
-            queryGraph.addEdge(queryEdge);
+        for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
+            queryGraph.addRelation(queryRelation);
         }
     }
 
@@ -60,7 +60,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     // covered vertices.
                     int connectionsCount = 0;
                     for (String alreadyCoveredVariable : orderedVariables) {
-                        if (queryGraph.containsEdge(neighborVariable, alreadyCoveredVariable)) {
+                        if (queryGraph.containsRelation(neighborVariable, alreadyCoveredVariable)) {
                             connectionsCount++;
                         }
                     }
@@ -133,22 +133,24 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             // Loop across all variables covered in the previous stages.
             for (int j = 0; j < i; j++) {
                 String variableFromPreviousStage = orderedVariables.get(j);
-                if (queryGraph.containsEdge(variableFromPreviousStage,
+                if (queryGraph.containsRelation(variableFromPreviousStage,
                     variableForCurrentStage)) {
-                    for (QueryEdge queryEdge : queryGraph.getAdjacentEdges(
+                    for (QueryRelation queryRelation : queryGraph.getAdjacentRelations(
                         variableFromPreviousStage, variableForCurrentStage)) {
                         stage.add(new GenericJoinIntersectionRule(j,
                             // The {@code Direction} of the rule is {@code FORWARD} if
-                            // {@code queryEdge} is an edge from {@code variableFromPreviousStage}
-                            // to {@code variableForCurrentStage}, else {@code BACKWARD}.
-                            queryEdge.getFromQueryVariable().getVariableId().equals(
+                            // {@code queryRelation} is an edge from
+                            // {@code variableFromPreviousStage} to
+                            // {@code variableForCurrentStage}, else {@code BACKWARD}.
+                            queryRelation.getFromQueryVariable().getVariableId().equals(
                                 variableFromPreviousStage) ? Direction.FORWARD :
                                 Direction.BACKWARD,
                             // {@code TypeStore#getShortIdOrAnyTypeIfNull()} will throw a
-                            // {@code NoSuchElementException} if the relation type {@code String} of
-                            // {@code queryEdge} does not already exist in the {@code TypeStore}.
-                            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(queryEdge.
-                                getEdgeType())));
+                            // {@code NoSuchElementException} if the relation type {@code String}
+                            // of {@code queryRelation} does not already exist in the
+                            // {@code TypeStore}.
+                            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(queryRelation.
+                                getRelationType())));
                     }
                 }
             }

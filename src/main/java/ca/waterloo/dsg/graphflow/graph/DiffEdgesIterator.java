@@ -10,6 +10,7 @@ import java.util.NoSuchElementException;
  * Encapsulates an {@code Iterator} over the diff edges of the {@code Graph}.
  */
 public class DiffEdgesIterator implements Iterator<int[]> {
+
     private List<int[]> diffEdges;
     private ShortArrayList diffEdgeTypes;
     private short edgeType;

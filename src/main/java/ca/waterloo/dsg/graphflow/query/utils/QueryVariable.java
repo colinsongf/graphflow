@@ -5,7 +5,7 @@ import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 import java.util.Objects;
 
 /**
- * Represents a query variable used by {@link QueryEdge}.
+ * Represents a query variable used by {@link QueryRelation}.
  */
 public class QueryVariable implements AbstractStructuredQuery {
 

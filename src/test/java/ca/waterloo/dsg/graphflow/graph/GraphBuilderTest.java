@@ -7,6 +7,9 @@ import org.junit.Test;
 
 import java.io.File;
 
+/**
+ * Tests {@link GraphBuilder}.
+ */
 public class GraphBuilderTest {
 
     /**

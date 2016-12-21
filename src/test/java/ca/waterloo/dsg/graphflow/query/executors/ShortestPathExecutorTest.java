@@ -18,6 +18,7 @@ import java.util.Set;
  * Tests {@link ShortestPathExecutor}.
  */
 public class ShortestPathExecutorTest {
+
     private Graph graph;
     private ShortestPathExecutor executor;
 
@@ -26,9 +27,9 @@ public class ShortestPathExecutorTest {
         int[][] edges = {{0, 1}, {0, 2}, {1, 3}, {1, 4}, {2, 4}, {2, 5}, {3, 6}, {4, 6}, {4, 7},
             {5, 7}, {6, 8}, {6, 9}, {7, 9}, {7, 10}, {8, 11}, {9, 11}, {10, 11}};
         short[] edgeTypes = {2, 4, 6, 8, 8, 10, 12, 12, 14, 14, 16, 18, 18, 20, 22, 22, 22};
-        short[][] vertexTypes = {{0, 1}, {0, 2}, {1, 3}, {1, 4}, {2, 4}, {2, 5}, {3, 6}, {4, 6}, {4, 7},
-            {5, 7}, {6, 8}, {6, 9}, {7, 9}, {7, 10}, {8, 11}, {9, 11}, {10, 11}};
-        graph = TestUtils.initializeGraph(edges, edgeTypes, vertexTypes);
+        short[][] vertexTypes = {{0, 1}, {0, 2}, {1, 3}, {1, 4}, {2, 4}, {2, 5}, {3, 6}, {4, 6},
+            {4, 7}, {5, 7}, {6, 8}, {6, 9}, {7, 9}, {7, 10}, {8, 11}, {9, 11}, {10, 11}};
+        graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
         executor = ShortestPathExecutor.getInstance();
         if (!executor.isInitialized()) {
             executor.init(graph);
@@ -37,6 +38,9 @@ public class ShortestPathExecutorTest {
 
     @Test
     public void testEvaluateQuerySource0Target9() throws Exception {
+        InMemoryOutputSink actualInMemoryOutputSink = new InMemoryOutputSink();
+        executor.execute(0, 9, actualInMemoryOutputSink);
+
         Map<Integer, Set<Integer>> expectedResults = new HashMap<>();
         expectedResults.put(0, new HashSet<>(Arrays.asList(new Integer[]{1, 2})));
         expectedResults.put(1, new HashSet<>(Arrays.asList(new Integer[]{3, 4})));
@@ -50,9 +54,6 @@ public class ShortestPathExecutorTest {
         expectedInMemoryOutputSink.append(ShortestPathExecutor.getStringOutput(expectedResults));
         expectedInMemoryOutputSink.append(ShortestPathExecutor.getStringOutput(expectedResults));
 
-        InMemoryOutputSink actualInMemoryOutputSink = new InMemoryOutputSink();
-        executor.execute(0, 9, actualInMemoryOutputSink);
-
         Assert.assertTrue(InMemoryOutputSink.isSameAs(actualInMemoryOutputSink,
             expectedInMemoryOutputSink));
     }
@@ -64,10 +65,10 @@ public class ShortestPathExecutorTest {
         int queryId = 1;
         executor = new ShortestPathExecutor(graph, visitedLevels, visitedQueryId, queryId);
         Map<Integer, Set<Integer>> actualResults = new HashMap<>();
-        Set<Integer> intersectNodes = new HashSet<>();
-        intersectNodes.add(6);
-        intersectNodes.add(7);
-        executor.backTrackIntersection(intersectNodes, Direction.BACKWARD, (short) 4,
+        Set<Integer> intersectVertices = new HashSet<>();
+        intersectVertices.add(6);
+        intersectVertices.add(7);
+        executor.backTrackIntersection(intersectVertices, Direction.BACKWARD, (short) 4,
             actualResults);
 
         Map<Integer, Set<Integer>> expectedResults = new HashMap<>();

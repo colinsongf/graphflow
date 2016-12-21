@@ -15,7 +15,7 @@ import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.ShortestPathQueryContex
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableEdgeContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableVertexContext;
 import ca.waterloo.dsg.graphflow.query.utils.AbstractStructuredQuery;
-import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.utils.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery.QueryOperation;
@@ -44,7 +44,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     public AbstractStructuredQuery visitShortestPathQuery(ShortestPathQueryContext ctx) {
         StructuredQuery structuredQuery = new StructuredQuery();
         structuredQuery.setQueryOperation(QueryOperation.SHORTEST_PATH);
-        structuredQuery.addEdge((QueryEdge) visit(ctx.pathPattern()));
+        structuredQuery.addRelation((QueryRelation) visit(ctx.pathPattern()));
         return structuredQuery;
     }
 
@@ -53,7 +53,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         StructuredQuery structuredQuery = new StructuredQuery();
         structuredQuery.setQueryOperation(QueryOperation.MATCH);
         for (int i = 0; i < ctx.variableEdge().size(); i++) {
-            structuredQuery.addEdge((QueryEdge) visit(ctx.variableEdge(i)));
+            structuredQuery.addRelation((QueryRelation) visit(ctx.variableEdge(i)));
         }
         return structuredQuery;
     }
@@ -63,7 +63,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         StructuredQuery structuredQuery = new StructuredQuery();
         structuredQuery.setQueryOperation(QueryOperation.DELETE);
         for (int i = 0; i < ctx.digitsEdgeWithOptionalType().size(); i++) {
-            structuredQuery.addEdge((QueryEdge) visit(ctx.digitsEdgeWithOptionalType(i)));
+            structuredQuery.addRelation((QueryRelation) visit(ctx.digitsEdgeWithOptionalType(i)));
         }
         return structuredQuery;
     }
@@ -73,46 +73,46 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         StructuredQuery structuredQuery = new StructuredQuery();
         structuredQuery.setQueryOperation(QueryOperation.CREATE);
         for (int i = 0; i < ctx.digitsEdgeWithType().size(); i++) {
-            structuredQuery.addEdge((QueryEdge) visit(ctx.digitsEdgeWithType(i)));
+            structuredQuery.addRelation((QueryRelation) visit(ctx.digitsEdgeWithType(i)));
         }
         return structuredQuery;
     }
 
     @Override
     public AbstractStructuredQuery visitPathPattern(PathPatternContext ctx) {
-        return new QueryEdge(new QueryVariable(ctx.Digits(0).getText()), new QueryVariable(ctx
-            .Digits(1).getText()));
+        return new QueryRelation(new QueryVariable(ctx.Digits(0).getText()), new QueryVariable(ctx.
+            Digits(1).getText()));
     }
 
     @Override
     public AbstractStructuredQuery visitDigitsEdgeWithOptionalType(
         DigitsEdgeWithOptionalTypeContext ctx) {
-        QueryEdge queryEdge = new QueryEdge((QueryVariable) visit(ctx.digitsVertex(0)),
+        QueryRelation queryRelation = new QueryRelation((QueryVariable) visit(ctx.digitsVertex(0)),
             (QueryVariable) visit(ctx.digitsVertex(1)));
         if (null != ctx.edgeType()) {
-            queryEdge.setEdgeType(ctx.edgeType().type().variable().getText());
+            queryRelation.setRelationType(ctx.edgeType().type().variable().getText());
         }
-        return queryEdge;
+        return queryRelation;
     }
 
     @Override
     public AbstractStructuredQuery visitDigitsEdgeWithType(DigitsEdgeWithTypeContext ctx) {
-        QueryEdge queryEdge = new QueryEdge((QueryVariable) visit(ctx.digitsVertexWithType(0)),
-            (QueryVariable) visit(ctx.digitsVertexWithType(1)));
+        QueryRelation queryRelation = new QueryRelation((QueryVariable) visit(ctx.
+            digitsVertexWithType(0)), (QueryVariable) visit(ctx.digitsVertexWithType(1)));
         if (null != ctx.edgeType()) {
-            queryEdge.setEdgeType(ctx.edgeType().type().variable().getText());
+            queryRelation.setRelationType(ctx.edgeType().type().variable().getText());
         }
-        return queryEdge;
+        return queryRelation;
     }
 
     @Override
     public AbstractStructuredQuery visitVariableEdge(VariableEdgeContext ctx) {
-        QueryEdge queryEdge = new QueryEdge((QueryVariable) visit(ctx.variableVertex(0)),
-            (QueryVariable) visit(ctx.variableVertex(1)));
+        QueryRelation queryRelation = new QueryRelation((QueryVariable) visit(ctx.
+            variableVertex(0)), (QueryVariable) visit(ctx.variableVertex(1)));
         if (null != ctx.edgeType()) {
-            queryEdge.setEdgeType(ctx.edgeType().type().variable().getText());
+            queryRelation.setRelationType(ctx.edgeType().type().variable().getText());
         }
-        return queryEdge;
+        return queryRelation;
     }
 
     @Override

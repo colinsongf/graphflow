@@ -2,7 +2,7 @@ package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.ShortestPathPlan;
-import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 
 /**
@@ -17,7 +17,7 @@ public class ShortestPathPlanner extends AbstractQueryPlanner {
 
     @Override
     QueryPlan plan() {
-        QueryEdge shortestPathEdge = structuredQuery.getQueryEdges().get(0);
+        QueryRelation shortestPathEdge = structuredQuery.getQueryRelations().get(0);
         return new ShortestPathPlan(Integer.parseInt(shortestPathEdge.getFromQueryVariable()
             .getVariableId()), Integer.parseInt(shortestPathEdge.getToQueryVariable()
             .getVariableId()));

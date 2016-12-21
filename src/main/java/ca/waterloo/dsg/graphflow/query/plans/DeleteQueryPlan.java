@@ -4,7 +4,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeStore;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
-import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 
 import java.util.NoSuchElementException;
@@ -28,15 +28,16 @@ public class DeleteQueryPlan implements QueryPlan {
      */
     public void execute(Graph graph, OutputSink outputSink) {
         try {
-            for (QueryEdge queryEdge : structuredQuery.getQueryEdges()) {
+            for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
                 graph.deleteEdgeTemporarily(
-                    Integer.parseInt(queryEdge.getFromQueryVariable().getVariableId()),
-                    Integer.parseInt(queryEdge.getToQueryVariable().getVariableId()),
-                    TypeStore.getInstance().getShortIdOrAnyTypeIfNull(queryEdge.getEdgeType()));
+                    Integer.parseInt(queryRelation.getFromQueryVariable().getVariableId()),
+                    Integer.parseInt(queryRelation.getToQueryVariable().getVariableId()),
+                    TypeStore.getInstance().getShortIdOrAnyTypeIfNull(
+                        queryRelation.getRelationType()));
             }
             ContinuousMatchQueryExecutor.getInstance().execute(graph);
             graph.finalizeChanges();
-            outputSink.append(structuredQuery.getQueryEdges().size() + " edges deleted.");
+            outputSink.append(structuredQuery.getQueryRelations().size() + " edges deleted.");
         } catch (NoSuchElementException e) {
             outputSink.append("ERROR: " + e.getMessage());
         }

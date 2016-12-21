@@ -18,9 +18,6 @@ import java.util.StringJoiner;
  * Encapsulates the Graph representation and provides utility methods.
  */
 public class Graph {
-    //TODO: Remove after merging types interface PR.
-    public static final short ANY_TYPE = -1;
-
     // Used to represent different versions of the graph.
     public enum GraphVersion {
         // Graph formed after making all additions and deletions permanent.
@@ -56,7 +53,7 @@ public class Graph {
     }
 
     private static final Logger logger = LogManager.getLogger(Graph.class);
-    private static final int DEFAULT_GRAPH_SIZE = 10;
+    private static final int DEFAULT_GRAPH_SIZE = 2;
 
     // Stores the highest vertex ID of the permanent graph.
     private int highestPermanentVertexId = -1;
@@ -113,16 +110,17 @@ public class Graph {
     /**
      * Adds an edge temporarily to the graph. A call to {@link #finalizeChanges()} is required to
      * make the changes permanent.
+     * <p>
      * Note: If an edge to {@code toVertex} with the given {@code edgeType} already exists, this
      * method returns without doing anything.
+     * <p>
      * Warning: Currently, as part of this call, we will override the current vertex types of
-     * {@cdoe fromVertex} and {@code toVertex} with {@cdoe fromVertexType} and {@cdoe
-     * toVertexType}, respectively. If a vertex u has type T, callers should always call
-     * {@link Graph#addEdgeTemporarily} with type T for u to keep u's type.
+     * {@code fromVertex} and {@code toVertex} with {@code fromVertexType} and
+     * {@code toVertexType}, respectively. If a vertex u has type T, callers should always call
+     * this method with type T for u to keep u's type.
      *
      * @param fromVertex The starting vertex ID for the edge.
      * @param toVertex The ending vertex ID for the edge.
-     * @param edgeType The type ID of the edge.
      * @param fromVertexType The type ID of {@code fromVertex}.
      * @param toVertexType The type ID of {@code toVertex}.
      * @param edgeType The type ID of the edge being added.
@@ -227,7 +225,7 @@ public class Graph {
     /**
      * Permanently applies the temporary additions and deletions that have been applied using the
      * {@link #addEdgeTemporarily} and {@link #deleteEdgeTemporarily} methods since the previous
-     * call to {@link #finalizeChanges}.
+     * call to this method.
      */
     public void finalizeChanges() {
         // Increase the size of the adjacency lists if newly added edges have a higher
@@ -295,7 +293,7 @@ public class Graph {
                     ") call received when the graph was empty.");
                 return Collections.<int[]>emptyList().iterator();
             }
-            return new EdgesIterator(graphVersion, permanentAdjacencyLists, mergedAdjLists,
+            return new PermanentAndMergedEdgesIterator(graphVersion, permanentAdjacencyLists, mergedAdjLists,
                 edgeType, lastVertexId);
         }
     }
@@ -373,7 +371,7 @@ public class Graph {
 
     /**
      * Initializes {@link Graph#forwardAdjLists} and {@link Graph#backwardAdjLists} with empty
-     * {@link SortedAdjacencyList} in the range given by {@code from} and {@code to}.
+     * {@link SortedAdjacencyList} in the range given by {@code startIndex} and {@code endIndex}.
      *
      * @param startIndex The start index for initializing {@link SortedAdjacencyList}, inclusive.
      * @param endIndex The end index for initializing {@link SortedAdjacencyList}, exclusive.

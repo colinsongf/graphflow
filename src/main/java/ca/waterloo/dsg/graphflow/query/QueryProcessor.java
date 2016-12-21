@@ -21,6 +21,7 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 /**
  * Class to accept incoming queries from the gRPC server, process them and return the results.
@@ -79,9 +80,13 @@ public class QueryProcessor {
 
     private String handleMatchQuery(StructuredQuery structuredQuery) {
         OutputSink outputSink = new InMemoryOutputSink();
-        ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery).plan()).execute(
-            graph, outputSink);
-        return outputSink.toString();
+        try {
+            ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery).plan()).execute(
+                graph, outputSink);
+        } catch (NoSuchElementException e) {
+            // Exception raised because a type in the MATCH query input does not exist.
+        }
+        return (0 == outputSink.toString().length()) ? "{}" : outputSink.toString();
     }
 
     private String handleContinuousMatchQuery(StructuredQuery structuredQuery) {
@@ -93,9 +98,14 @@ public class QueryProcessor {
         } catch (IOException e) {
             return "IO ERROR for file: " + fileName;
         }
-        ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
-            (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
-                outputSink).plan());
+        try {
+            ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
+                (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
+                    outputSink).plan());
+        } catch (NoSuchElementException e) {
+            // Exception raised because a type in the CONTINUOUS MATCH query input does not exist.
+            return "ERROR: The CONTINUOUS MATCH query could not be registered. " + e.getMessage();
+        }
         return "The CONTINUOUS MATCH query has been added to the list of continuous queries.";
     }
 }

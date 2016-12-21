@@ -9,7 +9,6 @@ import java.util.StringJoiner;
 public class ShortArrayList {
 
     private static final int INITIAL_CAPACITY = 2;
-    private static final float RESIZE_MULTIPLIER = 1.2f;
     private short[] data;
     private int size = 0;
 
@@ -35,7 +34,7 @@ public class ShortArrayList {
      * @param element The new short to be added to the collection.
      */
     public void add(short element) {
-        ensureCapacity(size + 1);
+        data = ArrayUtils.resizeIfNecessary(data, size + 1);
         data[size++] = element;
     }
 
@@ -45,7 +44,7 @@ public class ShortArrayList {
      * @param elements The array of integers to be appended to the collection.
      */
     public void addAll(short[] elements) {
-        ensureCapacity(size + elements.length);
+        data = ArrayUtils.resizeIfNecessary(data, size + elements.length);
         System.arraycopy(elements, 0, data, size, elements.length);
         size += elements.length;
     }
@@ -61,7 +60,7 @@ public class ShortArrayList {
      */
     public void set(int index, short newItem) {
         if (index >= data.length) {
-            ensureCapacity(index + 1); // Add one because index is zero based.
+            data = ArrayUtils.resizeIfNecessary(data, index + 1); // Index is zero based.
         }
         data[index] = newItem;
         if (index >= size) {
@@ -75,7 +74,7 @@ public class ShortArrayList {
      * @param index The index in the underlying array of the element to be returned.
      * @return short The value at {@code index}.
      * @throws ArrayIndexOutOfBoundsException Throws exception if index is greater than the size
-     * of the {@link SortedIntArrayList} collection.
+     * of the {@link ShortArrayList} collection.
      */
     public short get(int index) {
         if (index >= size) {
@@ -90,7 +89,7 @@ public class ShortArrayList {
      * @param index The index in the underlying array from which the value should be removed.
      * @return short Removed value.
      * @throws ArrayIndexOutOfBoundsException Throws exception if index is greater than the size
-     * of the {@link SortedIntArrayList} collection.
+     * of the {@link ShortArrayList} collection.
      */
     public short removeFromIndex(int index) {
         if (index >= size) {
@@ -137,36 +136,5 @@ public class ShortArrayList {
      */
     public void clear() {
         size = 0;
-    }
-
-    /**
-     * Used in unit tests to assert the equality of the actual and expected objects.
-     *
-     * @param that The other object.
-     * @return {@code true} if the current object values match perfectly with the other object's
-     * values, {@code false} otherwise.
-     */
-    @ExistsForTesting
-    public boolean isSameAs(short[] that) {
-        if (null == that) {
-            return false;
-        }
-        if (this.size != that.length) {
-            return false;
-        }
-        for (int i = 0; i < size; i++) {
-            if (this.data[i] != that[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void ensureCapacity(int minCapacity) {
-        // TODO: Refactor ensureCapacity by using ArrayUtils.resize() method from Siddahrtha's PR.
-        if (minCapacity > data.length) {
-            int newCapacity = (int) Double.max(data.length * RESIZE_MULTIPLIER + 1, minCapacity);
-            data = Arrays.copyOf(data, newCapacity);
-        }
     }
 }

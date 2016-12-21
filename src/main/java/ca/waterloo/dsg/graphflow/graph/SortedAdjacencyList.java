@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.graph;
 
+import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 
@@ -22,8 +23,7 @@ public class SortedAdjacencyList {
     short[] edgeTypes;
     @PackagePrivateForTesting
     int capacity;
-    @PackagePrivateForTesting
-    int size;
+    private int size;
 
     /**
      * Default constructor for {@link SortedAdjacencyList}. Initializes the arrays holding neighbour
@@ -113,7 +113,7 @@ public class SortedAdjacencyList {
      */
     public IntArrayList getFilteredNeighbourIds(short edgeType) {
         IntArrayList filteredList = new IntArrayList(size);
-        if (Graph.ANY_TYPE == edgeType) {
+        if (TypeStore.ANY_TYPE == edgeType) {
             filteredList.addAll(Arrays.copyOf(neighbourIds, size));
         } else {
             for (int i = 0; i < size; i++) {
@@ -136,7 +136,8 @@ public class SortedAdjacencyList {
         if (index != -1) {
             int numElementsToShiftLeft = size - index - 1;
             if (numElementsToShiftLeft > 0) {
-                System.arraycopy(neighbourIds, index + 1, neighbourIds, index, numElementsToShiftLeft);
+                System.arraycopy(neighbourIds, index + 1, neighbourIds, index,
+                    numElementsToShiftLeft);
                 System.arraycopy(edgeTypes, index + 1, edgeTypes, index, numElementsToShiftLeft);
             }
             --size;
@@ -144,9 +145,10 @@ public class SortedAdjacencyList {
     }
 
     /**
-     * Intersects the current {@link SortedAdjacencyList} with the given {@code sortedListToIntersect}. If, 1)
-     * {@code edgeType} equals {@link Graph#ANY_TYPE}, only node ID will be considered when
-     * intersecting. 2) Else a valid intersection will match both node ID and edge type ID.
+     * Intersects the current {@link SortedAdjacencyList} with the given
+     * {@code sortedListToIntersect}. If, 1) {@code edgeType} equals {@link TypeStore#ANY_TYPE},
+     * only the vertex ID will be considered when intersecting. 2) Else a valid intersection will
+     * match both the vertex ID and the edge type ID.
      *
      * @param sortedListToIntersect The {@link IntArrayList} to intersect.
      * @param edgeType The edge type ID for filtering the intersections.
@@ -203,27 +205,8 @@ public class SortedAdjacencyList {
         return "[" + sj.toString() + "]";
     }
 
-    public boolean isSameAs(SortedAdjacencyList that) {
-        if (null == this && null == that) {
-            return true;
-        }
-        if ((null == this && null != that) || (null == that && null != this)) {
-            return false;
-        }
-        if (this.getSize() != that.getSize()) {
-            return false;
-        }
-        for (int i = 0; i < that.getSize(); i++) {
-            if ((this.getNeighbourId(i) != that.getNeighbourId(i)) || (this.getEdgeTypeId(i) != that
-                .getEdgeTypeId(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     /**
-     *Searches for the given {@code neighbourId} in {@code neighbourIds} starting from the
+     * Searches for the given {@code neighbourId} in {@code neighbourIds} starting from the
      * given zero and continuing in monotonically increasing fashion. Returns either
      * the index of {@code neighbourId} or -1 if it is not found.
      *
@@ -238,6 +221,7 @@ public class SortedAdjacencyList {
     /**
      * Returns true if the given {@code neighbourId} and {@code typeId} pair exists, and false
      * otherwise.
+     *
      * @param neighbourId The neighbour ID to be searched.
      * @param typeId The typeId to filter by.
      * @return boolean Value representing whether the {@code neighbourId} and {@code typeId} pair
@@ -257,22 +241,22 @@ public class SortedAdjacencyList {
      * @param startIndex The index to start the search from.
      * @return Index of the neighbour or -1 if the neighbour is not in the list.
      */
-     @PackagePrivateForTesting
-     int search(int neighbourId, int typeId, int startIndex) {
-         int next = startIndex;
-         while (next < size) {
-             if (neighbourIds[next] == neighbourId) {
-                 if (Graph.ANY_TYPE == typeId || typeId == edgeTypes[next]) {
-                     return next;
-                 } else if (edgeTypes[next] > typeId) {
-                     return -1;
-                 }
-             } else if (neighbourIds[next] > neighbourId) {
-                 return -1;
-             }
-             next++;
-         }
-         return -1;
+    @PackagePrivateForTesting
+    int search(int neighbourId, int typeId, int startIndex) {
+        int next = startIndex;
+        while (next < size) {
+            if (neighbourIds[next] == neighbourId) {
+                if (TypeStore.ANY_TYPE == typeId || typeId == edgeTypes[next]) {
+                    return next;
+                } else if (edgeTypes[next] > typeId) {
+                    return -1;
+                }
+            } else if (neighbourIds[next] > neighbourId) {
+                return -1;
+            }
+            next++;
+        }
+        return -1;
     }
 
     /**
@@ -303,5 +287,34 @@ public class SortedAdjacencyList {
             edgeTypes = Arrays.copyOf(edgeTypes, newCapacity);
             capacity = newCapacity;
         }
+    }
+
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if the {@code a} object values are the same as the
+     * {@code b} object values, {@code false} otherwise.
+     */
+    @ExistsForTesting
+    public static boolean isSameAs(SortedAdjacencyList a, SortedAdjacencyList b) {
+        if (a == b) {
+            return true;
+        }
+        if (null == a || null == b) {
+            return false;
+        }
+        if (a.size != b.size) {
+            return false;
+        }
+        for (int i = 0; i < a.size; i++) {
+            if ((a.getNeighbourId(i) != b.getNeighbourId(i)) || (a.getEdgeTypeId(i) !=
+                b.getEdgeTypeId(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 }

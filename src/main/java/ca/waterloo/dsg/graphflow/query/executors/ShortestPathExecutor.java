@@ -77,7 +77,7 @@ public class ShortestPathExecutor {
      * @param graph The graph instance.
      */
     public void init(Graph graph) {
-        if (forwardQueue == null) {
+        if (null == forwardQueue) {
             this.graph = graph;
             forwardQueue = new IntQueue(INITIAL_QUEUE_SIZE);
             backwardQueue = new IntQueue(INITIAL_QUEUE_SIZE);

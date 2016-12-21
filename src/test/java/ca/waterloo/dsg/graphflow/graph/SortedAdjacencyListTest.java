@@ -27,12 +27,12 @@ public class SortedAdjacencyListTest {
         SortedAdjacencyList adjacencyList = getPopulatedAdjacencyList(inputNeighbourIds,
             inputNeighbourTypes);
         int expectedSize = inputNeighbourIds.length;
-        Assert.assertEquals(expectedSize, adjacencyList.size);
+        Assert.assertEquals(expectedSize, adjacencyList.getSize());
         Assert.assertTrue(expectedSize <= adjacencyList.capacity);
         Assert.assertArrayEquals(sortedNeighbourIds, Arrays.copyOf(adjacencyList.neighbourIds,
-            adjacencyList.size));
+            adjacencyList.getSize()));
         Assert.assertArrayEquals(sortedNeighbourTypes, Arrays.copyOf(adjacencyList.edgeTypes,
-            adjacencyList.size));
+            adjacencyList.getSize()));
     }
 
     private void testSearch(int[] inputNeighbourIds, short[] inputNeighbourTypes, int
@@ -77,7 +77,7 @@ public class SortedAdjacencyListTest {
         int[] neighbourIds = {1, 32, 54, 34, 34, 34, 12, 89, 0, 14, 7};
         short[] neighbourTypes = {4, 3, 3, 1, 9, 4, 0, 10, 5, 3, 0};
         int neighbourIdForSearch =  7;
-        int edgeTypeForSearch = Graph.ANY_TYPE;
+        int edgeTypeForSearch = TypeStore.ANY_TYPE;
         int expectedIndex = 2;
         testSearch(neighbourIds, neighbourTypes, neighbourIdForSearch, edgeTypeForSearch,
             expectedIndex);
@@ -129,7 +129,7 @@ public class SortedAdjacencyListTest {
         Assert.assertEquals(1, adjacencyList.getSize());
         int[] expectedNeighbours = {3};
         Assert.assertArrayEquals(expectedNeighbours, Arrays.copyOf(adjacencyList.neighbourIds,
-            adjacencyList.size));
+            adjacencyList.getSize()));
     }
 
     @Test
@@ -144,7 +144,7 @@ public class SortedAdjacencyListTest {
             neighbourTypes2);
         short intersectionFilterEdgeType = 3;
         IntArrayList listToIntersect = new IntArrayList();
-        listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.size));
+        listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.getSize()));
         IntArrayList intersections = adjacencyList1.getIntersection(listToIntersect,
             intersectionFilterEdgeType);
         int[] expectedNeighbours = {14, 34, 54};
@@ -162,7 +162,7 @@ public class SortedAdjacencyListTest {
         SortedAdjacencyList adjacencyList2 = getPopulatedAdjacencyList(neighbourIds2,
             neighbourTypes2);
         IntArrayList listToIntersect = new IntArrayList();
-        listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.size));
+        listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.getSize()));
         IntArrayList intersections = adjacencyList1.getIntersection(listToIntersect, (short) -1);
         int[] expectedNeighbours = {1, 14, 34, 54, 89};
         Assert.assertArrayEquals(expectedNeighbours, intersections.toArray());

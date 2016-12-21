@@ -92,8 +92,8 @@ public class GenericJoinExecutorTest {
         // Execute the query and test.
         outputSink = new InMemoryOutputSink();
         actualOneTimeMatchQueryPlan.execute(graph, outputSink);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
-            getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
+            expectedMotifsAfterAdditions)));
 
         // Delete one of the edges.
         int[] deletedEdge = {4, 1};
@@ -104,8 +104,8 @@ public class GenericJoinExecutorTest {
         // Execute the query again and test.
         outputSink = new InMemoryOutputSink();
         actualOneTimeMatchQueryPlan.execute(graph, outputSink);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils
-            .getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
+            expectedMotifsAfterDeletion)));
     }
 
     private void assertComplexMatchQueryOutput(OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan,
@@ -114,7 +114,7 @@ public class GenericJoinExecutorTest {
         InMemoryOutputSink outputSink;
 
         Graph graph = new Graph();
-        TestUtils.addEdgesToGraphUsingCreateQuery(graph, "CREATE (0:Person)-[:FOLLOWS]->" +
+        TestUtils.createEdgesPermanently(graph, "CREATE (0:Person)-[:FOLLOWS]->" +
             "(1:Person),(0:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->(0:Person)," +
             "(1:Person)-[:TAGGED]->(3:Person),(3:Person)-[:LIKES]->(1:Person)," +
             "(3:Person)-[:FOLLOWS]->(0:Person),(4:Person)-[:FOLLOWS]->(1:Person)," +
@@ -124,8 +124,8 @@ public class GenericJoinExecutorTest {
         // Execute the query and test.
         outputSink = new InMemoryOutputSink();
         actualOneTimeMatchQueryPlan.execute(graph, outputSink);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
-            getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
+            expectedMotifsAfterAdditions)));
 
         // Delete one of the edges.
         int[] deletedEdge = {0, 1};
@@ -136,7 +136,16 @@ public class GenericJoinExecutorTest {
         // Execute the query again and test.
         outputSink = new InMemoryOutputSink();
         actualOneTimeMatchQueryPlan.execute(graph, outputSink);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils
-            .getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
+            expectedMotifsAfterDeletion)));
+    }
+
+    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs) {
+        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
+        for (int[] motif : motifs) {
+            inMemoryOutputSink.append(GenericJoinExecutor.getStringOutput(motif,
+                MatchQueryResultType.MATCHED));
+        }
+        return inMemoryOutputSink;
     }
 }

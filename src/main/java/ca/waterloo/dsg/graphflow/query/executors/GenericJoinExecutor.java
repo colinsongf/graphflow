@@ -4,6 +4,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
+import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -198,7 +199,8 @@ public class GenericJoinExecutor {
         return minGenericJoinIntersectionRule;
     }
 
-    public static String getStringOutput(int[] result, MatchQueryResultType matchQueryResultType) {
+    @PackagePrivateForTesting
+    static String getStringOutput(int[] result, MatchQueryResultType matchQueryResultType) {
         return Arrays.toString(result) + ", " + matchQueryResultType;
     }
 }

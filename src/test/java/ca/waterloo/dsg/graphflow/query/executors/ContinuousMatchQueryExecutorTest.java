@@ -2,52 +2,89 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.outputsink.FileOutputSink;
 import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.StringJoiner;
 
 /**
  * Tests {@link GenericJoinExecutor}.
  */
 public class ContinuousMatchQueryExecutorTest {
 
+    // Special JUnit defined temporary folder used to test IO operations on files. Requires
+    // {@code public} visibility.
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     /**
-     * Tests the execution of a triangle Delta Generic Join query.
+     * Tests the execution of a triangle CONTINUOUS MATCH query.
      */
     @Test
     public void testProcessTriangles() throws Exception {
-        InMemoryOutputSink actualInMemoryOutputSink = new InMemoryOutputSink();
-        // Create a one time MATCH query plan for a simple triangle query with no types.
-        StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
-            "(a)->(b),(b)->(c),(c)->(a)");
-        ContinuousMatchQueryPlan continuousMatchQueryPlan = (ContinuousMatchQueryPlan) new
-            ContinuousMatchQueryPlanner(triangleStructuredQuery, actualInMemoryOutputSink).plan();
+        // Register a triangle CONTINUOUS MATCH query.
+        String continuousTriangleQuery = "CONTINUOUS MATCH (a)->(b),(b)->(c),(c)->(a)" +
+            " FILE results;";
+        StructuredQuery structuredQuery = new StructuredQueryParser().parse(
+            continuousTriangleQuery);
+        String fileName = "continuous_match_query_" + structuredQuery
+            .getContinuousMatchOutputLocation();
+        File location = temporaryFolder.newFile(fileName);
+        OutputSink outputSink = new FileOutputSink(location);
+        ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
+            (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
+                outputSink).plan());
 
         // Initialize a graph.
-        int[][] edges = {{0, 1}, {1, 2}, {2, 3}, {1, 3}, {3, 4}, {3, 0}, {4, 1}};
-        short[] edgeTypes = {2, 4, 6, 6, 8, 0, 2};
-        short[][] vertexTypes = {{10, 11}, {11, 12}, {12, 13}, {11, 13}, {13, 14}, {13, 10},
-            {14, 11}};
-        Graph graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
+        Graph graph = new Graph();
+        TestUtils.createEdgesPermanently(graph, "CREATE (0:Person)-[:FOLLOWS]->" +
+            "(1:Person),(1:Person)-[:FOLLOWS]->(2:Person), (1:Person)-[:FOLLOWS]->(3:Person)," +
+            "(2:Person)-[:FOLLOWS]->(3:Person), (3:Person)-[:FOLLOWS]->(4:Person)," +
+            "(3:Person)-[:FOLLOWS]->(0:Person), (4:Person)-[:FOLLOWS]->(1:Person);");
 
         // Create a diff graph by temporarily adding and deleting edges.
-        graph.addEdgeTemporarily(2, 0, (short) 12, (short) 10, (short) 0);
-        graph.deleteEdgeTemporarily(3, 4, (short) 8);
-        graph.deleteEdgeTemporarily(1, 2, (short) 4);
-        // Execute the Delta Generic Join query.
-        continuousMatchQueryPlan.execute(graph);
+        TestUtils.createEdgesTemporarily(graph, "CREATE (2:Person)-[:FOLLOWS]->(0:Person)");
+        TestUtils.deleteEdgesTemporarily(graph, "DELETE (3)->(4)");
+        TestUtils.deleteEdgesTemporarily(graph, "DELETE (1)->(2)");
+
+        // Execute the registered CONTINUOUS MATCH query.
+        ContinuousMatchQueryExecutor.getInstance().execute(graph);
 
         int[][] expectedMotifs = {{2, 0, 1}, {3, 4, 1}, {3, 4, 1}, {3, 4, 1}, {1, 2, 0}};
         MatchQueryResultType[] expectedMatchQueryResultTypes = {MatchQueryResultType.EMERGED,
             MatchQueryResultType.DELETED, MatchQueryResultType.DELETED,
             MatchQueryResultType.DELETED, MatchQueryResultType.DELETED};
 
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(actualInMemoryOutputSink,
-            TestUtils.getInMemoryOutputSinkForMotifs(expectedMotifs,
-                expectedMatchQueryResultTypes)));
+        // Test the output of the registered CONTINUOUS MATCH query.
+        BufferedReader br = new BufferedReader(new FileReader(location));
+        StringJoiner actualOutput = new StringJoiner(System.lineSeparator());
+        String line;
+        while ((line = br.readLine()) != null) {
+            actualOutput.add(line);
+        }
+        Assert.assertEquals(actualOutput.toString(), getInMemoryOutputSinkForMotifs(expectedMotifs,
+            expectedMatchQueryResultTypes).toString());
+    }
+
+    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs,
+        MatchQueryResultType[] matchQueryResultTypes) {
+        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
+        for (int i = 0; i < motifs.length; i++) {
+            inMemoryOutputSink.append(GenericJoinExecutor.getStringOutput(motifs[i],
+                matchQueryResultTypes[i]));
+        }
+        return inMemoryOutputSink;
     }
 }

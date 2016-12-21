@@ -7,7 +7,7 @@ import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -84,28 +84,26 @@ public class GenericJoinExecutorTest {
         InMemoryOutputSink outputSink;
 
         // Initialize a graph.
-        int[][] edges = {{0, 1}, {1, 2}, {2, 3}, {1, 3}, {3, 4}, {3, 0}, {4, 1}};
-        short[] edgeTypes = {5, 6, 7, 7, 8, 4, 5};
-        short[][] vertexTypes = {{0, 4}, {4, 8}, {8, 12}, {4, 12}, {12, 16}, {12, 0}, {16, 4}};
-        Graph graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
+        Graph graph = new Graph();
+        TestUtils.createEdgesPermanently(graph, "CREATE (0:Person)-[:FOLLOWS]->" +
+            "(1:Person),(1:Person)-[:FOLLOWS]->(2:Person), (1:Person)-[:FOLLOWS]->(3:Person)," +
+            "(2:Person)-[:FOLLOWS]->(3:Person), (3:Person)-[:FOLLOWS]->(4:Person)," +
+            "(3:Person)-[:FOLLOWS]->(0:Person), (4:Person)-[:FOLLOWS]->(1:Person);");
 
         // Execute the query and test.
         outputSink = new InMemoryOutputSink();
         actualOneTimeMatchQueryPlan.execute(graph, outputSink);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
-            getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
+            expectedMotifsAfterAdditions)));
 
         // Delete one of the edges.
-        int[] deletedEdge = {4, 1};
-        short deletedEdgeType = 5;
-        graph.deleteEdgeTemporarily(deletedEdge[0], deletedEdge[1], deletedEdgeType);
-        graph.finalizeChanges();
+        TestUtils.deleteEdgesPermanently(graph, "DELETE (4)->(1);");
 
         // Execute the query again and test.
         outputSink = new InMemoryOutputSink();
         actualOneTimeMatchQueryPlan.execute(graph, outputSink);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils
-            .getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
+            expectedMotifsAfterDeletion)));
     }
 
     private void assertComplexMatchQueryOutput(OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan,
@@ -114,29 +112,35 @@ public class GenericJoinExecutorTest {
         InMemoryOutputSink outputSink;
 
         Graph graph = new Graph();
-        TestUtils.addEdgesToGraphUsingCreateQuery(graph, "CREATE (0:Person)-[:FOLLOWS]->" +
+        TestUtils.createEdgesPermanently(graph, "CREATE (0:Person)-[:FOLLOWS]->" +
             "(1:Person),(0:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->(0:Person)," +
             "(1:Person)-[:TAGGED]->(3:Person),(3:Person)-[:LIKES]->(1:Person)," +
             "(3:Person)-[:FOLLOWS]->(0:Person),(4:Person)-[:FOLLOWS]->(1:Person)," +
             "(4:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->(4:Person)," +
-            "(3:Person)-[:FOLLOWS]->(4:Person)");
+            "(3:Person)-[:FOLLOWS]->(4:Person);");
 
         // Execute the query and test.
         outputSink = new InMemoryOutputSink();
         actualOneTimeMatchQueryPlan.execute(graph, outputSink);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
-            getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
+            expectedMotifsAfterAdditions)));
 
         // Delete one of the edges.
-        int[] deletedEdge = {0, 1};
-        short deletedEdgeType = TypeStore.getInstance().getShortIdOrAnyTypeIfNull("FOLLOWS");
-        graph.deleteEdgeTemporarily(deletedEdge[0], deletedEdge[1], deletedEdgeType);
-        graph.finalizeChanges();
+        TestUtils.deleteEdgesPermanently(graph, "DELETE (0)-[:FOLLOWS]->(1);");
 
         // Execute the query again and test.
         outputSink = new InMemoryOutputSink();
         actualOneTimeMatchQueryPlan.execute(graph, outputSink);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils
-            .getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
+            expectedMotifsAfterDeletion)));
+    }
+
+    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs) {
+        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
+        for (int[] motif : motifs) {
+            inMemoryOutputSink.append(GenericJoinExecutor.getStringOutput(motif,
+                MatchQueryResultType.MATCHED));
+        }
+        return inMemoryOutputSink;
     }
 }

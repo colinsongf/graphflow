@@ -2,8 +2,8 @@ package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.ShortestPathPlan;
-import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 
 /**
  * Creates the execution plan for a shortest path query.

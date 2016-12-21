@@ -1,8 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.parser;
 
-import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
-import ca.waterloo.dsg.graphflow.query.utils.QueryVariable;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.junit.Assert;
 import org.junit.Test;

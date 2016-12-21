@@ -8,8 +8,8 @@ import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
-import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 
 import java.util.ArrayList;
 import java.util.HashSet;

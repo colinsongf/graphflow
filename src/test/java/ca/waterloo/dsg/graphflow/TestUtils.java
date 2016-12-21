@@ -2,12 +2,9 @@ package ca.waterloo.dsg.graphflow;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeStore;
-import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
-import ca.waterloo.dsg.graphflow.query.executors.GenericJoinExecutor;
-import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
-import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 
 /**
  * Provides utility functions for tests.
@@ -57,7 +54,19 @@ public class TestUtils {
      * @param graph The {@link Graph} instance to which the edges should be added.
      * @param createQuery The {@code String} create query to be executed.
      */
-    public static void addEdgesToGraphUsingCreateQuery(Graph graph, String createQuery) {
+    public static void createEdgesPermanently(Graph graph, String createQuery) {
+        createEdgesTemporarily(graph, createQuery);
+        graph.finalizeChanges();
+    }
+
+    /**
+     * Adds a set of edges to the given {@code graph} temporarily by executing the given
+     * {@code createQuery}.
+     *
+     * @param graph The {@link Graph} instance to which the edges should be added.
+     * @param createQuery The {@code String} create query to be executed.
+     */
+    public static void createEdgesTemporarily(Graph graph, String createQuery) {
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(createQuery);
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
             int fromVertex = Integer.parseInt(queryRelation.getFromQueryVariable().getVariableId());
@@ -75,41 +84,35 @@ public class TestUtils {
             graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexTypeId, toVertexTypeId,
                 edgeTypeId);
         }
+    }
+
+    /**
+     * Deletes a set of edges from the given {@code graph} permanently by executing the given
+     * {@code deleteQuery}.
+     *
+     * @param graph The {@link Graph} instance from which the edges should be deleted.
+     * @param deleteQuery The {@code String} delete query to be executed.
+     */
+    public static void deleteEdgesPermanently(Graph graph, String deleteQuery) {
+        deleteEdgesTemporarily(graph, deleteQuery);
         graph.finalizeChanges();
     }
 
     /**
-     * Returns an {@link InMemoryOutputSink} simulating output from {@link GenericJoinExecutor}.
+     * Deletes a set of edges from the given {@code graph} temporarily by executing the given
+     * {@code deleteQuery}.
      *
-     * @param motifs The array of motifs which should be present in the {@link InMemoryOutputSink}
-     * @return An {@link InMemoryOutputSink} containing {@code motifs} and a default
-     * {@link MatchQueryResultType#MATCHED}.
+     * @param graph The {@link Graph} instance from which the edges should be deleted.
+     * @param deleteQuery The {@code String} delete query to be executed.
      */
-    public static InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs) {
-        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
-        for (int[] motif : motifs) {
-            inMemoryOutputSink.append(GenericJoinExecutor.getStringOutput(motif,
-                MatchQueryResultType.MATCHED));
+    public static void deleteEdgesTemporarily(Graph graph, String deleteQuery) {
+        StructuredQuery structuredQuery = new StructuredQueryParser().parse(deleteQuery);
+        for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
+            graph.deleteEdgeTemporarily(
+                Integer.parseInt(queryRelation.getFromQueryVariable().getVariableId()),
+                Integer.parseInt(queryRelation.getToQueryVariable().getVariableId()),
+                TypeStore.getInstance().getShortIdOrAnyTypeIfNull(
+                    queryRelation.getRelationType()));
         }
-        return inMemoryOutputSink;
-    }
-
-    /**
-     * Returns an {@link InMemoryOutputSink} simulating output from {@link GenericJoinExecutor}.
-     *
-     * @param motifs The array of motifs which should be present in the {@link InMemoryOutputSink}
-     * @param matchQueryResultTypes The array of {@link MatchQueryResultType} representing the
-     * output type of the {@code motifs}.
-     * @return An {@link InMemoryOutputSink} containing {@code motifs} and a default
-     * {@link MatchQueryResultType#MATCHED}.
-     */
-    public static InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs,
-        MatchQueryResultType[] matchQueryResultTypes) {
-        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
-        for (int i = 0; i < motifs.length; i++) {
-            inMemoryOutputSink.append(GenericJoinExecutor.getStringOutput(motifs[i],
-                matchQueryResultTypes[i]));
-        }
-        return inMemoryOutputSink;
     }
 }

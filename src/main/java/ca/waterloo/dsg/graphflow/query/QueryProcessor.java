@@ -16,7 +16,7 @@ import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.DeleteQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 import java.io.File;

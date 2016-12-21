@@ -14,11 +14,11 @@ import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.PathPatternContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.ShortestPathQueryContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableEdgeContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableVertexContext;
-import ca.waterloo.dsg.graphflow.query.utils.AbstractStructuredQuery;
-import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
-import ca.waterloo.dsg.graphflow.query.utils.QueryVariable;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery.QueryOperation;
+import ca.waterloo.dsg.graphflow.query.structuredquery.AbstractStructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery.QueryOperation;
 
 /**
  * This class implements the ANTLR4 methods used to traverse the parse tree.

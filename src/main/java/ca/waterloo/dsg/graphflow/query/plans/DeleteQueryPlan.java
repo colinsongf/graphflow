@@ -4,8 +4,8 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeStore;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
-import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 
 import java.util.NoSuchElementException;
 

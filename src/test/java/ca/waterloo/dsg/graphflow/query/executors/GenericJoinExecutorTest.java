@@ -7,7 +7,7 @@ import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
-import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import org.junit.Assert;
 import org.junit.Test;
 

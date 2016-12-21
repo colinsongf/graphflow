@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.query.utils;
+package ca.waterloo.dsg.graphflow.query.structuredquery;
 
 import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 

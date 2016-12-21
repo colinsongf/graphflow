@@ -66,12 +66,12 @@ public class TestUtils {
             // Insert the types into the {@code TypeStore} if they do not already exist, and
             // get their {@code short} IDs. An exception in the above {@code parseInt()} calls
             // will prevent the insertion of any new type to the {@code TypeStore}.
-            short fromVertexTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(queryEdge.
-                getFromQueryVariable().getVariableType());
-            short toVertexTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(queryEdge.
-                getToQueryVariable().getVariableType());
-            short edgeTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(queryEdge.
-                getEdgeType());
+            short fromVertexTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(
+                queryEdge.getFromQueryVariable().getVariableType());
+            short toVertexTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(
+                queryEdge.getToQueryVariable().getVariableType());
+            short edgeTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(
+                queryEdge.getEdgeType());
             // Add the new edge to the graph.
             graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexTypeId, toVertexTypeId,
                 edgeTypeId);

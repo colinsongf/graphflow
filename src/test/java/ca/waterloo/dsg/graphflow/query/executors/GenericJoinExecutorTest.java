@@ -102,8 +102,8 @@ public class GenericJoinExecutorTest {
         InMemoryOutputSink outputSink;
 
         Graph graph = new Graph();
-        TestUtils.addEdgesToGraphUsingCreateQuery(graph, "CREATE (0:Person)-[:FOLLOWS]->(1:Person)" +
-            ",(0:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->(0:Person)," +
+        TestUtils.addEdgesToGraphUsingCreateQuery(graph, "CREATE (0:Person)-[:FOLLOWS]->" +
+            "(1:Person),(0:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->(0:Person)," +
             "(1:Person)-[:TAGGED]->(3:Person),(3:Person)-[:LIKES]->(1:Person)," +
             "(3:Person)-[:FOLLOWS]->(0:Person),(4:Person)-[:FOLLOWS]->(1:Person)," +
             "(4:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->(4:Person)," +

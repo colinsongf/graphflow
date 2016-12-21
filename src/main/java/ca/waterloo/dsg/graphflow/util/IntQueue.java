@@ -119,6 +119,11 @@ public class IntQueue {
         return size;
     }
 
+    @ExistsForTesting
+    void setSize(int size) {
+        this.size = size;
+    }
+
     private void resize(int newCapacity) {
         int[] temp = new int[newCapacity];
         for (int i = 0; i < size; i++) {
@@ -147,8 +152,8 @@ public class IntQueue {
     }
 
     @ExistsForTesting
-    void setNextItemIndex(int nextItemIndex) {
-        this.nextItemIndex = nextItemIndex;
+    int getFirstItemIndex() {
+        return firstItemIndex;
     }
 
     @ExistsForTesting
@@ -157,17 +162,12 @@ public class IntQueue {
     }
 
     @ExistsForTesting
-    int getFirstItemIndex() {
-        return firstItemIndex;
-    }
-
-    @ExistsForTesting
     int getNextItemIndex() {
         return nextItemIndex;
     }
 
     @ExistsForTesting
-    void setSize(int size) {
-        this.size = size;
+    void setNextItemIndex(int nextItemIndex) {
+        this.nextItemIndex = nextItemIndex;
     }
 }

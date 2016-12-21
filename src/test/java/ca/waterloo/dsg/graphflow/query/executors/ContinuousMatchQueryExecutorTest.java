@@ -14,7 +14,9 @@ import org.junit.Test;
  * Tests for {@code GenericJoinExecutor}.
  */
 public class ContinuousMatchQueryExecutorTest {
+
     private Graph graph;
+
     /**
      * Tests the execution of a triangle Delta Generic Join query.
      */
@@ -38,9 +40,9 @@ public class ContinuousMatchQueryExecutorTest {
         graph = TestUtils.initializeGraph(edges, edgeTypes, vertexTypes);
 
         // Create a diff graph by temporarily adding and deleting edges.
-        graph.addEdgeTemporarily(2, 0, (short)12, (short)10, (short)0);
-        graph.deleteEdgeTemporarily(3, 4, (short)8);
-        graph.deleteEdgeTemporarily(1, 2, (short)4);
+        graph.addEdgeTemporarily(2, 0, (short) 12, (short) 10, (short) 0);
+        graph.deleteEdgeTemporarily(3, 4, (short) 8);
+        graph.deleteEdgeTemporarily(1, 2, (short) 4);
         // Execute the Delta Generic Join query.
         outputSink = new InMemoryOutputSink();
         continuousMatchQueryPlan.execute(graph);

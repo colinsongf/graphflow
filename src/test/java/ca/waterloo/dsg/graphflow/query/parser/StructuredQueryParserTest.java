@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.parser;
 
-import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.utils.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
@@ -26,11 +26,11 @@ public class StructuredQueryParserTest {
         }
 
         StructuredQuery expectedStructuredQuery = new StructuredQuery();
-        expectedStructuredQuery.addEdge(new QueryEdge(new QueryVariable("a"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("a"),
             new QueryVariable("b")));
-        expectedStructuredQuery.addEdge(new QueryEdge(new QueryVariable("b"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("b"),
             new QueryVariable("c")));
-        expectedStructuredQuery.addEdge(new QueryEdge(new QueryVariable("c"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("c"),
             new QueryVariable("a")));
         expectedStructuredQuery.setQueryOperation(StructuredQuery.QueryOperation.MATCH);
 
@@ -52,11 +52,11 @@ public class StructuredQueryParserTest {
         }
 
         StructuredQuery expectedStructuredQuery = new StructuredQuery();
-        expectedStructuredQuery.addEdge(new QueryEdge(new QueryVariable("1", "Person"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("1", "Person"),
             new QueryVariable("2", "Person"), "FOLLOWS"));
-        expectedStructuredQuery.addEdge(new QueryEdge(new QueryVariable("2", "Person"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("2", "Person"),
             new QueryVariable("3", "Person"), "FOLLOWS"));
-        expectedStructuredQuery.addEdge(new QueryEdge(new QueryVariable("1", "Person"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("1", "Person"),
             new QueryVariable("3", "Person"), "FOLLOWS"));
         expectedStructuredQuery.setQueryOperation(StructuredQuery.QueryOperation.CREATE);
 
@@ -77,9 +77,9 @@ public class StructuredQueryParserTest {
         }
 
         StructuredQuery expectedStructuredQuery = new StructuredQuery();
-        expectedStructuredQuery.addEdge(new QueryEdge(new QueryVariable("1"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("1"),
             new QueryVariable("2")));
-        expectedStructuredQuery.addEdge(new QueryEdge(new QueryVariable("2"),
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("2"),
             new QueryVariable("3")));
         expectedStructuredQuery.setQueryOperation(StructuredQuery.QueryOperation.DELETE);
 
@@ -100,8 +100,8 @@ public class StructuredQueryParserTest {
         }
 
         StructuredQuery expectedStructuredQuery = new StructuredQuery();
-        expectedStructuredQuery.addEdge(new QueryEdge(new QueryVariable("0"), new QueryVariable
-            ("9")));
+        expectedStructuredQuery.addRelation(new QueryRelation(new QueryVariable("0"),
+            new QueryVariable("9")));
         expectedStructuredQuery.setQueryOperation(StructuredQuery.QueryOperation.SHORTEST_PATH);
 
         Assert.assertTrue(StructuredQuery.isSameAs(actualStructuredQuery, expectedStructuredQuery));

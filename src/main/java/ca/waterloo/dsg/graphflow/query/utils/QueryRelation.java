@@ -5,36 +5,36 @@ import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 import java.util.Objects;
 
 /**
- * Represents a query edge used by {@link StructuredQuery}.
+ * Represents a query relation used by {@link StructuredQuery}.
  */
-public class QueryEdge implements AbstractStructuredQuery {
+public class QueryRelation implements AbstractStructuredQuery {
 
     private QueryVariable fromQueryVariable;
     private QueryVariable toQueryVariable;
-    private String edgeType;
+    private String relationType;
 
     /**
-     * Constructs a {@code QueryEdge} with the edge type set to {@code null}.
+     * Constructs a {@code QueryRelation} with the relation type set to {@code null}.
      *
-     * @see QueryEdge#QueryEdge(QueryVariable, QueryVariable, String)
+     * @see QueryRelation#QueryRelation(QueryVariable, QueryVariable, String)
      */
-    public QueryEdge(QueryVariable fromQueryVariable, QueryVariable toQueryVariable) {
+    public QueryRelation(QueryVariable fromQueryVariable, QueryVariable toQueryVariable) {
         this(fromQueryVariable, toQueryVariable, null);
     }
 
     /**
-     * Constructs a {@link QueryEdge}. The direction of the {@link QueryEdge} is implicit from
-     * {@code fromQueryVariable} to {@code toQueryVariable}.
+     * Constructs a {@link QueryRelation}. The direction of the {@link QueryRelation} is implicit
+     * from {@code fromQueryVariable} to {@code toQueryVariable}.
      *
-     * @param fromQueryVariable The from variable of the edge.
-     * @param toQueryVariable The to variable of the edge.
-     * @param edgeType the {@code String} edge type.
+     * @param fromQueryVariable The from variable of the relation.
+     * @param toQueryVariable The to variable of the relation.
+     * @param relationType the {@code String} relation type.
      */
-    public QueryEdge(QueryVariable fromQueryVariable, QueryVariable toQueryVariable,
-        String edgeType) {
+    public QueryRelation(QueryVariable fromQueryVariable, QueryVariable toQueryVariable,
+        String relationType) {
         this.fromQueryVariable = fromQueryVariable;
         this.toQueryVariable = toQueryVariable;
-        this.edgeType = edgeType;
+        this.relationType = relationType;
     }
 
     public QueryVariable getFromQueryVariable() {
@@ -45,12 +45,12 @@ public class QueryEdge implements AbstractStructuredQuery {
         return toQueryVariable;
     }
 
-    public String getEdgeType() {
-        return edgeType;
+    public String getRelationType() {
+        return relationType;
     }
 
-    public void setEdgeType(String edgeType) {
-        this.edgeType = edgeType;
+    public void setRelationType(String relationType) {
+        this.relationType = relationType;
     }
 
     /**
@@ -63,7 +63,7 @@ public class QueryEdge implements AbstractStructuredQuery {
      * {@code b} object values, {@code false} otherwise.
      */
     @ExistsForTesting
-    public static boolean isSameAs(QueryEdge a, QueryEdge b) {
+    public static boolean isSameAs(QueryRelation a, QueryRelation b) {
         if (a == b) {
             return true;
         }
@@ -72,6 +72,6 @@ public class QueryEdge implements AbstractStructuredQuery {
         }
         return QueryVariable.isSameAs(a.fromQueryVariable, b.fromQueryVariable) &&
             QueryVariable.isSameAs(a.toQueryVariable, b.toQueryVariable) &&
-            Objects.equals(a.edgeType, b.edgeType);
+            Objects.equals(a.relationType, b.relationType);
     }
 }

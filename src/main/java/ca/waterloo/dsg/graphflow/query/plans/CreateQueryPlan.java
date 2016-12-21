@@ -4,7 +4,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeStore;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
-import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 
 /**
@@ -26,25 +26,26 @@ public class CreateQueryPlan implements QueryPlan {
      */
     public void execute(Graph graph, OutputSink outputSink) {
         try {
-            for (QueryEdge queryEdge : structuredQuery.getQueryEdges()) {
-                int fromVertex = Integer.parseInt(queryEdge.getFromQueryVariable().getVariableId());
-                int toVertex = Integer.parseInt(queryEdge.getToQueryVariable().getVariableId());
+            for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
+                int fromVertex = Integer.parseInt(queryRelation.getFromQueryVariable().
+                    getVariableId());
+                int toVertex = Integer.parseInt(queryRelation.getToQueryVariable().getVariableId());
                 // Insert the types into the {@code TypeStore} if they do not already exist, and
                 // get their {@code short} IDs. An exception in the above {@code parseInt()} calls
                 // will prevent the insertion of any new type to the {@code TypeStore}.
                 short fromVertexTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(
-                    queryEdge.getFromQueryVariable().getVariableType());
+                    queryRelation.getFromQueryVariable().getVariableType());
                 short toVertexTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(
-                    queryEdge.getToQueryVariable().getVariableType());
+                    queryRelation.getToQueryVariable().getVariableType());
                 short edgeTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(
-                    queryEdge.getEdgeType());
+                    queryRelation.getRelationType());
                 // Add the new edge to the graph.
                 graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexTypeId, toVertexTypeId,
                     edgeTypeId);
             }
             ContinuousMatchQueryExecutor.getInstance().execute(graph);
             graph.finalizeChanges();
-            outputSink.append(structuredQuery.getQueryEdges().size() + " edges created.");
+            outputSink.append(structuredQuery.getQueryRelations().size() + " edges created.");
         } catch (UnsupportedOperationException e) {
             outputSink.append("ERROR: " + e.getMessage());
         }

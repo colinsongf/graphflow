@@ -20,25 +20,25 @@ public class StructuredQuery implements AbstractStructuredQuery {
         CONTINUOUS_MATCH
     }
 
-    private List<QueryEdge> queryEdges = new ArrayList<>();
+    private List<QueryRelation> queryRelations = new ArrayList<>();
     private QueryOperation queryOperation;
     private String continuousMatchAction;
     private String continuousMatchOutputLocation;
 
     /**
-     * @return A read-only list of query edges.
+     * @return A read-only list of query relations.
      */
-    public List<QueryEdge> getQueryEdges() {
-        return Collections.unmodifiableList(queryEdges);
+    public List<QueryRelation> getQueryRelations() {
+        return Collections.unmodifiableList(queryRelations);
     }
 
     /**
-     * Adds a {@link QueryEdge} to the list of edges.
+     * Adds a {@link QueryRelation} to the list of relations.
      *
-     * @param queryEdge The {@link QueryEdge} to be added.
+     * @param queryRelation The {@link QueryRelation} to be added.
      */
-    public void addEdge(QueryEdge queryEdge) {
-        this.queryEdges.add(queryEdge);
+    public void addRelation(QueryRelation queryRelation) {
+        this.queryRelations.add(queryRelation);
     }
 
     public QueryOperation getQueryOperation() {
@@ -87,11 +87,11 @@ public class StructuredQuery implements AbstractStructuredQuery {
             Objects.equals(a.continuousMatchOutputLocation, b.continuousMatchOutputLocation))) {
             return false;
         }
-        if (a.queryEdges.size() != b.queryEdges.size()) {
+        if (a.queryRelations.size() != b.queryRelations.size()) {
             return false;
         }
-        for (int i = 0; i < a.queryEdges.size(); i++) {
-            if (!QueryEdge.isSameAs(a.queryEdges.get(i), b.queryEdges.get(i))) {
+        for (int i = 0; i < a.queryRelations.size(); i++) {
+            if (!QueryRelation.isSameAs(a.queryRelations.get(i), b.queryRelations.get(i))) {
                 return false;
             }
         }

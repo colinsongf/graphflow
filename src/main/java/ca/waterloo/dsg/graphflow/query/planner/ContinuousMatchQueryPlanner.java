@@ -8,7 +8,7 @@ import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
-import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
+import ca.waterloo.dsg.graphflow.query.utils.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 
 import java.util.ArrayList;
@@ -45,9 +45,9 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         // the {@code DIFF_PLUS} or {@code DIFF_MINUS} versions of the graph (the newly added or
         // deleted edges). We refer to this relation as the diffRelation below; (3) n-i relations
         // that use the {@code PERMANENT} version of the graph.
-        Set<QueryEdge> mergedRelations = new HashSet<>();
-        Set<QueryEdge> permanentRelations = new HashSet<>(structuredQuery.getQueryEdges());
-        for (QueryEdge diffRelation : structuredQuery.getQueryEdges()) {
+        Set<QueryRelation> mergedRelations = new HashSet<>();
+        Set<QueryRelation> permanentRelations = new HashSet<>(structuredQuery.getQueryRelations());
+        for (QueryRelation diffRelation : structuredQuery.getQueryRelations()) {
             // The first two variables considered in each round will be the variables from the
             // delta relation.
             permanentRelations.remove(diffRelation);
@@ -80,8 +80,8 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
      * @return OneTimeMatchQueryPlan A set of stages representing a single generic join query plan.
      */
     private OneTimeMatchQueryPlan addSingleQueryPlan(GraphVersion graphVersion,
-        List<String> orderedVariables, QueryEdge diffRelation, Set<QueryEdge> permanentRelations,
-        Set<QueryEdge> mergedRelations) {
+        List<String> orderedVariables, QueryRelation diffRelation,
+        Set<QueryRelation> permanentRelations, Set<QueryRelation> mergedRelations) {
         OneTimeMatchQueryPlan oneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
         List<GenericJoinIntersectionRule> stage;
         // Add the first stage. The first stage always starts with extending the diffRelation's
@@ -91,23 +91,24 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         // if the relation type {@code String} of {@code diffRelation} does not already exist in the
         // {@code TypeStore}.
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, graphVersion,
-            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(diffRelation.getEdgeType())));
+            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(diffRelation.getRelationType())));
         oneTimeMatchQueryPlan.addStage(stage);
         // Add the other relations that are present between the diffRelation's
         // {@code fromVariable} to {@code toVariable}.
         String fromVariable = orderedVariables.get(0);
         String toVariable = orderedVariables.get(1);
-        for (QueryEdge queryEdge : queryGraph.getAdjacentEdges(fromVariable, toVariable)) {
-            if (QueryEdge.isSameAs(diffRelation, queryEdge)) {
+        for (QueryRelation queryRelation : queryGraph.getAdjacentRelations(fromVariable,
+            toVariable)) {
+            if (QueryRelation.isSameAs(diffRelation, queryRelation)) {
                 // This relation has been added as the {@code diffRelation}.
                 continue;
             }
             addGenericJoinIntersectionRule(0,
-                // The {@code Direction} of the rule is {@code FORWARD} if {@code queryEdge} is
+                // The {@code Direction} of the rule is {@code FORWARD} if {@code queryRelation} is
                 // an edge from {@code fromVariable} to {@code toVariable}, else {@code BACKWARD}.
-                queryEdge.getFromQueryVariable().getVariableId().equals(fromVariable) ?
+                queryRelation.getFromQueryVariable().getVariableId().equals(fromVariable) ?
                     Direction.FORWARD : Direction.BACKWARD,
-                queryEdge, stage, permanentRelations, mergedRelations);
+                queryRelation, stage, permanentRelations, mergedRelations);
         }
         // Add the rest of the stages.
         for (int i = 2; i < orderedVariables.size(); i++) {
@@ -122,16 +123,16 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             stage = new ArrayList<>();
             for (int j = 0; j < i; j++) {
                 String coveredVariable = orderedVariables.get(j);
-                if (queryGraph.containsEdge(coveredVariable, nextVariable)) {
-                    for (QueryEdge queryEdge : queryGraph.getAdjacentEdges(coveredVariable,
-                        nextVariable)) {
+                if (queryGraph.containsRelation(coveredVariable, nextVariable)) {
+                    for (QueryRelation queryRelation : queryGraph.getAdjacentRelations(
+                        coveredVariable, nextVariable)) {
                         addGenericJoinIntersectionRule(j,
                             // The {@code Direction} of the rule is {@code FORWARD} if
-                            // {@code queryEdge} is an edge from {@code coveredVariable} to
+                            // {@code queryRelation} is an edge from {@code coveredVariable} to
                             // {@code nextVariable}, else {@code BACKWARD}.
-                            queryEdge.getFromQueryVariable().getVariableId().equals(
+                            queryRelation.getFromQueryVariable().getVariableId().equals(
                                 coveredVariable) ? Direction.FORWARD : Direction.BACKWARD,
-                            queryEdge, stage, permanentRelations, mergedRelations);
+                            queryRelation, stage, permanentRelations, mergedRelations);
                     }
                 }
             }
@@ -156,8 +157,8 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
      * version of the graph.
      */
     private void addGenericJoinIntersectionRule(int prefixIndex, Direction direction,
-        QueryEdge newRelation, List<GenericJoinIntersectionRule> stage,
-        Set<QueryEdge> permanentRelations, Set<QueryEdge> mergedRelations) {
+        QueryRelation newRelation, List<GenericJoinIntersectionRule> stage,
+        Set<QueryRelation> permanentRelations, Set<QueryRelation> mergedRelations) {
         // Select the appropriate {@code GraphVersion} by checking for the existence of
         // {@code newRelation} in either {@code mergedRelations} or {@code mergedRelations}.
         GraphVersion version;
@@ -173,19 +174,19 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         // if the relation type {@code String} of {@code newRelation} does not already exist in the
         // {@code TypeStore}.
         stage.add(new GenericJoinIntersectionRule(prefixIndex, direction, version,
-            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(newRelation.getEdgeType())));
+            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(newRelation.getRelationType())));
     }
 
     /**
-     * @param queryEdgeToCheck The {@link QueryEdge} to be searched.
-     * @param queryRelations A set of {@link QueryEdge}s.
+     * @param queryRelationToCheck The {@link QueryRelation} to be searched.
+     * @param queryRelations A set of {@link QueryRelation}s.
      * @return {@code true} if {@code fromVariable} and {@code toVariable} match the
-     * corresponding values of any of the {@link QueryEdge} present in {@code queryRelations}.
+     * corresponding values of any of the {@link QueryRelation} present in {@code queryRelations}.
      */
-    private boolean isRelationPresentInSet(QueryEdge queryEdgeToCheck,
-        Set<QueryEdge> queryRelations) {
-        for (QueryEdge queryEdge : queryRelations) {
-            if (QueryEdge.isSameAs(queryEdgeToCheck, queryEdge)) {
+    private boolean isRelationPresentInSet(QueryRelation queryRelationToCheck,
+        Set<QueryRelation> queryRelations) {
+        for (QueryRelation queryRelation : queryRelations) {
+            if (QueryRelation.isSameAs(queryRelationToCheck, queryRelation)) {
                 return true;
             }
         }

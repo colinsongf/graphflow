@@ -2,12 +2,15 @@ package ca.waterloo.dsg.graphflow;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeStore;
+import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.executors.GenericJoinExecutor;
+import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.utils.QueryEdge;
 import ca.waterloo.dsg.graphflow.query.utils.StructuredQuery;
 
 /**
- * Provides utility functions for graph tests.
+ * Provides utility functions for tests.
  */
 public class TestUtils {
 
@@ -21,12 +24,9 @@ public class TestUtils {
      * t2 is the type of destination vertex v.
      * @return Graph The initialized graph.
      */
-    public static Graph initializeGraph(int[][] edges, short[] edgeTypes, short[][] vertexTypes) {
-        Graph graph = new Graph();
-        for (int i = 0; i < edges.length; i++) {
-            graph.addEdgeTemporarily(edges[i][0], edges[i][1], vertexTypes[i][0],
-                vertexTypes[i][1], edgeTypes[i]);
-        }
+    public static Graph initializeGraphPermanently(int[][] edges, short[] edgeTypes,
+        short[][] vertexTypes) {
+        Graph graph = initializeGraphTemporarily(edges, edgeTypes, vertexTypes);
         graph.finalizeChanges();
         return graph;
     }
@@ -41,14 +41,13 @@ public class TestUtils {
      * t2 is the type of destination vertex v.
      * @return Graph The graph initialized with temporary edges.
      */
-    public static Graph initializeGraphWithoutFinalizing(int[][] edges, short[] edgeTypes,
+    public static Graph initializeGraphTemporarily(int[][] edges, short[] edgeTypes,
         short[][] vertexTypes) {
         Graph graph = new Graph();
         for (int i = 0; i < edges.length; i++) {
             graph.addEdgeTemporarily(edges[i][0], edges[i][1], vertexTypes[i][0],
                 vertexTypes[i][1], edgeTypes[i]);
         }
-        graph.finalizeChanges();
         return graph;
     }
 
@@ -77,5 +76,40 @@ public class TestUtils {
                 edgeTypeId);
         }
         graph.finalizeChanges();
+    }
+
+    /**
+     * Returns an {@link InMemoryOutputSink} simulating output from {@link GenericJoinExecutor}.
+     *
+     * @param motifs The array of motifs which should be present in the {@link InMemoryOutputSink}
+     * @return An {@link InMemoryOutputSink} containing {@code motifs} and a default
+     * {@link MatchQueryResultType#MATCHED}.
+     */
+    public static InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs) {
+        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
+        for (int[] motif : motifs) {
+            inMemoryOutputSink.append(GenericJoinExecutor.getStringOutput(motif,
+                MatchQueryResultType.MATCHED));
+        }
+        return inMemoryOutputSink;
+    }
+
+    /**
+     * Returns an {@link InMemoryOutputSink} simulating output from {@link GenericJoinExecutor}.
+     *
+     * @param motifs The array of motifs which should be present in the {@link InMemoryOutputSink}
+     * @param matchQueryResultTypes The array of {@link MatchQueryResultType} representing the
+     * output type of the {@code motifs}.
+     * @return An {@link InMemoryOutputSink} containing {@code motifs} and a default
+     * {@link MatchQueryResultType#MATCHED}.
+     */
+    public static InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs,
+        MatchQueryResultType[] matchQueryResultTypes) {
+        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
+        for (int i = 0; i < motifs.length; i++) {
+            inMemoryOutputSink.append(GenericJoinExecutor.getStringOutput(motifs[i],
+                matchQueryResultTypes[i]));
+        }
+        return inMemoryOutputSink;
     }
 }

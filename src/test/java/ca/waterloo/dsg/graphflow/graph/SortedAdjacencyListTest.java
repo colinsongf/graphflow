@@ -7,12 +7,12 @@ import org.junit.Test;
 import java.util.Arrays;
 
 /**
- * Tests for {@link SortedAdjacencyList}.
+ * Tests {@link SortedAdjacencyList}.
  */
 public class SortedAdjacencyListTest {
 
-    private SortedAdjacencyList getPopulatedAdjacencyList(int[] neighbourIds, short[]
-        neighbourTypes) {
+    private SortedAdjacencyList getPopulatedAdjacencyList(int[] neighbourIds,
+        short[] neighbourTypes) {
         SortedAdjacencyList adjacencyList = new SortedAdjacencyList();
         for (int i = 0; i < neighbourIds.length; i++) {
             if (neighbourTypes != null && neighbourTypes.length == neighbourIds.length) {
@@ -22,8 +22,8 @@ public class SortedAdjacencyListTest {
         return adjacencyList;
     }
 
-    private void testSort(int[] inputNeighbourIds, short[] inputNeighbourTypes, int[]
-        sortedNeighbourIds, short[] sortedNeighbourTypes) {
+    private void testSort(int[] inputNeighbourIds, short[] inputNeighbourTypes,
+        int[] sortedNeighbourIds, short[] sortedNeighbourTypes) {
         SortedAdjacencyList adjacencyList = getPopulatedAdjacencyList(inputNeighbourIds,
             inputNeighbourTypes);
         int expectedSize = inputNeighbourIds.length;
@@ -35,8 +35,8 @@ public class SortedAdjacencyListTest {
             adjacencyList.getSize()));
     }
 
-    private void testSearch(int[] inputNeighbourIds, short[] inputNeighbourTypes, int
-        neighbourIdForSearch, int edgeTypeForSearch, int expectedIndex) {
+    private void testSearch(int[] inputNeighbourIds, short[] inputNeighbourTypes,
+        int neighbourIdForSearch, int edgeTypeForSearch, int expectedIndex) {
         SortedAdjacencyList adjacencyList = getPopulatedAdjacencyList(inputNeighbourIds,
             inputNeighbourTypes);
         int resultIndex = adjacencyList.search(neighbourIdForSearch, edgeTypeForSearch);

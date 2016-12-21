@@ -3,8 +3,15 @@ package ca.waterloo.dsg.graphflow.query.utils;
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * Tests {@link QueryGraph}.
+ */
 public class QueryGraphTest {
 
+    /**
+     * Tests that the {@link QueryGraph} stores the correct number of adjacent relations when
+     * multiple relations are present between two variables.
+     */
     @Test
     public void testNumberOfAdjacentRelations() throws Exception {
         // Create the {@code QueryGraph}.

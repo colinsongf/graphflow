@@ -129,14 +129,14 @@ public class ShortestPathExecutor {
     }
 
     /**
-     * Calculates the shortest paths for the given pair of nodes using bi-directional BFS. Vertices
-     * are traversed starting from s in the forward direction and t in the backward direction. Each
-     * side uses a queue to store its frontier. In each iteration, the algorithm traverses in the
-     * direction that has the smaller size queue. Once the two traversals intersect, we backtrack
-     * from the intersecting nodes to s and t to identify all of the edges that are on at least one
-     * shortest path. The subgraph formed by the identified edges are output to the given
-     * {@code outputSink}. If no paths are found, an empty result set is output to the
-     * {@code outputSink}.
+     * Calculates the shortest paths for the given pair of vertices using bi-directional BFS.
+     * Vertices are traversed starting from s in the forward direction and t in the backward
+     * direction. Each side uses a queue to store its frontier. In each iteration, the algorithm
+     * traverses in the direction that has the smaller size queue. Once the two traversals
+     * intersect, we backtrack from the intersecting vertices to s and t to identify all of the
+     * edges that are on at least one shortest path. The subgraph formed by the identified edges
+     * are output to the given {@code outputSink}. If no paths are found, an empty result set is
+     * output to the {@code outputSink}.
      *
      * @param start The source vertex of the shortest path query.
      * @param target The target vertex for the shortest path query.
@@ -184,17 +184,17 @@ public class ShortestPathExecutor {
                     if (visitedVerticesByQueryId[neighbourVertex] == queryId) {
                         if (visitedDirections[neighbourVertex] == currentDirection
                             .getBooleanValue()) {
-                            // This node has been visited before while traversing in the current
+                            // This vertex has been visited before while traversing in the current
                             // direction.
                             continue;
                         } else {
-                            // This node has been visited before from the opposite direction, so
+                            // This vertex has been visited before from the opposite direction, so
                             // we just found an intersection.
                             foundIntersections = true;
                             intersectionSet.add(neighbourVertex);
                         }
                     } else {
-                        // This node has not been visited before, so we mark it as visited and add
+                        // This vertex has not been visited before, so we mark it as visited and add
                         // its neighbours to the queue for later evaluation.
                         visitedVerticesByQueryId[neighbourVertex] = queryId;
                         visitedDirections[neighbourVertex] = currentDirection.getBooleanValue();
@@ -222,7 +222,7 @@ public class ShortestPathExecutor {
     }
 
     /**
-     * Backtracks in the given direction from the given set of intersection nodes and populates
+     * Backtracks in the given direction from the given set of intersection vertices and populates
      * {@code results} with all edges belonging to at least one shortest path. An edge (u, v)
      * belongs to at least one shortest path if one of two conditions are met depending on whether
      * we are backtracking in the forward or backward directions. (1) If we are backtracking in the
@@ -258,24 +258,24 @@ public class ShortestPathExecutor {
             currentLevelVertices = nextLevelVertices;
             nextLevelVertices = temp; // Assign empty queue to nextLevelVertices.
             while (!currentLevelVertices.isEmpty()) {
-                int currentNode = currentLevelVertices.dequeue();
-                SortedAdjacencyList adjList = graph.getSortedAdjacencyList(currentNode,
+                int currentVertex = currentLevelVertices.dequeue();
+                SortedAdjacencyList adjList = graph.getSortedAdjacencyList(currentVertex,
                     directionToBacktrack, GraphVersion.PERMANENT);
                 if (null == adjList || adjList.getSize() == 0) {
                     continue;
                 }
                 for (int i = 0; i < adjList.getSize(); i++) {
                     int neighbourVertex = adjList.getNeighbourId(i);
-                    // If a node from the adjacency list was reached in the preceding stage, that
+                    // If a vertex from the adjacency list was reached in the preceding stage, that
                     // edge forms part of a shortest path.
                     if (precedingLevel != 0 && (visitedVerticesByQueryId[neighbourVertex] ==
                         queryId) && visitedLevels[neighbourVertex] == precedingLevel) {
                         nextLevelVertices.enqueue(adjList.getNeighbourId(i));
                         // Add edge (u, v).
-                        int u = (Direction.FORWARD == directionToBacktrack) ? currentNode :
+                        int u = (Direction.FORWARD == directionToBacktrack) ? currentVertex :
                             neighbourVertex;
                         int v = (Direction.FORWARD == directionToBacktrack) ? neighbourVertex :
-                            currentNode;
+                            currentVertex;
                         if (!results.containsKey(u)) {
                             results.put(u, new HashSet<>());
                         }

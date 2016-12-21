@@ -65,10 +65,10 @@ public class ShortestPathExecutorTest {
         int queryId = 1;
         executor = new ShortestPathExecutor(graph, visitedLevels, visitedQueryId, queryId);
         Map<Integer, Set<Integer>> actualResults = new HashMap<>();
-        Set<Integer> intersectNodes = new HashSet<>();
-        intersectNodes.add(6);
-        intersectNodes.add(7);
-        executor.backTrackIntersection(intersectNodes, Direction.BACKWARD, (short) 4,
+        Set<Integer> intersectVertices = new HashSet<>();
+        intersectVertices.add(6);
+        intersectVertices.add(7);
+        executor.backTrackIntersection(intersectVertices, Direction.BACKWARD, (short) 4,
             actualResults);
 
         Map<Integer, Set<Integer>> expectedResults = new HashMap<>();

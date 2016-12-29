@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.graph.TypeStore;
+import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
@@ -32,7 +32,7 @@ public class DeleteQueryPlan implements QueryPlan {
                 graph.deleteEdgeTemporarily(
                     Integer.parseInt(queryRelation.getFromQueryVariable().getVariableId()),
                     Integer.parseInt(queryRelation.getToQueryVariable().getVariableId()),
-                    TypeStore.getInstance().getShortIdOrAnyTypeIfNull(
+                    TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrAnyIfNullOrEmpty(
                         queryRelation.getRelationType()));
             }
             ContinuousMatchQueryExecutor.getInstance().execute(graph);

@@ -2,7 +2,7 @@ package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
-import ca.waterloo.dsg.graphflow.graph.TypeStore;
+import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
@@ -91,7 +91,8 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         // if the relation type {@code String} of {@code diffRelation} does not already exist in the
         // {@code TypeStore}.
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, graphVersion,
-            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(diffRelation.getRelationType())));
+            TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrAnyIfNullOrEmpty(
+                diffRelation.getRelationType())));
         oneTimeMatchQueryPlan.addStage(stage);
         // Add the other relations that are present between the diffRelation's
         // {@code fromVariable} to {@code toVariable}.
@@ -174,7 +175,8 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         // if the relation type {@code String} of {@code newRelation} does not already exist in the
         // {@code TypeStore}.
         stage.add(new GenericJoinIntersectionRule(prefixIndex, direction, version,
-            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(newRelation.getRelationType())));
+            TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrAnyIfNullOrEmpty(
+                newRelation.getRelationType())));
     }
 
     /**

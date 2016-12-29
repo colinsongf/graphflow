@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.graph.TypeStore;
+import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
@@ -33,12 +33,14 @@ public class CreateQueryPlan implements QueryPlan {
                 // Insert the types into the {@code TypeStore} if they do not already exist, and
                 // get their {@code short} IDs. An exception in the above {@code parseInt()} calls
                 // will prevent the insertion of any new type to the {@code TypeStore}.
-                short fromVertexTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(
-                    queryRelation.getFromQueryVariable().getVariableType());
-                short toVertexTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(
-                    queryRelation.getToQueryVariable().getVariableType());
-                short edgeTypeId = TypeStore.getInstance().getShortIdOrAddIfDoesNotExist(
-                    queryRelation.getRelationType());
+                short fromVertexTypeId = TypeAndPropertyKeyStore.getInstance().
+                    getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getFromQueryVariable().
+                        getVariableType());
+                short toVertexTypeId = TypeAndPropertyKeyStore.getInstance().
+                    getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getToQueryVariable().
+                        getVariableType());
+                short edgeTypeId = TypeAndPropertyKeyStore.getInstance().
+                    getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getRelationType());
                 // Add the new edge to the graph.
                 graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexTypeId, toVertexTypeId,
                     edgeTypeId);

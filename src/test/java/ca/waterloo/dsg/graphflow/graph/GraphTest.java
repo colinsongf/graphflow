@@ -178,18 +178,18 @@ public class GraphTest {
 
         // Test the list of edges of the permanent graph before finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.FORWARD,
-            TypeStore.ANY_TYPE), new int[][]{{0, 1}, {11, 9}});
+            TypeAndPropertyKeyStore.ANY), new int[][]{{0, 1}, {11, 9}});
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.BACKWARD,
-            TypeStore.ANY_TYPE), new int[][]{{1, 0}, {9, 11}});
+            TypeAndPropertyKeyStore.ANY), new int[][]{{1, 0}, {9, 11}});
 
         // Make the temporary changes permanent.
         graph.finalizeChanges();
 
         // Test the list of edges of the permanent graph after finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.FORWARD,
-            TypeStore.ANY_TYPE), new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
+            TypeAndPropertyKeyStore.ANY), new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.PERMANENT, Direction.BACKWARD,
-            TypeStore.ANY_TYPE), new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
+            TypeAndPropertyKeyStore.ANY), new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
     }
 
     @Test
@@ -221,18 +221,19 @@ public class GraphTest {
 
         // Test the list of edges of the merged graph before finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.FORWARD,
-            TypeStore.ANY_TYPE), new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
+            TypeAndPropertyKeyStore.ANY), new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11,
+            9}});
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.BACKWARD,
-            TypeStore.ANY_TYPE), new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
+            TypeAndPropertyKeyStore.ANY), new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
 
         // Make the temporary changes permanent.
         graph.finalizeChanges();
 
         // Test the list of edges of the merged graph after finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.FORWARD,
-            TypeStore.ANY_TYPE), new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
+            TypeAndPropertyKeyStore.ANY), new int[][]{{0, 6}, {2, 5}, {4, 6}, {5, 6}, {11, 9}});
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.MERGED, Direction.BACKWARD,
-            TypeStore.ANY_TYPE), new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
+            TypeAndPropertyKeyStore.ANY), new int[][]{{5, 2}, {6, 0}, {6, 4}, {6, 5}, {9, 11}});
     }
 
     @Test
@@ -267,14 +268,14 @@ public class GraphTest {
 
         // Test the list of edges of the diff plus graph before finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_PLUS, Direction.FORWARD,
-            TypeStore.ANY_TYPE), new int[][]{{0, 6}, {2, 6}, {5, 6}, {4, 6}, {2, 5}});
+            TypeAndPropertyKeyStore.ANY), new int[][]{{0, 6}, {2, 6}, {5, 6}, {4, 6}, {2, 5}});
 
         // Make the temporary changes permanent.
         graph.finalizeChanges();
 
         // Test the list of edges of the diff plus graph after finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_PLUS, Direction.FORWARD,
-            TypeStore.ANY_TYPE), new int[][]{});
+            TypeAndPropertyKeyStore.ANY), new int[][]{});
     }
 
     @Test
@@ -303,13 +304,13 @@ public class GraphTest {
 
         // Test the list of edges of the diff minus graph before finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_MINUS, Direction.FORWARD,
-            TypeStore.ANY_TYPE), new int[][]{{2, 6}, {0, 1}});
+            TypeAndPropertyKeyStore.ANY), new int[][]{{2, 6}, {0, 1}});
         // Make the temporary changes permanent.
         graph.finalizeChanges();
 
         // Test the list of edges of the diff minus graph after finalizing the changes.
         assertEdgesIterator(graph.getEdgesIterator(GraphVersion.DIFF_MINUS, Direction.FORWARD,
-            TypeStore.ANY_TYPE), new int[][]{});
+            TypeAndPropertyKeyStore.ANY), new int[][]{});
     }
 
     private void assertEdgesIterator(Iterator<int[]> iterator, int[][] expectedEdges) {

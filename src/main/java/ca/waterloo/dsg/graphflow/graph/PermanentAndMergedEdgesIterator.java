@@ -60,8 +60,9 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
                 // present in the merged graph.
                 while (nextFromVertexIdAdjListIndex < mergedAdjLists.get(nextFromVertexId).
                     getSize()) {
-                    if ((TypeStore.ANY_TYPE == edgeType || mergedAdjLists.get(nextFromVertexId).
-                        getEdgeTypeId(nextFromVertexIdAdjListIndex) == edgeType)) {
+                    if ((TypeAndPropertyKeyStore.ANY == edgeType || mergedAdjLists.get(
+                        nextFromVertexId).getEdgeTypeId(nextFromVertexIdAdjListIndex) == edgeType))
+                    {
                         // The neighbour at {@code nextFromVertexIdAdjListIndex} matches {@code
                         // toVertexType} and the edge it forms with {@code nextFromVertexId}
                         // matches {@code edgeType}. In addition, the adjacency list of {@code
@@ -73,8 +74,8 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
             } else if (null != permanentAdjacencyLists[nextFromVertexId]) {
                 while (nextFromVertexIdAdjListIndex < permanentAdjacencyLists[nextFromVertexId].
                     getSize()) {
-                    if (TypeStore.ANY_TYPE == edgeType || permanentAdjacencyLists[nextFromVertexId].
-                        getEdgeTypeId(nextFromVertexIdAdjListIndex) == edgeType) {
+                    if (TypeAndPropertyKeyStore.ANY == edgeType || permanentAdjacencyLists[
+                        nextFromVertexId].getEdgeTypeId(nextFromVertexIdAdjListIndex) == edgeType) {
                         // The neighbour at {@code nextFromVertexIdAdjListIndex} matches {@code
                         // toVertexType} and the edge it forms with {@code nextFromVertexId}
                         // matches {@code edgeType}. In addition, the adjacency list of {@code

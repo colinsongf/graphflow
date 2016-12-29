@@ -54,7 +54,7 @@ public class DiffEdgesIterator implements Iterator<int[]> {
             // {@link DiffEdgesIterator}. If there is no such {@code e=(u, v)}, the {@code next}
             // index is set to the size of {@code diffEdges.size()}.
 
-            if (TypeStore.ANY_TYPE == edgeType || diffEdgeTypes.get(next) == edgeType) {
+            if (TypeAndPropertyKeyStore.ANY == edgeType || diffEdgeTypes.get(next) == edgeType) {
                 return;
             }
             next++;

@@ -77,7 +77,7 @@ public class SortedAdjacencyListTest {
         int[] neighbourIds = {1, 32, 54, 34, 34, 34, 12, 89, 0, 14, 7};
         short[] neighbourTypes = {4, 3, 3, 1, 9, 4, 0, 10, 5, 3, 0};
         int neighbourIdForSearch = 7;
-        int edgeTypeForSearch = TypeStore.ANY_TYPE;
+        int edgeTypeForSearch = TypeAndPropertyKeyStore.ANY;
         int expectedIndex = 2;
         testSearch(neighbourIds, neighbourTypes, neighbourIdForSearch, edgeTypeForSearch,
             expectedIndex);

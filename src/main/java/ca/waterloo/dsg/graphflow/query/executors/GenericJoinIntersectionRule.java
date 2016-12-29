@@ -3,7 +3,7 @@ package ca.waterloo.dsg.graphflow.query.executors;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
-import ca.waterloo.dsg.graphflow.graph.TypeStore;
+import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 
 /**
@@ -31,7 +31,7 @@ public class GenericJoinIntersectionRule {
      * @param direction The direction of extension. Either {@link Graph.Direction#FORWARD} outgoing
      * from {@code u} or {@link Graph.Direction#BACKWARD} incoming towards {@code u}.
      * @param edgeType Filters {@code u}'s edges that do not have the given type. If the types is
-     * {@link TypeStore#ANY_TYPE} does not filter any of {@code u}'s edges.
+     * {@link TypeAndPropertyKeyStore#ANY} does not filter any of {@code u}'s edges.
      */
     public GenericJoinIntersectionRule(int prefixIndex, Direction direction, short edgeType) {
         this(prefixIndex, direction, GraphVersion.PERMANENT, edgeType);
@@ -40,7 +40,7 @@ public class GenericJoinIntersectionRule {
     /**
      * Constructor for creating {@link GenericJoinIntersectionRule} extending in the
      * {@link GraphVersion#PERMANENT} graph and no edge type filtering. Edge type will default to
-     * {@link TypeStore#ANY_TYPE} essentially not filtering extensions by an edge type.
+     * {@link TypeAndPropertyKeyStore#ANY} essentially not filtering extensions by an edge type.
      *
      * @param prefixIndex The index of the prefix indicating the vertex {@code u} from which
      * this rule will extend.
@@ -48,13 +48,13 @@ public class GenericJoinIntersectionRule {
      * from {@code u} or {@link Graph.Direction#BACKWARD} incoming towards {@code u}.
      */
     public GenericJoinIntersectionRule(int prefixIndex, Direction direction) {
-        this(prefixIndex, direction, GraphVersion.PERMANENT, TypeStore.ANY_TYPE);
+        this(prefixIndex, direction, GraphVersion.PERMANENT, TypeAndPropertyKeyStore.ANY);
     }
 
     /**
      * Constructor for creating {@link GenericJoinIntersectionRule} extending in the given
      * {@code graphVersion} and no edge type filtering. Edge type will default to
-     * {@link TypeStore#ANY_TYPE} essentially not filtering extensions by an edge type.
+     * {@link TypeAndPropertyKeyStore#ANY} essentially not filtering extensions by an edge type.
      *
      * @param prefixIndex The index of the prefix indicating the vertex {@code u} from which this
      * rule will extend.
@@ -64,7 +64,7 @@ public class GenericJoinIntersectionRule {
      */
     public GenericJoinIntersectionRule(int prefixIndex, Direction direction,
         GraphVersion graphVersion) {
-        this(prefixIndex, direction, graphVersion, TypeStore.ANY_TYPE);
+        this(prefixIndex, direction, graphVersion, TypeAndPropertyKeyStore.ANY);
     }
 
     /**
@@ -77,7 +77,7 @@ public class GenericJoinIntersectionRule {
      * {@code u} or {@link Graph.Direction#BACKWARD} towards {@code u}.
      * @param graphVersion The version of the graph to be used for this rule.
      * @param edgeType Filters {@code u}'s edges that do not have the given type. If the types is
-     * {@link TypeStore#ANY_TYPE} does not filter any of {@code u}'s edges.
+     * {@link TypeAndPropertyKeyStore#ANY} does not filter any of {@code u}'s edges.
      */
     public GenericJoinIntersectionRule(int prefixIndex, Direction direction,
         GraphVersion graphVersion, short edgeType) {

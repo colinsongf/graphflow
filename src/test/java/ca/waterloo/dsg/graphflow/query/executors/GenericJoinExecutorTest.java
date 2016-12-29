@@ -2,7 +2,7 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.graph.TypeStore;
+import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
@@ -41,8 +41,8 @@ public class GenericJoinExecutorTest {
     @Test
     public void testProcessTriangleQueryWithTypes() throws Exception {
         // Initialize the {@code TypeStore} with types used in the MATCH query.
-        TypeStore.getInstance().getShortIdOrAddIfDoesNotExist("FOLLOWS");
-        TypeStore.getInstance().getShortIdOrAddIfDoesNotExist("LIKES");
+        TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrInsertIfDoesNotExist("FOLLOWS");
+        TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrInsertIfDoesNotExist("LIKES");
         // Create a one time MATCH query plan for a complex triangle query with multiple
         // relations between variable having different edge types.
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +

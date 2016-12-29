@@ -109,7 +109,7 @@ public class SortedAdjacencyList {
      */
     public IntArrayList getFilteredNeighbourIds(short edgeType) {
         IntArrayList filteredList = new IntArrayList(size);
-        if (TypeStore.ANY_TYPE == edgeType) {
+        if (TypeAndPropertyKeyStore.ANY == edgeType) {
             filteredList.addAll(Arrays.copyOf(neighbourIds, size));
         } else {
             for (int i = 0; i < size; i++) {
@@ -142,9 +142,10 @@ public class SortedAdjacencyList {
 
     /**
      * Intersects the current {@link SortedAdjacencyList} with the given
-     * {@code sortedListToIntersect}. If, 1) {@code edgeType} equals {@link TypeStore#ANY_TYPE},
-     * only the vertex ID will be considered when intersecting. 2) Else a valid intersection will
-     * match both the vertex ID and the edge type ID.
+     * {@code sortedListToIntersect}. If, 1) {@code edgeType} equals
+     * {@link TypeAndPropertyKeyStore#ANY}, only the vertex ID will be considered when
+     * intersecting. 2) Else a valid intersection will match both the vertex ID and the edge type
+     * ID.
      *
      * @param sortedListToIntersect The {@link IntArrayList} to intersect.
      * @param edgeType The edge type ID for filtering the intersections.
@@ -232,7 +233,7 @@ public class SortedAdjacencyList {
         int next = startIndex;
         while (next < size) {
             if (neighbourIds[next] == neighbourId) {
-                if (TypeStore.ANY_TYPE == typeId || typeId == edgeTypes[next]) {
+                if (TypeAndPropertyKeyStore.ANY == typeId || typeId == edgeTypes[next]) {
                     return next;
                 } else if (edgeTypes[next] > typeId) {
                     return -1;

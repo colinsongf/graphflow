@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
-import ca.waterloo.dsg.graphflow.graph.TypeStore;
+import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
@@ -96,8 +96,8 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
      *
      * @return A {@link QueryPlan} encapsulating an {@link OneTimeMatchQueryPlan}.
      * @throws NoSuchElementException If any edge type {@code String} does not already exist in the
-     * {@link TypeStore}, signifying that the one time {@code MATCH} query will return an empty
-     * result set.
+     * {@link TypeAndPropertyKeyStore}, signifying that the one time {@code MATCH} query will return
+     * an empty result set.
      */
     public QueryPlan plan() {
         OneTimeMatchQueryPlan oneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
@@ -149,8 +149,8 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                             // {@code NoSuchElementException} if the relation type {@code String}
                             // of {@code queryRelation} does not already exist in the
                             // {@code TypeStore}.
-                            TypeStore.getInstance().getShortIdOrAnyTypeIfNull(queryRelation.
-                                getRelationType())));
+                            TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrAnyIfNullOrEmpty(
+                                queryRelation.getRelationType())));
                     }
                 }
             }

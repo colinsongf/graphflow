@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GraphBuilder {
 
@@ -43,6 +45,7 @@ public class GraphBuilder {
         private static final String DESTINATION = "dst";
         private static final String ID = "id";
         private static final String TYPE = "type";
+        private static final String PROPERTIES = "properties";
 
         /**
          * Gets the root of a json object and returns a graph object populated with data.
@@ -56,24 +59,43 @@ public class GraphBuilder {
         public Graph deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext
             context) throws JsonParseException {
             JsonObject rawGraph = json.getAsJsonObject();
-            JsonArray edges = rawGraph.get(GraphDeserializer.EDGES).getAsJsonArray();
-            int numVertices = rawGraph.get(GraphDeserializer.NUM_VERTICES).getAsInt();
+            JsonArray edges = rawGraph.get(EDGES).getAsJsonArray();
+            int numVertices = rawGraph.get(NUM_VERTICES).getAsInt();
             Graph graph = new Graph(numVertices);
 
             for (JsonElement edge : edges) {
                 JsonObject edgeObj = edge.getAsJsonObject();
-                JsonObject srcObj = edgeObj.get(GraphDeserializer.SOURCE).getAsJsonObject();
-                int src = srcObj.get(GraphDeserializer.ID).getAsInt();
-                short srcType = srcObj.get(GraphDeserializer.TYPE).getAsShort();
-                JsonObject dstObj = edgeObj.get(GraphDeserializer.DESTINATION).getAsJsonObject();
-                int dst = dstObj.get(GraphDeserializer.ID).getAsInt();
-                short dstType = dstObj.get(GraphDeserializer.TYPE).getAsShort();
-                short edgeType = edgeObj.get(GraphDeserializer.TYPE).getAsShort();
-                graph.addEdgeTemporarily(src, dst, srcType, dstType, edgeType);
+
+                JsonObject srcObj = edgeObj.get(SOURCE).getAsJsonObject();
+                int src = srcObj.get(ID).getAsInt();
+                short srcType = srcObj.get(TYPE).getAsShort();
+                JsonObject srcPropObj = srcObj.get(PROPERTIES).getAsJsonObject();
+                HashMap<Short,String> srcProperties = getPropertiesAsHashMap(srcPropObj);
+
+                JsonObject dstObj = edgeObj.get(DESTINATION).getAsJsonObject();
+                int dst = dstObj.get(ID).getAsInt();
+                short dstType = dstObj.get(TYPE).getAsShort();
+                JsonObject dstPropObj = dstObj.get(PROPERTIES).getAsJsonObject();
+                HashMap<Short,String> dstProperties = getPropertiesAsHashMap(dstPropObj);
+
+                short edgeType = edgeObj.get(TYPE).getAsShort();
+                JsonObject edgePropObj = edgeObj.get(PROPERTIES).getAsJsonObject();
+                HashMap<Short,String> edgeProperties = getPropertiesAsHashMap(edgePropObj);
+
+                graph.addEdgeTemporarily(src, dst, srcType, dstType, srcProperties, dstProperties,
+                    edgeType);
             }
             graph.finalizeChanges();
             return graph;
         }
-        //TODO: serialize function to write human readable graph
+
+        private HashMap<Short,String> getPropertiesAsHashMap(JsonObject propertiesObj) {
+            HashMap<Short,String> properties = new HashMap<>();
+            for (Map.Entry<String,JsonElement> property : propertiesObj.entrySet()) {
+                String key = property.getKey();
+                properties.put(Short.parseShort(key), property.getValue().getAsString());
+            }
+            return properties;
+        }
     }
 }

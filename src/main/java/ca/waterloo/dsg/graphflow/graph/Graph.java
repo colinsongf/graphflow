@@ -1,6 +1,7 @@
 package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
+import ca.waterloo.dsg.graphflow.util.IndexedKeyValueByteArrays;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -71,6 +72,8 @@ public class Graph {
     private SortedAdjacencyList[] backwardAdjLists;
     // Array of vertex types.
     private ShortArrayList vertexTypes;
+    // Array of vertex properties.
+    private IndexedKeyValueByteArrays vertexProperties;
     // Edges for additions and deletions.
     private List<int[]> diffPlusEdges;
     private List<int[]> diffMinusEdges;
@@ -98,6 +101,7 @@ public class Graph {
         mergedForwardAdjLists = new HashMap<>();
         mergedBackwardAdjLists = new HashMap<>();
         vertexTypes = new ShortArrayList();
+        vertexProperties = new IndexedKeyValueByteArrays();
     }
 
     /**
@@ -116,27 +120,38 @@ public class Graph {
      * Note: If an edge to {@code toVertex} with the given {@code edgeType} already exists, this
      * method returns without doing anything.
      * <p>
-     * Warning: Currently, as part of this call, we will override the current vertex types of
-     * {@code fromVertex} and {@code toVertex} with {@code fromVertexType} and
-     * {@code toVertexType}, respectively. If a vertex u has type T, callers should always call
-     * this method with type T for u to keep u's type.
+     * Warning: Currently, as part of this call, we will override the current vertex types and
+     * properties of {@code fromVertex} and {@code toVertex} with {@code fromVertexType}, {@code
+     * toVertexType}, {@code toVertexProperties}, and {@code fromVertexProperties}, respectively.
+     * Warning: The method makes the types and properties permanent.
+     * If a vertex u has type T, callers should always call this method with type T for u to keep
+     * u's type.
+     * It the properties passed equals {@code null}, no changes to the vertex properties occur, else
+     * the vertex properties are overridden.
      *
      * @param fromVertex The starting vertex ID for the edge.
      * @param toVertex The ending vertex ID for the edge.
      * @param fromVertexType The type ID of {@code fromVertex}.
      * @param toVertexType The type ID of {@code toVertex}.
+     * @param fromVertexProperties The properties of {@code fromVertex} as {@code short} key and
+     * {@code String} value pairs.
+     * @param toVertexProperties The properties of {@code toVertex} as {@code short} key and {@code
+     * String} value pairs.
      * @param edgeType The type ID of the edge being added.
      */
     public void addEdgeTemporarily(int fromVertex, int toVertex, short fromVertexType,
-        short toVertexType, short edgeType) {
+        short toVertexType, HashMap<Short, String> fromVertexProperties, HashMap<Short,String>
+        toVertexProperties, short edgeType) {
         if ((fromVertex <= highestPermanentVertexId) && (null != forwardAdjLists[fromVertex]) &&
             (forwardAdjLists[fromVertex].contains(toVertex, edgeType))) {
             return; // Edge is already present. Skip.
         }
-        // We override vertex types of {@code fromVertex} and {@code toVertex} as warned in the
-        // method comments.
+        // We override vertex types and properties of {@code fromVertex} and {@code toVertex} as
+        // warned in the method comments.
         vertexTypes.set(fromVertex, fromVertexType);
         vertexTypes.set(toVertex, toVertexType);
+        vertexProperties.set(fromVertex, fromVertexProperties);
+        vertexProperties.set(toVertex, toVertexProperties);
         addOrDeleteEdgeTemporarily(true /* addition */, fromVertex, toVertex, edgeType);
         highestMergedVertexId = Integer.max(highestMergedVertexId, Integer.max(fromVertex,
             toVertex));

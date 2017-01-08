@@ -43,6 +43,7 @@ public class CreateQueryPlan implements QueryPlan {
                     getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getRelationType());
                 // Add the new edge to the graph.
                 graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexTypeId, toVertexTypeId,
+                    null /* no fromVertex properties */, null /* no toVertexProperties */,
                     edgeTypeId);
             }
             ContinuousMatchQueryExecutor.getInstance().execute(graph);

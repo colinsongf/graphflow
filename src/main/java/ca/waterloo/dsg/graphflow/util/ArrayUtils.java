@@ -23,6 +23,14 @@ public class ArrayUtils {
     /**
      * @see #resizeIfNecessary(Object[], int)
      */
+    public static byte[][] resizeIfNecessary(byte[][] array, int minCapacity) {
+        return (minCapacity > array.length) ? Arrays.copyOf(array, ArrayUtils.getNewCapacity(
+            array.length, minCapacity)) : array;
+    }
+
+    /**
+     * @see #resizeIfNecessary(Object[], int)
+     */
     public static int[] resizeIfNecessary(int[] array, int minCapacity) {
         return (minCapacity > array.length) ? Arrays.copyOf(array, ArrayUtils.getNewCapacity(
             array.length, minCapacity)) : array;

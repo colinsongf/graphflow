@@ -35,7 +35,8 @@ public class GraphTest {
         // Reinsert the previously inserted edges to test whether duplication happens.
         for (int i = 0; i < edges.length; i++) {
             graph.addEdgeTemporarily(edges[i][0], edges[i][1], vertexTypes[i][0],
-                vertexTypes[i][1], edgeTypes[i]);
+                vertexTypes[i][1], null /* no fromVertex properties */, null /* no toVertex
+                properties */, edgeTypes[i]);
         }
         graph.finalizeChanges();
 
@@ -150,8 +151,10 @@ public class GraphTest {
     private Graph getGraphWithTemporaryChanges() {
         // Create a graph with some initial edges.
         Graph graph = new Graph();
-        graph.addEdgeTemporarily(0, 1, (short) 2, (short) 1, (short) 1);
-        graph.addEdgeTemporarily(11, 9, (short) 2, (short) 1, (short) 2);
+        graph.addEdgeTemporarily(0, 1, (short) 2, (short) 1, null /* no fromVertex properties */,
+            null /* no toVertex properties */, (short) 1);
+        graph.addEdgeTemporarily(11, 9, (short) 2, (short) 1, null /* no fromVertex properties */,
+            null /* no toVertex properties */, (short) 2);
         graph.finalizeChanges();
 
         // Add and delete some edges temporarily.
@@ -161,7 +164,8 @@ public class GraphTest {
         short[] toVertexTypes = {6, 6, 6, 6, 2};
         for (int i = 0; i < edges.length; i++) {
             graph.addEdgeTemporarily(edges[i][0], edges[i][1], fromVertexTypes[i],
-                toVertexTypes[i], edgeTypes[i]);
+                toVertexTypes[i], null /* no fromVertex properties */, null /* no toVertex
+                properties */, edgeTypes[i]);
         }
         graph.deleteEdgeTemporarily(2, 6, (short) 1);
         graph.deleteEdgeTemporarily(0, 1, (short) 1);

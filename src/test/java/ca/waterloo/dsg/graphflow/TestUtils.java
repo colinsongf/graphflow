@@ -44,7 +44,7 @@ public class TestUtils {
         for (int i = 0; i < edges.length; i++) {
             graph.addEdgeTemporarily(edges[i][0], edges[i][1], vertexTypes[i][0],
                 vertexTypes[i][1], null /* no fromVertex properties */, null /* no toVertex
-                properties */, edgeTypes[i]);
+                properties */, edgeTypes[i], null /* no edge properties */);
         }
         return graph;
     }
@@ -84,7 +84,8 @@ public class TestUtils {
                 getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getRelationType());
             // Add the new edge to the graph.
             graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexTypeId, toVertexTypeId, null
-                /* no fromVertex properties */, null /* no toVertex properties */, edgeTypeId);
+                /* no fromVertex properties */, null /* no toVertex properties */, edgeTypeId,
+                null /* no edge properties */);
         }
     }
 

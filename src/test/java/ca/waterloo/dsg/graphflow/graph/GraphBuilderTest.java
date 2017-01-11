@@ -29,7 +29,7 @@ public class GraphBuilderTest {
             SortedAdjacencyList expectedResult = new SortedAdjacencyList();
             for (int j = 0; j < expectedOutgoingAdjLists[i].length; j++) {
                 expectedResult.add(expectedOutgoingAdjLists[i][j],
-                    expectedOutgoingAdjListEdgeTypes[i][j]);
+                    expectedOutgoingAdjListEdgeTypes[i][j], -1 /* stub for edgeId */);
             }
             Assert.assertTrue("Testing FORWARD vertex id: " + i, SortedAdjacencyList.
                 isSameAs(graph.getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT),
@@ -42,7 +42,7 @@ public class GraphBuilderTest {
             SortedAdjacencyList expectedResult = new SortedAdjacencyList();
             for (int j = 0; j < expectedIncomingAdjLists[i].length; j++) {
                 expectedResult.add(expectedIncomingAdjLists[i][j],
-                    expectedIncomingAdjListEdgeTypes[i][j]);
+                    expectedIncomingAdjListEdgeTypes[i][j], -1 /* stub for edgeId */);
             }
             Assert.assertTrue("Testing BACKWARD vertex id: " + i, SortedAdjacencyList.
                 isSameAs(graph.getSortedAdjacencyList(i, Direction.BACKWARD,

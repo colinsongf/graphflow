@@ -36,7 +36,7 @@ public class GraphTest {
         for (int i = 0; i < edges.length; i++) {
             graph.addEdgeTemporarily(edges[i][0], edges[i][1], vertexTypes[i][0],
                 vertexTypes[i][1], null /* no fromVertex properties */, null /* no toVertex
-                properties */, edgeTypes[i]);
+                properties */, edgeTypes[i], null /* no edge properties */);
         }
         graph.finalizeChanges();
 
@@ -48,13 +48,12 @@ public class GraphTest {
         Assert.assertEquals(7, graph.getVertexCount());
         // Test outgoing adjacency lists. The adjacency lists should be in sorted order.
         int[][] expectedOutgoingAdjLists = {{1, 2, 3, 4, 5, 6}, {6}, {6}, {6}, {6}, {6}, {}};
-        short[][] expectedOutgoingEdgeTypes = {{1, 2, 3, 4, 5, 6}, {6}, {6}, {6}, {6}, {6},
-            {}};
+        short[][] expectedOutgoingEdgeTypes = {{1, 2, 3, 4, 5, 6}, {6}, {6}, {6}, {6}, {6}, {}};
         for (int i = 0; i < expectedOutgoingAdjLists.length; i++) {
             SortedAdjacencyList expectedSortedAdjacencyList = new SortedAdjacencyList();
             for (int j = 0; j < expectedOutgoingAdjLists[i].length; j++) {
                 expectedSortedAdjacencyList.add(expectedOutgoingAdjLists[i][j],
-                    expectedOutgoingEdgeTypes[i][j]);
+                    expectedOutgoingEdgeTypes[i][j], -1 /* stub for edgeId */);
             }
             Assert.assertTrue("Testing FORWARD vertex id: " + i, SortedAdjacencyList.isSameAs(
                 graph.getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT),
@@ -67,7 +66,7 @@ public class GraphTest {
             SortedAdjacencyList expectedSortedAdjacencyList = new SortedAdjacencyList();
             for (int j = 0; j < expectedIncomingEdgeTypes[i].length; j++) {
                 expectedSortedAdjacencyList.add(expectedIncomingAdjLists[i][j],
-                    expectedIncomingEdgeTypes[i][j]);
+                    expectedIncomingEdgeTypes[i][j], -1 /* stub for edgeId */);
             }
             Assert.assertTrue("Testing BACKWARD vertex id: " + i, SortedAdjacencyList.isSameAs(
                 graph.getSortedAdjacencyList(i, Direction.BACKWARD, GraphVersion.PERMANENT),
@@ -102,7 +101,8 @@ public class GraphTest {
         for (int i = 0; i < expectedOutgoingAdjLists.length; i++) {
             SortedAdjacencyList expected = new SortedAdjacencyList();
             for (int j = 0; j < expectedOutgoingAdjLists[i].length; j++) {
-                expected.add(expectedOutgoingAdjLists[i][j], expectedOutgoingEdgeTypes[i][j]);
+                expected.add(expectedOutgoingAdjLists[i][j], expectedOutgoingEdgeTypes[i][j],
+                    -1 /* stub for edgeId */);
             }
             Assert.assertTrue("Testing FORWARD vertex id: " + i, SortedAdjacencyList.isSameAs(graph
                 .getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT), expected));
@@ -113,7 +113,8 @@ public class GraphTest {
         for (int i = 0; i < expectedIncomingAdjLists.length; i++) {
             SortedAdjacencyList expected = new SortedAdjacencyList();
             for (int j = 0; j < expectedIncomingAdjLists[i].length; j++) {
-                expected.add(expectedIncomingAdjLists[i][j], expectedIncomingEdgeTypes[i][j]);
+                expected.add(expectedIncomingAdjLists[i][j], expectedIncomingEdgeTypes[i][j],
+                    -1 /* stub for edgeId */);
             }
             Assert.assertTrue("Testing BACKWARD vertex id: " + i, SortedAdjacencyList.isSameAs(graph
                 .getSortedAdjacencyList(i, Direction.BACKWARD, GraphVersion.PERMANENT), expected));
@@ -152,9 +153,9 @@ public class GraphTest {
         // Create a graph with some initial edges.
         Graph graph = new Graph();
         graph.addEdgeTemporarily(0, 1, (short) 2, (short) 1, null /* no fromVertex properties */,
-            null /* no toVertex properties */, (short) 1);
+            null /* no toVertex properties */, (short) 1, null /* no edge properties */);
         graph.addEdgeTemporarily(11, 9, (short) 2, (short) 1, null /* no fromVertex properties */,
-            null /* no toVertex properties */, (short) 2);
+            null /* no toVertex properties */, (short) 2, null /* no edge properties */);
         graph.finalizeChanges();
 
         // Add and delete some edges temporarily.
@@ -165,7 +166,7 @@ public class GraphTest {
         for (int i = 0; i < edges.length; i++) {
             graph.addEdgeTemporarily(edges[i][0], edges[i][1], fromVertexTypes[i],
                 toVertexTypes[i], null /* no fromVertex properties */, null /* no toVertex
-                properties */, edgeTypes[i]);
+                properties */, edgeTypes[i], null /* no edge properties */);
         }
         graph.deleteEdgeTemporarily(2, 6, (short) 1);
         graph.deleteEdgeTemporarily(0, 1, (short) 1);

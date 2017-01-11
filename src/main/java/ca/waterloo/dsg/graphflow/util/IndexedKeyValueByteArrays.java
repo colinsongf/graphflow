@@ -44,24 +44,20 @@ public class IndexedKeyValueByteArrays {
      * the size of the collection.
      */
     public void set(int index, HashMap<Short,String> keyValues) {
+        resizeIfNecessary(index);
         if (null == keyValues || keyValues.size() == 0) {
             return;
         }
-        resizeIfNecessary(index);
+        data[index] = new byte[0];
         for (Map.Entry<Short, String> keyValue: keyValues.entrySet()) {
-            byte[] keyValueAsBytes = getKeyValueAsBytes(keyValue.getKey(), keyValue.getValue());
-            data[index] = Arrays.copyOf(data[index],data[index].length + keyValueAsBytes.length);
-            System.arraycopy(keyValueAsBytes, 0, data[index], data[index].length -
-                keyValueAsBytes.length, keyValueAsBytes.length);
+            byte[] keyValueAsBytes = getKeyValueAsByteArray(keyValue.getKey(), keyValue.getValue());
+            data[index] = Arrays.copyOf(data[index], data[index].length + keyValueAsBytes.length);
+            System.arraycopy(keyValueAsBytes, 0, data[index], data[index].length - keyValueAsBytes.
+                length, keyValueAsBytes.length);
         }
     }
 
-    private void resizeIfNecessary(int nextIndexToInsertAt) {
-        data = ArrayUtils.resizeIfNecessary(data, nextIndexToInsertAt + 1);
-        data[nextIndexToInsertAt] = new byte[0];
-    }
-
-    private byte[] getKeyValueAsBytes(short key, String value) {
+    public static byte[] getKeyValueAsByteArray(short key, String value) {
         byte[] valueAsBytes = value.getBytes(StandardCharsets.UTF_8);
         // 2 bytes (key) + 4 bytes (length of the value) + (length of value in bytes.
         byte[] keyValue = new byte[6 + valueAsBytes.length];
@@ -73,6 +69,10 @@ public class IndexedKeyValueByteArrays {
         keyValue[5] = (byte) valueAsBytes.length;
         System.arraycopy(valueAsBytes, 0, keyValue, 6, valueAsBytes.length);
         return keyValue;
+    }
+
+    private void resizeIfNecessary(int nextIndexToInsertAt) {
+        data = ArrayUtils.resizeIfNecessary(data, nextIndexToInsertAt + 1);
     }
 
     @ExistsForTesting

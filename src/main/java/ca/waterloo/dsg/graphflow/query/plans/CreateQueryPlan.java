@@ -44,7 +44,7 @@ public class CreateQueryPlan implements QueryPlan {
                 // Add the new edge to the graph.
                 graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexTypeId, toVertexTypeId,
                     null /* no fromVertex properties */, null /* no toVertexProperties */,
-                    edgeTypeId);
+                    edgeTypeId, null /* no edge properties */);
             }
             ContinuousMatchQueryExecutor.getInstance().execute(graph);
             graph.finalizeChanges();

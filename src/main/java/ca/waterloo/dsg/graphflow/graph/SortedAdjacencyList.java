@@ -9,9 +9,9 @@ import java.util.Arrays;
 import java.util.StringJoiner;
 
 /**
- * Represents the adjacency list of a vertex. Stores the IDs of the vertex's neighbours and the
- * types of edges the vertex has to these neighbours in sorted arrays. Arrays are sorted first by
- * neighbour IDs and then by edge type IDs.
+ * Represents the adjacency list of a vertex. Stores the IDs of the vertex's neighbours, the
+ * types and the properties of edges the vertex has to these neighbours in sorted arrays. Arrays
+ * are sorted first by neighbour IDs and then by edge type IDs.
  */
 public class SortedAdjacencyList {
 
@@ -20,6 +20,8 @@ public class SortedAdjacencyList {
     int[] neighbourIds;
     @PackagePrivateForTesting
     short[] edgeTypes;
+    @PackagePrivateForTesting
+    long[] edgeIds;
     private int size;
 
     /**
@@ -39,18 +41,21 @@ public class SortedAdjacencyList {
     public SortedAdjacencyList(int initialCapacity) {
         neighbourIds = new int[initialCapacity];
         edgeTypes = new short[initialCapacity];
+        edgeIds = new long[initialCapacity];
     }
 
     /**
-     * Adds a new neighbour with the given ID and type.
+     * Adds a new neighbour with the given ID, type and edgeId.
      *
      * @param neighbourId The ID of the neighbour.
      * @param edgeType The type of the edge to the neighbour.
+     * @param edgeId the Id of the edge to the neighbour.
      */
-    public void add(int neighbourId, short edgeType) {
+    public void add(int neighbourId, short edgeType, long edgeId) {
         ensureCapacity(size + 1);
         neighbourIds[size] = neighbourId;
         edgeTypes[size] = edgeType;
+        edgeIds[size] = edgeId;
         size++;
         sort();
     }
@@ -64,7 +69,8 @@ public class SortedAdjacencyList {
         ensureCapacity(size + otherList.getSize());
         for (int i = 0; i < otherList.getSize(); i++) {
             neighbourIds[size + i] = otherList.getNeighbourId(i);
-            edgeTypes[size + i] = otherList.getEdgeTypeId(i);
+            edgeTypes[size + i] = otherList.getEdgeType(i);
+            edgeIds[size + i] = otherList.getEdgeId(i);
         }
         size += otherList.getSize();
         sort();
@@ -86,18 +92,33 @@ public class SortedAdjacencyList {
     }
 
     /**
-     * Gets the edge type ID at the given {@code index}.
+     * Gets the {@code short} edge type at the given {@code index}.
      *
-     * @param index The index of the edge type ID.
-     * @return The edge type ID at the given index.
-     * @throws ArrayIndexOutOfBoundsException If {@code index} is greater than size of this
+     * @param index The index of the edge type.
+     * @return The {@code short} edge type at the given index.
+     * @throws ArrayIndexOutOfBoundsException If {@code index} is greater than the size of this
      * {@code SortedAdjacencyList}.
      */
-    public short getEdgeTypeId(int index) {
+    public short getEdgeType(int index) {
         if (index >= size) {
-            throw new ArrayIndexOutOfBoundsException("No Edge type ID at index" + index);
+            throw new ArrayIndexOutOfBoundsException("No Edge type at index" + index);
         }
         return edgeTypes[index];
+    }
+
+    /**
+     * Gets the edge ID at the given {@code index}.
+     *
+     * @param index The index of the edge ID.
+     * @return The edge ID at the given index.
+     * @throws ArrayIndexOutOfBoundsException If {@code index} is greater than the size of this
+     * {@code SortedAdjacencyList}.
+     */
+    public long getEdgeId(int index) {
+        if (index >= size) {
+            throw new ArrayIndexOutOfBoundsException("No EdgeId at index " + index);
+        }
+        return edgeIds[index];
     }
 
     /**
@@ -135,6 +156,7 @@ public class SortedAdjacencyList {
                 System.arraycopy(neighbourIds, index + 1, neighbourIds, index,
                     numElementsToShiftLeft);
                 System.arraycopy(edgeTypes, index + 1, edgeTypes, index, numElementsToShiftLeft);
+                System.arraycopy(edgeIds, index + 1, edgeIds, index, numElementsToShiftLeft);
             }
             --size;
         }
@@ -248,27 +270,31 @@ public class SortedAdjacencyList {
 
     /**
      * Sorts {@code neighbourIds} first in ascending order of their IDs and then by edge type.
-     * The {@code edgeTypes} are also sorted to match the neighbor ID ordering.
+     * The {@code edgeTypes} and {@code edgeIds} are also sorted to match the neighbor ID ordering.
      */
     private void sort() {
         for (int i = 1; i < size; i++) {
             int tempNeighbourId = neighbourIds[i];
             short tempNeighbourType = edgeTypes[i];
+            long tempNeighbourEdgeId = edgeIds[i];
             int j = i;
             while ((j > 0) && ((tempNeighbourId < neighbourIds[j - 1]) || ((tempNeighbourId ==
                 neighbourIds[j - 1]) && (tempNeighbourType < edgeTypes[j - 1])))) {
                 neighbourIds[j] = neighbourIds[j - 1];
                 edgeTypes[j] = edgeTypes[j - 1];
+                edgeIds[j] = edgeIds[j - 1];
                 j--;
             }
             neighbourIds[j] = tempNeighbourId;
             edgeTypes[j] = tempNeighbourType;
+            edgeIds[j] = tempNeighbourEdgeId;
         }
     }
 
     private void ensureCapacity(int minCapacity) {
         neighbourIds = ArrayUtils.resizeIfNecessary(neighbourIds, minCapacity);
         edgeTypes = ArrayUtils.resizeIfNecessary(edgeTypes, minCapacity);
+        edgeIds = ArrayUtils.resizeIfNecessary(edgeIds, minCapacity);
     }
 
     /**
@@ -292,8 +318,8 @@ public class SortedAdjacencyList {
             return false;
         }
         for (int i = 0; i < a.size; i++) {
-            if ((a.getNeighbourId(i) != b.getNeighbourId(i)) || (a.getEdgeTypeId(i) !=
-                b.getEdgeTypeId(i))) {
+            if ((a.getNeighbourId(i) != b.getNeighbourId(i)) || (a.getEdgeType(i) !=
+                b.getEdgeType(i))) {
                 return false;
             }
         }

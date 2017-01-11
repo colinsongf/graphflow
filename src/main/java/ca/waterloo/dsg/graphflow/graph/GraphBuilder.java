@@ -83,7 +83,7 @@ public class GraphBuilder {
                 HashMap<Short,String> edgeProperties = getPropertiesAsHashMap(edgePropObj);
 
                 graph.addEdgeTemporarily(src, dst, srcType, dstType, srcProperties, dstProperties,
-                    edgeType);
+                    edgeType, edgeProperties);
             }
             graph.finalizeChanges();
             return graph;

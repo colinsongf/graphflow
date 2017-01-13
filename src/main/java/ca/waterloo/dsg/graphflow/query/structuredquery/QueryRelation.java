@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.structuredquery;
 
 import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 
+import java.util.HashMap;
 import java.util.Objects;
 
 /**
@@ -12,6 +13,7 @@ public class QueryRelation implements AbstractStructuredQuery {
     private QueryVariable fromQueryVariable;
     private QueryVariable toQueryVariable;
     private String relationType;
+    private HashMap<String, String> properties;
 
     /**
      * Constructs a {@code QueryRelation} with the relation type set to {@code null}.
@@ -49,8 +51,16 @@ public class QueryRelation implements AbstractStructuredQuery {
         return relationType;
     }
 
+    public HashMap<String, String> getRelationProperties() {
+        return properties;
+    }
+
     public void setRelationType(String relationType) {
         this.relationType = relationType;
+    }
+
+    public void setRelationProperties(HashMap<String, String> properties) {
+        this.properties = properties;
     }
 
     /**

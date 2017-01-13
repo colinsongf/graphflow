@@ -3,6 +3,7 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
 
+import java.util.HashMap;
 import java.util.NoSuchElementException;
 
 /**
@@ -73,6 +74,25 @@ public class TypeAndPropertyKeyStore {
             return ANY;
         }
         return propertyKeyStore.getKeyAsShortOrInsertIfDoesNotExist(property);
+    }
+
+    /**
+     * @param properties The {@code Short} key, and {@code String} value properties to get a
+     * mapping of as {@code short} keys and {@code String} values or to add to the property store.
+     * @return The properties key value pairs stored as a {@code short} key and {@code String}. If
+     * the {@code properties} passed is {@code null}, {@code null} is returned.
+     */
+    public HashMap<Short, String> getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
+        HashMap<String, String> properties) {
+        HashMap<Short, String> resultProperties = null;
+        if (null != properties) {
+            resultProperties = new HashMap<>();
+            for (String key : properties.keySet()) {
+                short keyAsShort = propertyKeyStore.getKeyAsShortOrInsertIfDoesNotExist(key);
+                resultProperties.put(keyAsShort, properties.get(key));
+            }
+        }
+        return resultProperties;
     }
 
     /**

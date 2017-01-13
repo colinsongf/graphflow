@@ -43,8 +43,9 @@ public class StructuredQueryParserTest {
     @Test
     public void testParseCreateQuery() throws Exception {
         StructuredQuery actualStructuredQuery;
-        String query = "CREATE (1:Person)-[:FOLLOWS]->(2:Person),(2:Person)-[:FOLLOWS]->" +
-            "(3:Person),(1:Person)-[:FOLLOWS]->(3:Person);";
+        String query = "CREATE (1:Person { name: Olivier })-[:FOLLOWS { really:   2yes }]->" +
+            "(2:Person { name: Mohannad }), (2:Person { name: Mohannad } )-[:FOLLOWS]->(3:Person { name: Sid })," +
+            "(1:Person {name: Olivier})-[:FOLLOWS]->(3:Person { name: Sid });";
         try {
             actualStructuredQuery = new StructuredQueryParser().parse(query);
         } catch (ParseCancellationException e) {

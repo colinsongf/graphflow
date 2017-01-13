@@ -23,21 +23,26 @@ createPattern : digitsEdgeWithType ( whitespace? ',' whitespace? digitsEdgeWithT
 pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
 
 digitsEdgeWithOptionalType : digitsVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD digitsVertex ;
-digitsEdgeWithType : digitsVertexWithType (DASH edgeType) DASH RIGHT_ARROWHEAD digitsVertexWithType ;
+digitsEdgeWithType : digitsVertexWithType (DASH edgeTypeAndProperties) DASH RIGHT_ARROWHEAD digitsVertexWithType ;
 variableEdge : variableVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD variableVertex ;
 
 digitsVertex : '(' whitespace? Digits whitespace? ')' ;
-digitsVertexWithType : '(' whitespace? Digits whitespace? type  whitespace? ')' ;
+digitsVertexWithType : '(' whitespace? Digits whitespace? type whitespace? properties? whitespace? ')' ;
 variableVertex : '(' whitespace? variable whitespace? type? whitespace? ')' ;
 
 edgeType : '[' whitespace? type whitespace? ']' ;
+edgeTypeAndProperties : '[' whitespace? type whitespace? properties? whitespace? ']' ;
 
 type : ':' variable ;
+properties : '{' whitespace? ( property ( whitespace? ',' whitespace? property )* )? whitespace? '}' ;
+property : key whitespace? ':' whitespace? value ;
+key : variable ;
+value : variable ;
 
 userOperation : FILE ;
 operationLocation: variable;
 
-variable : Characters ( Digits | Characters | UNDERSCORE | DASH | DOT )* ;
+variable : ( Digits | Characters | UNDERSCORE | DASH | DOT )+ ;
 
 Digits : (Digit)+ ;
 

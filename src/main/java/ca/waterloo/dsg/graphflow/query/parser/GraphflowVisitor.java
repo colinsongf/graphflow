@@ -8,9 +8,11 @@ import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsEdgeWithOptionalT
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsEdgeWithTypeContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsVertexContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsVertexWithTypeContext;
+import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.EdgeTypeAndPropertiesContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.GraphflowContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.MatchPatternContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.PathPatternContext;
+import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.PropertiesContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.ShortestPathQueryContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableEdgeContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableVertexContext;
@@ -19,6 +21,8 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery.QueryOperation;
+
+import java.util.HashMap;
 
 /**
  * This class implements the ANTLR4 methods used to traverse the parse tree.
@@ -99,8 +103,12 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     public AbstractStructuredQuery visitDigitsEdgeWithType(DigitsEdgeWithTypeContext ctx) {
         QueryRelation queryRelation = new QueryRelation((QueryVariable) visit(ctx.
             digitsVertexWithType(0)), (QueryVariable) visit(ctx.digitsVertexWithType(1)));
-        if (null != ctx.edgeType()) {
-            queryRelation.setRelationType(ctx.edgeType().type().variable().getText());
+        EdgeTypeAndPropertiesContext ctxEdge = ctx.edgeTypeAndProperties();
+        if (null != ctxEdge.type()) {
+            queryRelation.setRelationType(ctxEdge.type().variable().getText());
+        }
+        if (null != ctxEdge.properties()) {
+            queryRelation.setRelationProperties(parseProperties(ctxEdge.properties()));
         }
         return queryRelation;
     }
@@ -122,7 +130,12 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
 
     @Override
     public AbstractStructuredQuery visitDigitsVertexWithType(DigitsVertexWithTypeContext ctx) {
-        return new QueryVariable(ctx.Digits().getText(), ctx.type().variable().getText());
+        QueryVariable queryVariable = new QueryVariable(ctx.Digits().getText(), ctx.type()
+            .variable().getText());
+        if (null != ctx.properties()) {
+            queryVariable.setVariableProperties(parseProperties(ctx.properties()));
+        }
+        return queryVariable;
     }
 
     @Override
@@ -132,5 +145,13 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
             queryVariable.setVariableType(ctx.type().variable().getText());
         }
         return queryVariable;
+    }
+
+    private HashMap<String, String> parseProperties(PropertiesContext ctx) {
+        HashMap<String, String> properties = new HashMap<>();
+        for (int i = 0; i < ctx.property().size(); ++i) {
+            properties.put(ctx.property(i).key().getText(), ctx.property(i).value().getText());
+        }
+        return properties;
     }
 }

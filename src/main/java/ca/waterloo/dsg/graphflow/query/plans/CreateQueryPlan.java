@@ -6,6 +6,9 @@ import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
+import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
+
+import java.util.HashMap;
 
 /**
  * Class representing plan for a CREATE operation.
@@ -41,10 +44,20 @@ public class CreateQueryPlan implements QueryPlan {
                         getVariableType());
                 short edgeTypeId = TypeAndPropertyKeyStore.getInstance().
                     getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getRelationType());
+
+                HashMap<Short, String> fromVertexproperties = TypeAndPropertyKeyStore
+                    .getInstance().getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
+                        queryRelation.getFromQueryVariable().getVariableProperties());
+                HashMap<Short, String> toVertexproperties = TypeAndPropertyKeyStore
+                    .getInstance().getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
+                        queryRelation.getToQueryVariable().getVariableProperties());
+                HashMap<Short, String> edgeProperties = TypeAndPropertyKeyStore
+                    .getInstance().getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
+                        queryRelation.getRelationProperties());
+
                 // Add the new edge to the graph.
                 graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexTypeId, toVertexTypeId,
-                    null /* no fromVertex properties */, null /* no toVertexProperties */,
-                    edgeTypeId, null /* no edge properties */);
+                    fromVertexproperties, toVertexproperties, edgeTypeId, edgeProperties);
             }
             ContinuousMatchQueryExecutor.getInstance().execute(graph);
             graph.finalizeChanges();

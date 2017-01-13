@@ -45,7 +45,7 @@ public class IndexedKeyValueByteArrays {
      */
     public void set(int index, HashMap<Short,String> keyValues) {
         resizeIfNecessary(index);
-        if (null == keyValues || keyValues.size() == 0) {
+        if (null == keyValues) {
             return;
         }
         data[index] = new byte[0];

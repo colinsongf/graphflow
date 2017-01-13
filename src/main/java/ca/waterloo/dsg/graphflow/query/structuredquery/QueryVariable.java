@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.structuredquery;
 
 import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 
+import java.util.HashMap;
 import java.util.Objects;
 
 /**
@@ -11,6 +12,7 @@ public class QueryVariable implements AbstractStructuredQuery {
 
     private String variableId;
     private String variableType;
+    private HashMap<String, String> variableProperties;
 
     /**
      * Constructs a {@code QueryVariable} with the variable type set to {@code null}.
@@ -40,8 +42,16 @@ public class QueryVariable implements AbstractStructuredQuery {
         return variableType;
     }
 
+    public HashMap<String, String> getVariableProperties() {
+        return variableProperties;
+    }
+
     public void setVariableType(String variableType) {
         this.variableType = variableType;
+    }
+
+    public void setVariableProperties(HashMap<String, String> variableProperties) {
+        this.variableProperties = variableProperties;
     }
 
     /**

@@ -21,6 +21,7 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery.QueryOperation;
+import ca.waterloo.dsg.graphflow.util.Type;
 
 import java.util.HashMap;
 
@@ -94,7 +95,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         QueryRelation queryRelation = new QueryRelation((QueryVariable) visit(ctx.digitsVertex(0)),
             (QueryVariable) visit(ctx.digitsVertex(1)));
         if (null != ctx.edgeType()) {
-            queryRelation.setRelationType(ctx.edgeType().type().variable().getText());
+            queryRelation.setRelationType(ctx.edgeType().userDefinedType().variable().getText());
         }
         return queryRelation;
     }
@@ -104,8 +105,8 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         QueryRelation queryRelation = new QueryRelation((QueryVariable) visit(ctx.
             digitsVertexWithType(0)), (QueryVariable) visit(ctx.digitsVertexWithType(1)));
         EdgeTypeAndPropertiesContext ctxEdge = ctx.edgeTypeAndProperties();
-        if (null != ctxEdge.type()) {
-            queryRelation.setRelationType(ctxEdge.type().variable().getText());
+        if (null != ctxEdge.userDefinedType()) {
+            queryRelation.setRelationType(ctxEdge.userDefinedType().variable().getText());
         }
         if (null != ctxEdge.properties()) {
             queryRelation.setRelationProperties(parseProperties(ctxEdge.properties()));
@@ -118,7 +119,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         QueryRelation queryRelation = new QueryRelation((QueryVariable) visit(ctx.
             variableVertex(0)), (QueryVariable) visit(ctx.variableVertex(1)));
         if (null != ctx.edgeType()) {
-            queryRelation.setRelationType(ctx.edgeType().type().variable().getText());
+            queryRelation.setRelationType(ctx.edgeType().userDefinedType().variable().getText());
         }
         return queryRelation;
     }
@@ -130,8 +131,8 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
 
     @Override
     public AbstractStructuredQuery visitDigitsVertexWithType(DigitsVertexWithTypeContext ctx) {
-        QueryVariable queryVariable = new QueryVariable(ctx.Digits().getText(), ctx.type()
-            .variable().getText());
+        QueryVariable queryVariable = new QueryVariable(ctx.Digits().getText(), ctx.
+            userDefinedType().variable().getText());
         if (null != ctx.properties()) {
             queryVariable.setVariableProperties(parseProperties(ctx.properties()));
         }
@@ -141,16 +142,19 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     @Override
     public AbstractStructuredQuery visitVariableVertex(VariableVertexContext ctx) {
         QueryVariable queryVariable = new QueryVariable(ctx.variable().getText());
-        if (null != ctx.type()) {
-            queryVariable.setVariableType(ctx.type().variable().getText());
+        if (null != ctx.userDefinedType()) {
+            queryVariable.setVariableType(ctx.userDefinedType().variable().getText());
         }
         return queryVariable;
     }
 
-    private HashMap<String, String> parseProperties(PropertiesContext ctx) {
-        HashMap<String, String> properties = new HashMap<>();
+    private HashMap<String, String[]> parseProperties(PropertiesContext ctx) {
+        HashMap<String, String[]> properties = new HashMap<>();
         for (int i = 0; i < ctx.property().size(); ++i) {
-            properties.put(ctx.property(i).key().getText(), ctx.property(i).value().getText());
+            String type = ctx.property(i).systemType().getText();
+            String value = ctx.property(i).value().getText();
+            Type.checkValueMatchesType(type, value);
+            properties.put(ctx.property(i).key().getText(), new String[] { type, value });
         }
         return properties;
     }

@@ -26,7 +26,7 @@ public class TypeAndPropertyKeyStoreTest {
         Assert.assertEquals(TypeAndPropertyKeyStore.ANY, TypeAndPropertyKeyStore.getInstance().
             getTypeAsShortOrInsertIfDoesNotExist(""));
         Assert.assertEquals(TypeAndPropertyKeyStore.ANY, TypeAndPropertyKeyStore.getInstance().
-            getPropertyAsShortOrInsertIfDoesNotExist(""));
+            getPropertyAsShortOrInsertIfDoesNotExist("", "String"));
 
         Assert.assertEquals(TypeAndPropertyKeyStore.ANY, TypeAndPropertyKeyStore.getInstance().
             getTypeAsShortOrAnyIfNullOrEmpty(null));
@@ -36,7 +36,7 @@ public class TypeAndPropertyKeyStoreTest {
         Assert.assertEquals(TypeAndPropertyKeyStore.ANY, TypeAndPropertyKeyStore.getInstance().
             getTypeAsShortOrInsertIfDoesNotExist(null));
         Assert.assertEquals(TypeAndPropertyKeyStore.ANY, TypeAndPropertyKeyStore.getInstance().
-            getPropertyAsShortOrInsertIfDoesNotExist(null));
+            getPropertyAsShortOrInsertIfDoesNotExist(null, "String"));
     }
 
     @Test
@@ -44,9 +44,9 @@ public class TypeAndPropertyKeyStoreTest {
         TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrInsertIfDoesNotExist("Friend");
         TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrInsertIfDoesNotExist("Page");
         TypeAndPropertyKeyStore.getInstance().
-            getPropertyAsShortOrInsertIfDoesNotExist("Name");
+            getPropertyAsShortOrInsertIfDoesNotExist("Name", "String");
         TypeAndPropertyKeyStore.getInstance().
-            getPropertyAsShortOrInsertIfDoesNotExist("Num Likes");
+            getPropertyAsShortOrInsertIfDoesNotExist("Num Likes", "String");
 
         Assert.assertEquals((short) 1, TypeAndPropertyKeyStore.getInstance().
             getPropertyAsShortOrAnyIfNullOrEmpty("Num Likes"));

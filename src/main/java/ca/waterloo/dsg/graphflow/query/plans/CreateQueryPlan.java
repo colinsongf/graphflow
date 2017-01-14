@@ -45,10 +45,10 @@ public class CreateQueryPlan implements QueryPlan {
                 short edgeTypeId = TypeAndPropertyKeyStore.getInstance().
                     getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getRelationType());
 
-                HashMap<Short, String> fromVertexproperties = TypeAndPropertyKeyStore
+                HashMap<Short, String> fromVertexProperties = TypeAndPropertyKeyStore
                     .getInstance().getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
                         queryRelation.getFromQueryVariable().getVariableProperties());
-                HashMap<Short, String> toVertexproperties = TypeAndPropertyKeyStore
+                HashMap<Short, String> toVertexProperties = TypeAndPropertyKeyStore
                     .getInstance().getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
                         queryRelation.getToQueryVariable().getVariableProperties());
                 HashMap<Short, String> edgeProperties = TypeAndPropertyKeyStore
@@ -57,7 +57,7 @@ public class CreateQueryPlan implements QueryPlan {
 
                 // Add the new edge to the graph.
                 graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexTypeId, toVertexTypeId,
-                    fromVertexproperties, toVertexproperties, edgeTypeId, edgeProperties);
+                    fromVertexProperties, toVertexProperties, edgeTypeId, edgeProperties);
             }
             ContinuousMatchQueryExecutor.getInstance().execute(graph);
             graph.finalizeChanges();

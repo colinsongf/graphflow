@@ -12,7 +12,7 @@ public class QueryVariable implements AbstractStructuredQuery {
 
     private String variableId;
     private String variableType;
-    private HashMap<String, String> variableProperties;
+    private HashMap<String, String[]> variableProperties;
 
     /**
      * Constructs a {@code QueryVariable} with the variable type set to {@code null}.
@@ -42,7 +42,7 @@ public class QueryVariable implements AbstractStructuredQuery {
         return variableType;
     }
 
-    public HashMap<String, String> getVariableProperties() {
+    public HashMap<String, String[]> getVariableProperties() {
         return variableProperties;
     }
 
@@ -50,7 +50,7 @@ public class QueryVariable implements AbstractStructuredQuery {
         this.variableType = variableType;
     }
 
-    public void setVariableProperties(HashMap<String, String> variableProperties) {
+    public void setVariableProperties(HashMap<String, String[]> variableProperties) {
         this.variableProperties = variableProperties;
     }
 

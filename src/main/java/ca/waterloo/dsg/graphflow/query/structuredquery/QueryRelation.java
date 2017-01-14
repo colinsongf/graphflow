@@ -13,7 +13,7 @@ public class QueryRelation implements AbstractStructuredQuery {
     private QueryVariable fromQueryVariable;
     private QueryVariable toQueryVariable;
     private String relationType;
-    private HashMap<String, String> properties;
+    private HashMap<String, String[]> properties;
 
     /**
      * Constructs a {@code QueryRelation} with the relation type set to {@code null}.
@@ -51,7 +51,7 @@ public class QueryRelation implements AbstractStructuredQuery {
         return relationType;
     }
 
-    public HashMap<String, String> getRelationProperties() {
+    public HashMap<String, String[]> getRelationProperties() {
         return properties;
     }
 
@@ -59,7 +59,7 @@ public class QueryRelation implements AbstractStructuredQuery {
         this.relationType = relationType;
     }
 
-    public void setRelationProperties(HashMap<String, String> properties) {
+    public void setRelationProperties(HashMap<String, String[]> properties) {
         this.properties = properties;
     }
 

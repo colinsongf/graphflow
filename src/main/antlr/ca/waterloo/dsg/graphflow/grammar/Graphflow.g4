@@ -27,15 +27,15 @@ digitsEdgeWithType : digitsVertexWithType (DASH edgeTypeAndProperties) DASH RIGH
 variableEdge : variableVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD variableVertex ;
 
 digitsVertex : '(' whitespace? Digits whitespace? ')' ;
-digitsVertexWithType : '(' whitespace? Digits whitespace? type whitespace? properties? whitespace? ')' ;
-variableVertex : '(' whitespace? variable whitespace? type? whitespace? ')' ;
+digitsVertexWithType : '(' whitespace? Digits whitespace? userDefinedType whitespace? properties? whitespace? ')' ;
+variableVertex : '(' whitespace? variable whitespace? userDefinedType? whitespace? ')' ;
 
-edgeType : '[' whitespace? type whitespace? ']' ;
-edgeTypeAndProperties : '[' whitespace? type whitespace? properties? whitespace? ']' ;
+edgeType : '[' whitespace? userDefinedType whitespace? ']' ;
+edgeTypeAndProperties : '[' whitespace? userDefinedType whitespace? properties? whitespace? ']' ;
 
-type : ':' variable ;
+userDefinedType : ':' variable ;
 properties : '{' whitespace? ( property ( whitespace? ',' whitespace? property )* )? whitespace? '}' ;
-property : key whitespace? ':' whitespace? value ;
+property : key whitespace? ':' whitespace? systemType whitespace? '=' whitespace? value ;
 key : variable ;
 value : variable ;
 
@@ -43,6 +43,16 @@ userOperation : FILE ;
 operationLocation: variable;
 
 variable : ( Digits | Characters | UNDERSCORE | DASH | DOT )+ ;
+systemType : ( BYTE | SHORT | INT | LONG | FLOAT | DOUBLE | BOOLEAN | STRING ) ;
+
+BYTE: B Y T E ;
+SHORT: S H O R T ;
+INT: I N T ;
+LONG: L O N G ;
+FLOAT: F L O A T ;
+DOUBLE: D O U B L E ;
+BOOLEAN: B O O L E A N ;
+STRING: S T R I N G;
 
 Digits : (Digit)+ ;
 

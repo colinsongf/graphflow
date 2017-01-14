@@ -2,8 +2,10 @@ package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
+import ca.waterloo.dsg.graphflow.util.Type;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
@@ -16,6 +18,7 @@ public class TypeAndPropertyKeyStore {
     private static final TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
     private static StringToShortKeyStore typeKeyStore = new StringToShortKeyStore();
     private static StringToShortKeyStore propertyKeyStore = new StringToShortKeyStore();
+    private Map<Short, Type> propertyTypeMap = new HashMap<>();
 
     /**
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
@@ -69,11 +72,18 @@ public class TypeAndPropertyKeyStore {
      * @return The property value stored as a {@code short}. If the {@code property} passed is
      * either {@code null} or an empty string, {@link TypeAndPropertyKeyStore#ANY} is returned.
      */
-    public short getPropertyAsShortOrInsertIfDoesNotExist(String property) {
+    public short getPropertyAsShortOrInsertIfDoesNotExist(String property, String type) {
         if (isNullOrEmpty(property)) {
             return ANY;
         }
-        return propertyKeyStore.getKeyAsShortOrInsertIfDoesNotExist(property);
+        short key;
+        try {
+            key = propertyKeyStore.getKeyAsShort(property);
+        } catch (NoSuchElementException e) {
+            key = propertyKeyStore.getKeyAsShortOrInsertIfDoesNotExist(property);
+            propertyTypeMap.put(key, Type.convert(type));
+        }
+        return key;
     }
 
     /**
@@ -83,13 +93,22 @@ public class TypeAndPropertyKeyStore {
      * the {@code properties} passed is {@code null}, {@code null} is returned.
      */
     public HashMap<Short, String> getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
-        HashMap<String, String> properties) {
+        HashMap<String, String[]> properties) {
         HashMap<Short, String> resultProperties = null;
         if (null != properties) {
             resultProperties = new HashMap<>();
             for (String key : properties.keySet()) {
-                short keyAsShort = propertyKeyStore.getKeyAsShortOrInsertIfDoesNotExist(key);
-                resultProperties.put(keyAsShort, properties.get(key));
+                String type = properties.get(key)[0];
+                String value = properties.get(key)[1];
+                short keyAsShort;
+                try {
+                    keyAsShort = propertyKeyStore.getKeyAsShort(value);
+                    //TODO(amine): if the key exists, enforce the old type.
+                } catch (NoSuchElementException e) {
+                    keyAsShort = propertyKeyStore.getKeyAsShortOrInsertIfDoesNotExist(value);
+                    propertyTypeMap.put(keyAsShort, Type.convert(type));
+                }
+                resultProperties.put(keyAsShort, value);
             }
         }
         return resultProperties;

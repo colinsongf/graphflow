@@ -6,6 +6,8 @@ import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 
+import java.util.HashMap;
+
 /**
  * Represents a Generic Join rule. A Generic Join rule consists of the following: (1) A
  * {@code prefixIndex} that indicates the vertex {@code u} in the prefix that is being extended.
@@ -21,6 +23,7 @@ public class GenericJoinIntersectionRule {
     private Direction direction;
     private GraphVersion graphVersion;
     private short edgeType;
+    private HashMap<Short, String> edgeProperties;
 
     /**
      * Constructor for creating {@link GenericJoinIntersectionRule} with no graph version specified.
@@ -34,7 +37,12 @@ public class GenericJoinIntersectionRule {
      * {@link TypeAndPropertyKeyStore#ANY} does not filter any of {@code u}'s edges.
      */
     public GenericJoinIntersectionRule(int prefixIndex, Direction direction, short edgeType) {
-        this(prefixIndex, direction, GraphVersion.PERMANENT, edgeType);
+        this(prefixIndex, direction, GraphVersion.PERMANENT, edgeType, null /* no properties */);
+    }
+
+    public GenericJoinIntersectionRule(int prefixIndex, Direction direction, short edgeType,
+        HashMap<Short, String> edgeProperties) {
+        this(prefixIndex, direction, GraphVersion.PERMANENT, edgeType, edgeProperties);
     }
 
     /**
@@ -48,7 +56,8 @@ public class GenericJoinIntersectionRule {
      * from {@code u} or {@link Graph.Direction#BACKWARD} incoming towards {@code u}.
      */
     public GenericJoinIntersectionRule(int prefixIndex, Direction direction) {
-        this(prefixIndex, direction, GraphVersion.PERMANENT, TypeAndPropertyKeyStore.ANY);
+        this(prefixIndex, direction, GraphVersion.PERMANENT, TypeAndPropertyKeyStore.ANY,
+            null /* no edge properties */);
     }
 
     /**
@@ -64,7 +73,13 @@ public class GenericJoinIntersectionRule {
      */
     public GenericJoinIntersectionRule(int prefixIndex, Direction direction,
         GraphVersion graphVersion) {
-        this(prefixIndex, direction, graphVersion, TypeAndPropertyKeyStore.ANY);
+        this(prefixIndex, direction, graphVersion, TypeAndPropertyKeyStore.ANY, null /* no edge
+        properties */);
+    }
+
+    public GenericJoinIntersectionRule(int prefixIndex, Direction direction,
+        GraphVersion graphVersion, short edgeType) {
+        this(prefixIndex, direction, graphVersion, edgeType, null /* no edge properties */);
     }
 
     /**
@@ -80,15 +95,20 @@ public class GenericJoinIntersectionRule {
      * {@link TypeAndPropertyKeyStore#ANY} does not filter any of {@code u}'s edges.
      */
     public GenericJoinIntersectionRule(int prefixIndex, Direction direction,
-        GraphVersion graphVersion, short edgeType) {
+        GraphVersion graphVersion, short edgeType, HashMap<Short, String> edgeProperties) {
         this.prefixIndex = prefixIndex;
         this.direction = direction;
         this.graphVersion = graphVersion;
         this.edgeType = edgeType;
+        this.edgeProperties = edgeProperties;
     }
 
     public short getEdgeType() {
         return edgeType;
+    }
+
+    public HashMap<Short, String> getEdgeProperties() {
+        return edgeProperties;
     }
 
     public int getPrefixIndex() {

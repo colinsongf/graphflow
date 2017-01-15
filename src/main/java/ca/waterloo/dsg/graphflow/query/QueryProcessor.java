@@ -49,18 +49,23 @@ public class QueryProcessor {
         } catch (ParseCancellationException e) {
             return "ERROR parsing: " + e.getMessage();
         }
-        switch (structuredQuery.getQueryOperation()) {
-            case CREATE:
-                return handleCreateQuery(structuredQuery);
-            case DELETE:
-                return handleDeleteQuery(structuredQuery);
-            case MATCH:
-                return handleMatchQuery(structuredQuery);
-            case CONTINUOUS_MATCH:
-                return handleContinuousMatchQuery(structuredQuery);
-            default:
-                return "ERROR: the operation '" + structuredQuery.getQueryOperation() +
-                    "' is not defined.";
+        try {
+            switch (structuredQuery.getQueryOperation()) {
+                case CREATE:
+                    return handleCreateQuery(structuredQuery);
+                case DELETE:
+                    return handleDeleteQuery(structuredQuery);
+                case MATCH:
+                    return handleMatchQuery(structuredQuery);
+                case CONTINUOUS_MATCH:
+                    return handleContinuousMatchQuery(structuredQuery);
+                default:
+                    return "ERROR: the operation '" + structuredQuery.getQueryOperation() +
+                        "' is not defined.";
+            }
+        } catch (IllegalArgumentException e) {
+            // due to type mismatch in properties in create queries.
+            return "ERROR " + e.getMessage();
         }
     }
 
@@ -84,7 +89,7 @@ public class QueryProcessor {
             ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery).plan()).execute(
                 graph, outputSink);
         } catch (NoSuchElementException e) {
-            // Exception raised because a type in the MATCH query input does not exist.
+            // Exception raised if a type or a property in the MATCH query input does not exist.
         }
         return (0 == outputSink.toString().length()) ? "{}" : outputSink.toString();
     }

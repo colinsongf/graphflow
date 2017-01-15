@@ -5,9 +5,11 @@ import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 import ca.waterloo.dsg.graphflow.util.IndexedKeyValueByteArrays;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Encapsulates the assigned and recycled edge IDs and edge properties of the Graph.
@@ -111,6 +113,82 @@ public class EdgeStore {
 
         updatePropertyDataAndOffsets(propertiesAsBytes, dataOffsetStart, dataOffsetEnd,
             partitionId, bucketId, bucketOffset);
+    }
+
+    /**
+     * Returns the {@code Short} key, and {@code String} value properties stored for an edge with
+     * the given id. If the id provided is an id of a deleted edge, the properties of the deleted
+     * edge are returned.
+     *
+     * @param edgeId The id of the edge.
+     * @return {@code Short} key, and {@code String} value properties of edge for the given {@code
+     * edgeId} given the id has been previously assigned to an edge.
+     * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
+     */
+    public HashMap<Short, String> getEdgeProperties(long edgeId) {
+        if (edgeId >= nextIDNeverYetAssigned) {
+            throw new NoSuchElementException("no edge with id " + edgeId);
+        }
+
+        int partitionId = (int) (edgeId >> 40);
+        int bucketId = (int) (edgeId >> 8);
+        byte bucketOffset = (byte) edgeId;
+
+        int startOffset = edgePropertyDataOffsets[partitionId][bucketId][bucketOffset];
+        int endOffset = edgePropertyDataOffsets[partitionId][bucketId][bucketOffset + 1] - 1;
+        if (bucketOffset == MAX_EDGES_PER_BUCKET - 1) {
+            endOffset = edgePropertyData[partitionId][bucketId].length;
+        }
+
+        HashMap<Short, String> edgeProperties = new HashMap<>();
+        if (startOffset == endOffset + 1) { // no properties
+            return edgeProperties;
+        }
+
+        byte[] properties = new byte[endOffset - startOffset + 1];
+        System.arraycopy(edgePropertyData[partitionId][bucketId], startOffset, properties, 0,
+            endOffset - startOffset + 1);
+
+        for (int i = 0; i < properties.length; ) {
+            short key = (short) ((short)(properties[i] << 8) | ((short)properties[i+1]));
+            int length = (((int) properties[i+2]) << 24) | (((int) properties[i+3]) << 16) &
+                (((int) properties[i+4]) << 8) | (int) properties[i+5];
+            byte[] value = new byte[length];
+            System.arraycopy(edgePropertyData[partitionId][bucketId], startOffset + 6 + i, value,
+                0, length);
+            edgeProperties.put(key, new String(value, StandardCharsets.UTF_8));
+            i += (6 + length);
+        }
+
+        return edgeProperties;
+    }
+
+    /**
+     * Returns the {@code Short} key, and {@code String} value properties stored for an edge with
+     * the given id.
+     *
+     * @param edgeId The id of the edge.
+     * @param properties The properties to check against those of the given {@code edgeId} and
+     * see if they match.
+     * @return whether the {@code properties} passed matches those of the edge at {@code edgeId}.
+     * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
+     */
+    public boolean edgePropertiesMatches(long edgeId, HashMap<Short, String> properties) {
+        if (edgeId >= nextIDNeverYetAssigned) {
+            throw new NoSuchElementException("no edge with id " + edgeId);
+        }
+
+        if (null == properties || properties.size() == 0) {
+            return true;
+        }
+
+        HashMap<Short, String> edgeProperties = getEdgeProperties(edgeId);
+        for(Short key: properties.keySet()) {
+            if (!properties.get(key).equals(edgeProperties.get(key))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void updatePropertyDataAndOffsets (byte[] properties, int dataOffsetStart,

@@ -12,6 +12,7 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -87,12 +88,13 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         // Add the first stage. The first stage always starts with extending the diffRelation's
         // {@code fromVariable} to {@code toVariable} with the type on the relation.
         stage = new ArrayList<>();
-        // {@code TypeStore#getShortIdOrAnyTypeIfNull()} will throw a {@code NoSuchElementException}
-        // if the relation type {@code String} of {@code diffRelation} does not already exist in the
-        // {@code TypeStore}.
+        // {@code TypeAndPropertyKeyStore#getShortIdOrAnyTypeIfNull()} will throw a {@code
+        // NoSuchElementException} if the relation type or one of the properties of {@code
+        // diffRelation} does not already exist in the {@code TypeAndPropertyKeyStore}.
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, graphVersion,
             TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrAnyIfNullOrEmpty(
-                diffRelation.getRelationType())));
+                diffRelation.getRelationType()), TypeAndPropertyKeyStore.getInstance()
+            .getPropertiesAsShortStringKeyValues((diffRelation.getRelationProperties()))));
         oneTimeMatchQueryPlan.addStage(stage);
         // Add the other relations that are present between the diffRelation's
         // {@code fromVariable} to {@code toVariable}.
@@ -171,12 +173,13 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             throw new IllegalStateException("The new relation is not present in either " +
                 "mergedRelations or permanentRelations");
         }
-        // {@code TypeStore#getShortIdOrAnyTypeIfNull()} will throw a {@code NoSuchElementException}
-        // if the relation type {@code String} of {@code newRelation} does not already exist in the
-        // {@code TypeStore}.
+        // {@code TypeAndPropertyKeyStore#getShortIdOrAnyTypeIfNull()} will throw a {@code
+        // NoSuchElementException} if the relation type {@code String} of {@code newRelation}
+        // does not already exist in the {@code TypeAndPropertyKeyStore}.
         stage.add(new GenericJoinIntersectionRule(prefixIndex, direction, version,
             TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrAnyIfNullOrEmpty(
-                newRelation.getRelationType())));
+                newRelation.getRelationType()), TypeAndPropertyKeyStore.getInstance().
+            getPropertiesAsShortStringKeyValues(newRelation.getRelationProperties())));
     }
 
     /**

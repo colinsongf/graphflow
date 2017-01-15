@@ -5,6 +5,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * Tests {@link SortedAdjacencyList}.
@@ -167,7 +168,8 @@ public class SortedAdjacencyListTest {
         listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.
             getSize()));
         IntArrayList intersections = adjacencyList1.getIntersection(listToIntersect,
-            intersectionFilterEdgeType);
+            intersectionFilterEdgeType, null /* no edge properties */,
+            null  /* edge store instance not required */);
         int[] expectedNeighbours = {14, 34, 54};
         Assert.assertArrayEquals(expectedNeighbours, intersections.toArray());
     }
@@ -187,8 +189,57 @@ public class SortedAdjacencyListTest {
         IntArrayList listToIntersect = new IntArrayList();
         listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.
             getSize()));
-        IntArrayList intersections = adjacencyList1.getIntersection(listToIntersect, (short) -1);
+        IntArrayList intersections = adjacencyList1.getIntersection(listToIntersect, (short) -1,
+            null /* no edge properties */, null /* edge store instance not required */);
         int[] expectedNeighbours = {1, 14, 34, 54, 89};
         Assert.assertArrayEquals(expectedNeighbours, intersections.toArray());
+    }
+
+    @Test
+    public void testgetFilteredNeighbourIds() {
+        int[] neighbourIds = {1, 9, 14, 23, 34, 54, 89};
+        short[] neighbourTypes = {1, 1, 2, 3, 2, 1, 1};
+        long[] neighbourEdgeIds = {0, 1, 2, 3, 4, 5, 6};
+
+        EdgeStore edgeStore = new EdgeStore();
+        HashMap<Short, String> properties = new HashMap<>();
+        for (int i = 0; i < neighbourEdgeIds.length; ++i) {
+            properties.put((short) 0, Integer.toString(i));
+            edgeStore.addEdge(properties);
+        }
+
+        SortedAdjacencyList adjacencyList = getPopulatedAdjacencyList(neighbourIds, neighbourTypes,
+            neighbourEdgeIds);
+        IntArrayList filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds((short) 1,
+            null /* no properties */, edgeStore);
+        Assert.assertEquals(1, filteredNeighbourIds.get(0));
+        Assert.assertEquals(9, filteredNeighbourIds.get(1));
+        Assert.assertEquals(54, filteredNeighbourIds.get(2));
+        Assert.assertEquals(89, filteredNeighbourIds.get(3));
+
+        filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds( (short) -1 /*
+        any type */, null /* no properties */, edgeStore);
+        Assert.assertEquals(1, filteredNeighbourIds.get(0));
+        Assert.assertEquals(9, filteredNeighbourIds.get(1));
+        Assert.assertEquals(14, filteredNeighbourIds.get(2));
+        Assert.assertEquals(23, filteredNeighbourIds.get(3));
+        Assert.assertEquals(34, filteredNeighbourIds.get(4));
+        Assert.assertEquals(54, filteredNeighbourIds.get(5));
+        Assert.assertEquals(89, filteredNeighbourIds.get(6));
+
+        filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds( (short) -1 /*
+        any type */, properties, edgeStore);
+        Assert.assertEquals(1, filteredNeighbourIds.getSize());
+        Assert.assertEquals(89, filteredNeighbourIds.get(0));
+
+        filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds( (short) 1, properties,
+            edgeStore);
+        Assert.assertEquals(1, filteredNeighbourIds.getSize());
+        Assert.assertEquals(89, filteredNeighbourIds.get(0));
+
+
+        filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds( (short) 2, properties,
+            edgeStore);
+        Assert.assertEquals(0, filteredNeighbourIds.getSize());
     }
 }

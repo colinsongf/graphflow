@@ -9,6 +9,7 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class representing plan for a CREATE operation.
@@ -30,21 +31,32 @@ public class CreateQueryPlan implements QueryPlan {
     public void execute(Graph graph, OutputSink outputSink) {
         try {
             for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
+
+                // assert that the types of the properties in the query match within themselves and
+                // are also matched with previous property declarations from previous executed
+                // queries.
+                TypeAndPropertyKeyStore.getInstance().assertEachPropertyTypeCorrectness(
+                    queryRelation.getFromQueryVariable().getVariableProperties(), queryRelation.
+                        getToQueryVariable().getVariableProperties(), queryRelation.
+                        getRelationProperties());
+
+                // get the from and to vertex Ids.
                 int fromVertex = Integer.parseInt(queryRelation.getFromQueryVariable().
                     getVariableId());
                 int toVertex = Integer.parseInt(queryRelation.getToQueryVariable().getVariableId());
-                // Insert the types into the {@code TypeStore} if they do not already exist, and
-                // get their {@code short} IDs. An exception in the above {@code parseInt()} calls
-                // will prevent the insertion of any new type to the {@code TypeStore}.
-                short fromVertexTypeId = TypeAndPropertyKeyStore.getInstance().
+
+                // Insert the types into the {@code TypeAndPropertyKeyStore} if they do not already
+                // exist, and get their {@code short} IDs.
+                short fromVertexType = TypeAndPropertyKeyStore.getInstance().
                     getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getFromQueryVariable().
                         getVariableType());
-                short toVertexTypeId = TypeAndPropertyKeyStore.getInstance().
+                short toVertexType = TypeAndPropertyKeyStore.getInstance().
                     getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getToQueryVariable().
                         getVariableType());
-                short edgeTypeId = TypeAndPropertyKeyStore.getInstance().
+                short edgeType = TypeAndPropertyKeyStore.getInstance().
                     getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getRelationType());
 
+                // get the properties as short key, string value pairs from vertices and edge.
                 HashMap<Short, String> fromVertexProperties = TypeAndPropertyKeyStore
                     .getInstance().getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
                         queryRelation.getFromQueryVariable().getVariableProperties());
@@ -56,8 +68,8 @@ public class CreateQueryPlan implements QueryPlan {
                         queryRelation.getRelationProperties());
 
                 // Add the new edge to the graph.
-                graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexTypeId, toVertexTypeId,
-                    fromVertexProperties, toVertexProperties, edgeTypeId, edgeProperties);
+                graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexType, toVertexType,
+                    fromVertexProperties, toVertexProperties, edgeType, edgeProperties);
             }
             ContinuousMatchQueryExecutor.getInstance().execute(graph);
             graph.finalizeChanges();

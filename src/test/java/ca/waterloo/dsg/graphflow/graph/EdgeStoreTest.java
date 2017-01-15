@@ -28,7 +28,7 @@ public class EdgeStoreTest {
     }
 
     @Test
-    public void testSetPropertiesMethod() {
+    public void testSetAndGetPropertiesMethod() {
         EdgeStore testEdgeStore = new EdgeStore();
         HashMap<Short, String> properties = new HashMap<>();
         properties.put((short) 0, "fruit1");
@@ -55,5 +55,8 @@ public class EdgeStoreTest {
         byte[] fruit1 = new byte[6];
         System.arraycopy(testEdgeStore.edgePropertyData[0][0], 6, fruit1, 0, 6);
         Assert.assertEquals(new String(fruit1, StandardCharsets.UTF_8), "fruit1");
+
+        HashMap<Short, String> propertiesStored = testEdgeStore.getEdgeProperties(0);
+        Assert.assertEquals("fruit1", propertiesStored.get((short) 0));
     }
 }

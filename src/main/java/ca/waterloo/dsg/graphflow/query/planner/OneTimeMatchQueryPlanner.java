@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -137,6 +138,11 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     variableForCurrentStage)) {
                     for (QueryRelation queryRelation : queryGraph.getAdjacentRelations(
                         variableFromPreviousStage, variableForCurrentStage)) {
+                        // assert that the types of the edge properties in the query match with
+                        // previous property type declarations from previous executed queries.
+                        TypeAndPropertyKeyStore.getInstance().
+                            assertEachPropertyTypeMatchesPreviousDeclatationInTheStore(
+                                queryRelation.getRelationProperties());
                         stage.add(new GenericJoinIntersectionRule(j,
                             // The {@code Direction} of the rule is {@code FORWARD} if
                             // {@code queryRelation} is an edge from
@@ -145,12 +151,14 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                             queryRelation.getFromQueryVariable().getVariableId().equals(
                                 variableFromPreviousStage) ? Direction.FORWARD :
                                 Direction.BACKWARD,
-                            // {@code TypeStore#getShortIdOrAnyTypeIfNull()} will throw a
-                            // {@code NoSuchElementException} if the relation type {@code String}
-                            // of {@code queryRelation} does not already exist in the
-                            // {@code TypeStore}.
+                            // {@code TypeAndPropertyKeyStore#getShortIdOrAnyTypeIfNull()} will
+                            // throw a {@code NoSuchElementException} if the relation type {@code
+                            // String} of {@code queryRelation} does not already exist in the
+                            // {@code TypeAndPropertyKeyStore}. Same for the properties.
                             TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrAnyIfNullOrEmpty(
-                                queryRelation.getRelationType())));
+                                queryRelation.getRelationType()), TypeAndPropertyKeyStore.
+                            getInstance().getPropertiesAsShortStringKeyValues(queryRelation.
+                            getRelationProperties())));
                     }
                 }
             }

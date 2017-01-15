@@ -49,10 +49,6 @@ public class StructuredQuery implements AbstractStructuredQuery {
         this.queryOperation = queryOperation;
     }
 
-    public String getContinuousMatchAction() {
-        return continuousMatchAction;
-    }
-
     public void setContinuousMatchAction(String continuousMatchAction) {
         this.continuousMatchAction = continuousMatchAction;
     }

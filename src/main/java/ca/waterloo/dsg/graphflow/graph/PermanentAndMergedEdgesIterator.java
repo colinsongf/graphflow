@@ -3,6 +3,7 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -23,6 +24,8 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
     // list of {@code nextFromVertexId}.
     private int nextFromVertexIdAdjListIndex = -1;
     private short edgeType;
+    private HashMap<Short, String> edgeProperties;
+    private EdgeStore edgeStore;
 
     /**
      * Constructor for {@link PermanentAndMergedEdgesIterator} with all possible vertex and edge
@@ -33,16 +36,21 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
      * the {@link Direction#FORWARD} or {@link Direction#BACKWARD} directions.
      * @param mergedAdjLists The adjacency lists for the merged version of the graph in the {@link
      * Direction#FORWARD} or {@link Direction#BACKWARD} directions.
-     * @param edgeType The type ID which the selected edge should equal.
+     * @param edgeType The type which the selected edge type should be.
+     * @param edgeProperties The properties which the selected edge properties should match.
+     * @param edgeStore The instance of edge store containing the graph's edge properties.
      * @param lastVertexId The vertex with the highest ID for the given graph version.
      */
     public PermanentAndMergedEdgesIterator(GraphVersion graphVersion,
         SortedAdjacencyList[] permanentAdjacencyLists,
-        Map<Integer, SortedAdjacencyList> mergedAdjLists, short edgeType, int lastVertexId) {
+        Map<Integer, SortedAdjacencyList> mergedAdjLists, short edgeType,
+        HashMap<Short, String> edgeProperties, EdgeStore edgeStore, int lastVertexId) {
         this.graphVersion = graphVersion;
         this.permanentAdjacencyLists = permanentAdjacencyLists;
         this.mergedAdjLists = mergedAdjLists;
         this.edgeType = edgeType;
+        this.edgeProperties = edgeProperties;
+        this.edgeStore = edgeStore;
         this.lastVertexId = lastVertexId;
         setIndicesToNextEdge();
     }
@@ -61,12 +69,15 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
                 while (nextFromVertexIdAdjListIndex < mergedAdjLists.get(nextFromVertexId).
                     getSize()) {
                     if ((TypeAndPropertyKeyStore.ANY == edgeType || mergedAdjLists.get(
-                        nextFromVertexId).getEdgeType(nextFromVertexIdAdjListIndex) == edgeType))
-                    {
+                        nextFromVertexId).getEdgeType(nextFromVertexIdAdjListIndex) == edgeType)
+                        && ((null == edgeStore) || edgeStore.edgePropertiesMatches(mergedAdjLists
+                        .get(nextFromVertexId).getEdgeId(nextFromVertexIdAdjListIndex),
+                        edgeProperties))) {
                         // The neighbour at {@code nextFromVertexIdAdjListIndex} matches {@code
                         // toVertexType} and the edge it forms with {@code nextFromVertexId}
                         // matches {@code edgeType}. In addition, the adjacency list of {@code
                         // nextFromVertexId} in the merged graph has vertices not yet iterated over.
+                        // edgeProperties are ignored if {@code edgeStore} is {@code null}.
                         return;
                     }
                     nextFromVertexIdAdjListIndex++;
@@ -74,13 +85,17 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
             } else if (null != permanentAdjacencyLists[nextFromVertexId]) {
                 while (nextFromVertexIdAdjListIndex < permanentAdjacencyLists[nextFromVertexId].
                     getSize()) {
-                    if (TypeAndPropertyKeyStore.ANY == edgeType || permanentAdjacencyLists[
-                        nextFromVertexId].getEdgeType(nextFromVertexIdAdjListIndex) == edgeType) {
+                    if ((TypeAndPropertyKeyStore.ANY == edgeType || permanentAdjacencyLists[
+                        nextFromVertexId].getEdgeType(nextFromVertexIdAdjListIndex) == edgeType)
+                        && ((null == edgeStore) || edgeStore.edgePropertiesMatches
+                        (permanentAdjacencyLists[nextFromVertexId].getEdgeId(
+                            nextFromVertexIdAdjListIndex), edgeProperties))) {
                         // The neighbour at {@code nextFromVertexIdAdjListIndex} matches {@code
                         // toVertexType} and the edge it forms with {@code nextFromVertexId}
                         // matches {@code edgeType}. In addition, the adjacency list of {@code
                         // nextFromVertexId} in the permanent graph has vertices not yet iterated
                         // over.
+                        // edgeProperties are ignored if {@code edgeStore} is {@code null}.
                         return;
                     }
                     nextFromVertexIdAdjListIndex++;

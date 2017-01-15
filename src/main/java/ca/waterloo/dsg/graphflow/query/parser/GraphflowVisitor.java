@@ -118,8 +118,14 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     public AbstractStructuredQuery visitVariableEdge(VariableEdgeContext ctx) {
         QueryRelation queryRelation = new QueryRelation((QueryVariable) visit(ctx.
             variableVertex(0)), (QueryVariable) visit(ctx.variableVertex(1)));
-        if (null != ctx.edgeType()) {
-            queryRelation.setRelationType(ctx.edgeType().userDefinedType().variable().getText());
+        if (null != ctx.edgeTypeAndProperties()) {
+            EdgeTypeAndPropertiesContext ctxEdge = ctx.edgeTypeAndProperties();
+            if (null != ctxEdge.userDefinedType()) {
+                queryRelation.setRelationType(ctxEdge.userDefinedType().variable().getText());
+            }
+            if (null != ctxEdge.properties()) {
+                queryRelation.setRelationProperties(parseProperties(ctxEdge.properties()));
+            }
         }
         return queryRelation;
     }
@@ -142,9 +148,6 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     @Override
     public AbstractStructuredQuery visitVariableVertex(VariableVertexContext ctx) {
         QueryVariable queryVariable = new QueryVariable(ctx.variable().getText());
-        if (null != ctx.userDefinedType()) {
-            queryVariable.setVariableType(ctx.userDefinedType().variable().getText());
-        }
         return queryVariable;
     }
 
@@ -153,7 +156,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         for (int i = 0; i < ctx.property().size(); ++i) {
             String type = ctx.property(i).systemType().getText();
             String value = ctx.property(i).value().getText();
-            Type.checkValueMatchesType(type, value);
+            Type.assertValueCanBeParsedAsGivenType(type, value);
             properties.put(ctx.property(i).key().getText(), new String[] { type, value });
         }
         return properties;

@@ -24,11 +24,11 @@ pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespac
 
 digitsEdgeWithOptionalType : digitsVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD digitsVertex ;
 digitsEdgeWithType : digitsVertexWithType (DASH edgeTypeAndProperties) DASH RIGHT_ARROWHEAD digitsVertexWithType ;
-variableEdge : variableVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD variableVertex ;
+variableEdge : variableVertex (DASH edgeTypeAndProperties)? DASH RIGHT_ARROWHEAD variableVertex ;
 
 digitsVertex : '(' whitespace? Digits whitespace? ')' ;
 digitsVertexWithType : '(' whitespace? Digits whitespace? userDefinedType whitespace? properties? whitespace? ')' ;
-variableVertex : '(' whitespace? variable whitespace? userDefinedType? whitespace? ')' ;
+variableVertex : '(' whitespace? variable whitespace? ')' ;
 
 edgeType : '[' whitespace? userDefinedType whitespace? ']' ;
 edgeTypeAndProperties : '[' whitespace? userDefinedType whitespace? properties? whitespace? ']' ;

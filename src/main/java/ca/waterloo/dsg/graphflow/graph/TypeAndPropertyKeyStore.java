@@ -1,8 +1,12 @@
 package ca.waterloo.dsg.graphflow.graph;
 
+import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
+import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
 import ca.waterloo.dsg.graphflow.util.Type;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +22,7 @@ public class TypeAndPropertyKeyStore {
     private static final TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
     private static StringToShortKeyStore typeKeyStore = new StringToShortKeyStore();
     private static StringToShortKeyStore propertyKeyStore = new StringToShortKeyStore();
-    private Map<Short, Type> propertyTypeMap = new HashMap<>();
+    private static Map<Short, Type> propertyTypeStore = new HashMap<>();
 
     /**
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
@@ -67,51 +71,70 @@ public class TypeAndPropertyKeyStore {
     }
 
     /**
-     * @param property The {@code String} property to get a mapping of as short or to add to the
-     * property store.
-     * @return The property value stored as a {@code short}. If the {@code property} passed is
-     * either {@code null} or an empty string, {@link TypeAndPropertyKeyStore#ANY} is returned.
-     */
-    public short getPropertyAsShortOrInsertIfDoesNotExist(String property, String type) {
-        if (isNullOrEmpty(property)) {
-            return ANY;
-        }
-        short key;
-        try {
-            key = propertyKeyStore.getKeyAsShort(property);
-        } catch (NoSuchElementException e) {
-            key = propertyKeyStore.getKeyAsShortOrInsertIfDoesNotExist(property);
-            propertyTypeMap.put(key, Type.convert(type));
-        }
-        return key;
-    }
-
-    /**
      * @param properties The {@code Short} key, and {@code String} value properties to get a
      * mapping of as {@code short} keys and {@code String} values or to add to the property store.
      * @return The properties key value pairs stored as a {@code short} key and {@code String}. If
      * the {@code properties} passed is {@code null}, {@code null} is returned.
+     * @throws IllegalArgumentException if any of the property types has been previously stored
+     * with a type value different from the one passed.
      */
     public HashMap<Short, String> getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
         HashMap<String, String[]> properties) {
         HashMap<Short, String> resultProperties = null;
         if (null != properties) {
             resultProperties = new HashMap<>();
-            for (String key : properties.keySet()) {
-                String type = properties.get(key)[0];
-                String value = properties.get(key)[1];
-                short keyAsShort;
-                try {
-                    keyAsShort = propertyKeyStore.getKeyAsShort(value);
-                    //TODO(amine): if the key exists, enforce the old type.
-                } catch (NoSuchElementException e) {
-                    keyAsShort = propertyKeyStore.getKeyAsShortOrInsertIfDoesNotExist(value);
-                    propertyTypeMap.put(keyAsShort, Type.convert(type));
-                }
-                resultProperties.put(keyAsShort, value);
+            for (String property : properties.keySet()) {
+                String type = properties.get(property)[0];
+                String value = properties.get(property)[1];
+                short propertyAsShort = getPropertyAsShortOrInsertIfDoesNotExist(property, type);
+                resultProperties.put(propertyAsShort, value);
             }
         }
         return resultProperties;
+    }
+
+
+    @PackagePrivateForTesting
+    short getPropertyAsShortOrInsertIfDoesNotExist(String property, String type) {
+        if (isNullOrEmpty(property)) {
+            return ANY;
+        }
+        short key;
+        try {
+            key = propertyKeyStore.getKeyAsShort(property);
+            String typeStored = propertyTypeStore.get(key).name();
+            if (!typeStored.equals(type.toUpperCase())) {
+                throw new IllegalArgumentException("Type mismatch: property " + property +
+                    " has been declared as " + typeStored + " in a previous query but used " +
+                    "instead as " + type.toUpperCase());
+            }
+        } catch (NoSuchElementException e) {
+            key = propertyKeyStore.getKeyAsShortOrInsertIfDoesNotExist(property);
+            propertyTypeStore.put(key, Type.convert(type));
+        }
+        return key;
+    }
+
+    /**
+     * @param edgeProperties The {@code String} key, and {@code String} value properties to get a
+     * mapping of as {@code short} keys and {@code String} values.
+     * @return The properties key value pairs stored as a {@code short} key and {@code String}. If
+     * the {@code edgeProperties} passed is {@code null}, {@code null} is returned.
+     * @throws NoSuchElementException if {@code edgeProperties} is not null and if a given
+     * property, that is not {@code null}, and not an empty string, is not present in the key store.
+     */
+    public HashMap<Short, String> getPropertiesAsShortStringKeyValues(
+        HashMap<String, String[]> edgeProperties) {
+        if (null == edgeProperties) {
+            return null;
+        }
+
+        HashMap<Short, String> properties = new HashMap<>();
+        for (String key: edgeProperties.keySet()) {
+            short keyAsShort = getPropertyAsShortOrAnyIfNullOrEmpty(key);
+            properties.put(keyAsShort, edgeProperties.get(key)[1]);
+        }
+        return properties;
     }
 
     /**
@@ -133,10 +156,87 @@ public class TypeAndPropertyKeyStore {
         return propertyKeyStore.getKeyAsString(property);
     }
 
-    @PackagePrivateForTesting
+    @ExistsForTesting
     void resetStore() {
         typeKeyStore.reset();
         propertyKeyStore.reset();
+    }
+
+    /**
+     * Ensures that for a given edge, each property type in the edge as well as the from and to
+     * vertices is declared correctly.
+     * The type has to be the same in the from and to vertices and edge. The type has to also be
+     * the same as that in the store if it had previously been inserted.
+     *
+     * @param fromProperties The properties of the from vertex.
+     * @param toProperties The properties of the to vertex.
+     * @param edgeProperties The properties of the edge.
+     * @throws IllegalArgumentException if the type is not the same in the from, to vertices
+     * or edge. Also if the type of any property is not the same as that in the store if it had
+     * been previously inserted.
+     */
+    public void assertEachPropertyTypeCorrectness(
+        HashMap<String, String[]> fromProperties, HashMap<String, String[]> toProperties,
+        HashMap<String, String[]> edgeProperties) {
+
+        // For a given type of a property in fromVertex properties, ensure the type used is the
+        // same for the same property in edge and toVertex properties.
+        compareTypesOfTwoPropertyCollection(fromProperties, toProperties);
+        compareTypesOfTwoPropertyCollection(edgeProperties, fromProperties);
+
+        // For a given type of a property in edge properties, ensure the type used is the
+        // same for the same property toVertex properties.
+        compareTypesOfTwoPropertyCollection(edgeProperties, toProperties);
+
+        assertEachPropertyTypeMatchesPreviousDeclatationInTheStore(fromProperties);
+        assertEachPropertyTypeMatchesPreviousDeclatationInTheStore(toProperties);
+        assertEachPropertyTypeMatchesPreviousDeclatationInTheStore(edgeProperties);
+    }
+
+    /**
+     * Ensures that for a given set of properties, the type of each is declared correctly.
+     * The type has to be the same as that in the store if it had previously been inserted.
+     *
+     * @param properties The properties to check the types of in the store.
+     * @throws IllegalArgumentException if the type of any property is not the same as that in the
+     * store if it had been previously inserted.
+     */
+    public void assertEachPropertyTypeMatchesPreviousDeclatationInTheStore(
+        HashMap<String, String[]> properties) {
+        if (null != properties) {
+            for (String property : properties.keySet()) {
+                String type = properties.get(property)[0].toUpperCase();
+                try {
+                    String typeStored = propertyTypeStore.get(propertyKeyStore.getKeyAsShort(
+                        property)).name();
+                    if (!typeStored.equals(type)) {
+                        throw new IllegalArgumentException("Type mismatch: property " + property +
+                            " has been declared as " + typeStored + " in a previous query" +
+                            " but used instead as " + type);
+                    }
+                } catch (NoSuchElementException e) {
+                    // Escape. The key doesn't exist. Any type is fine.
+                }
+            }
+        }
+    }
+
+    private void compareTypesOfTwoPropertyCollection(
+        HashMap<String, String[]> thisPropertiesCollection,
+        HashMap<String, String[]> thatPropertiesCollection) {
+        if (null == thisPropertiesCollection || null == thatPropertiesCollection) {
+            return;
+        }
+
+        for (String property: thisPropertiesCollection.keySet()) {
+            String thisPropertyType = thisPropertiesCollection.get(property)[0].toUpperCase();
+            String thatPropertyType = thatPropertiesCollection.get(property)[0].toUpperCase();
+            if (null != thatPropertyType && !thisPropertyType.equals(thatPropertyType)) {
+                throw new IllegalArgumentException("Type mismatch: property " + property +
+                    " is used with two different types: " + thisPropertyType + " and " +
+                    thatPropertyType);
+            }
+        }
     }
 
     /**

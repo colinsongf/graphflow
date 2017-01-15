@@ -46,10 +46,6 @@ public class QueryVariable implements AbstractStructuredQuery {
         return variableProperties;
     }
 
-    public void setVariableType(String variableType) {
-        this.variableType = variableType;
-    }
-
     public void setVariableProperties(HashMap<String, String[]> variableProperties) {
         this.variableProperties = variableProperties;
     }

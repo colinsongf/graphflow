@@ -43,7 +43,7 @@ public enum Type {
      * @throws IllegalArgumentException if the check fails and the {@code type} and {@code value}
      * do not match.
      */
-    public static void checkValueMatchesType(String type, String value) {
+    public static void assertValueCanBeParsedAsGivenType(String type, String value) {
         type = type.toUpperCase();
         try {
             if (type.matches(BYTE.name())) {
@@ -61,7 +61,7 @@ public enum Type {
             }
         }
         catch (NumberFormatException e) {
-            throw new IllegalArgumentException("The value " + value + " does not match the type " +
+            throw new IllegalArgumentException("The value " + value + " can not be parsed as " +
                 type);
         }
     }

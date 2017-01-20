@@ -3,7 +3,10 @@ package ca.waterloo.dsg.graphflow.query.operator;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.AbstractAggregator;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.CountStar;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
+import ca.waterloo.dsg.graphflow.util.JsonUtils;
 import ca.waterloo.dsg.graphflow.util.StringToIntKeyMap;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.List;
@@ -39,6 +42,22 @@ public class GroupByAndAggregate extends PropertyReadingOperator {
     }
 
     @Override
+    public void done() {
+        for (Entry<String, Integer> groupByKeyAndIndex : groupByKeys.entrySet()) {
+            String groupByKey = groupByKeyAndIndex.getKey();
+            int index = groupByKeyAndIndex.getValue();
+            stringBuilder.delete(0, stringBuilder.length());
+            stringBuilder.append(groupByKey);
+            for (Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator> valueAggregatorPair :
+                valueAggregatorPairs) {
+                stringBuilder.append(" " + valueAggregatorPair.b.getStringValue(index));
+            }
+            nextOperator.append(stringBuilder.toString());
+        }
+        nextOperator.done();
+    }
+
+    @Override
     public void append(MatchQueryOutput matchQueryOutput) {
         clearAndFillStringBuilder(matchQueryOutput, GROUP_BY_KEY_DELIMETER);
         String groupByKey = stringBuilder.toString();
@@ -59,27 +78,46 @@ public class GroupByAndAggregate extends PropertyReadingOperator {
     }
 
     @Override
-    public void done() {
-        for (Entry<String, Integer> groupByKeyAndIndex : groupByKeys.entrySet()) {
-            String groupByKey = groupByKeyAndIndex.getKey();
-            int index = groupByKeyAndIndex.getValue();
-            stringBuilder.delete(0, stringBuilder.length());
-            stringBuilder.append(groupByKey);
-            for (Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator> valueAggregatorPair :
-                valueAggregatorPairs) {
-                stringBuilder.append(" " + valueAggregatorPair.b.getStringValue(index));
-            }
-            nextOperator.append(stringBuilder.toString());
-        }
-        nextOperator.done();
-    }
-
-    @Override
     protected String getHumanReadableOperator() {
         StringBuilder stringBuilder = new StringBuilder("GroupByAndAggregate:\n");
         appendListAsCommaSeparatedString(stringBuilder, valuesToGroupBy, "valuesToGroupBy");
         appendListAsCommaSeparatedString(stringBuilder, valueAggregatorPairs,
             "valueAggregatorPairs");
         return stringBuilder.toString();
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject jsonOperator = new JsonObject();
+        JsonArray jsonArguments = new JsonArray();
+
+        JsonObject jsonArgument = new JsonObject();
+        jsonArgument.addProperty(JsonUtils.NAME, "Values to Group-By");
+        JsonArray jsonValuesToGroupBy = new JsonArray();
+        for (int i = 0; i < valuesToGroupBy.size(); ++i) {
+            jsonValuesToGroupBy.add(valuesToGroupBy.get(i).toJson());
+        }
+        jsonArgument.add(JsonUtils.VALUE, jsonValuesToGroupBy);
+        jsonArguments.add(jsonArgument);
+
+        jsonArgument = new JsonObject();
+        jsonArgument.addProperty(JsonUtils.NAME, "Aggregator Pairs");
+        JsonArray jsonAggregatorPairs = new JsonArray();
+        for (int i = 0; i < valueAggregatorPairs.size(); ++i) {
+            Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator> aggregatorPair =
+                valueAggregatorPairs.get(i);
+            if (aggregatorPair.a.toJson().getAsJsonPrimitive(JsonUtils.TYPE).getAsString().equals(
+                JsonUtils.COUNT_STAR_DESCRIPTOR)) {
+                jsonAggregatorPairs.add(aggregatorPair.b.toString());
+            } else {
+                jsonAggregatorPairs.add(aggregatorPair.toString());
+            }
+        }
+        jsonArgument.add(JsonUtils.VALUE, jsonAggregatorPairs);
+        jsonArguments.add(jsonArgument);
+
+        jsonOperator.addProperty(JsonUtils.NAME, "Group-By & Aggregate (&Gamma;)");
+        jsonOperator.add(JsonUtils.ARGS, jsonArguments);
+        return jsonOperator;
     }
 }

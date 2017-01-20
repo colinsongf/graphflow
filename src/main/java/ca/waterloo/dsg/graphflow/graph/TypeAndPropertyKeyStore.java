@@ -24,10 +24,9 @@ import java.util.Objects;
  */
 public class TypeAndPropertyKeyStore implements GraphflowSerializable {
 
-    private static TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
-
-    private static final String SERDE_FILE_NAME_PREFIX = "type_and_property_key_store";
     public static final short ANY = -1;
+    private static final String SERDE_FILE_NAME_PREFIX = "type_and_property_key_store";
+    private static TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
     @VisibleForTesting
     StringToShortKeyStore typeKeyStore = new StringToShortKeyStore();
     // TypeAndPropertyKeyStore has the invariant that if a property key has a short key,
@@ -97,6 +96,20 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
             throw new IllegalArgumentException("property keys can't be null or the empty string.");
         }
         return propertyKeyStore.mapStringKeyToShort(key);
+    }
+
+    /**
+     * @param shortType The {@code Short} type.
+     * @return The {@code String} type.
+     * @throws NoSuchTypeException if {@code shortType} is either {@code null} or an invalid
+     * shortType.
+     */
+    public String mapShortToStringType(Short shortType) {
+        if (null == shortType || 0 > shortType) {
+            throw new NoSuchTypeException("The short " + shortType + " is not present in the " +
+                "key store.");
+        }
+        return typeKeyStore.mapShortKeyToString(shortType);
     }
 
     /**

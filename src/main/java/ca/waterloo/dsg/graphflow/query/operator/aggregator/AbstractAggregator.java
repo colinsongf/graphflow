@@ -75,6 +75,6 @@ public abstract class AbstractAggregator {
 
     @Override
     public String toString() {
-        return this.getClass().getName();
+        return this.getClass().getSimpleName();
     }
 }

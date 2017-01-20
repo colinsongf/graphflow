@@ -20,7 +20,9 @@ public class StructuredQuery implements AbstractStructuredQuery {
         SHORTEST_PATH,
         CONTINUOUS_MATCH,
         LOAD_GRAPH,
-        SAVE_GRAPH
+        SAVE_GRAPH,
+        EXPLAIN,
+        CONTINUOUS_EXPLAIN
     }
 
     private List<QueryRelation> queryRelations = new ArrayList<>();

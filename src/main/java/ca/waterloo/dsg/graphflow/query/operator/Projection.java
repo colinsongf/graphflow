@@ -1,6 +1,9 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
+import ca.waterloo.dsg.graphflow.util.JsonUtils;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,5 +46,23 @@ public class Projection extends AbstractDBOperator {
         appendListAsCommaSeparatedString(stringBuilder, vertexIndicesToProject,
             "VertexIndicesToProject");
         return stringBuilder.toString();
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject jsonOperator = new JsonObject();
+
+        JsonArray jsonVertexIndicesToProject = new JsonArray();
+        for (int i = 0; i < vertexIndicesToProject.size(); i++) {
+            jsonVertexIndicesToProject.add(vertexIndicesToProject.get(i));
+        }
+        JsonArray jsonArguments = new JsonArray();
+        JsonObject jsonArgument = new JsonObject();
+        jsonArgument.addProperty(JsonUtils.NAME, "Vertex Indices");
+        jsonArgument.add(JsonUtils.VALUE, jsonVertexIndicesToProject);
+        jsonArguments.add(jsonArgument);
+        jsonOperator.addProperty(JsonUtils.NAME, "Projection (&Pi;)");
+        jsonOperator.add(JsonUtils.ARGS, jsonArguments);
+        return jsonOperator;
     }
 }

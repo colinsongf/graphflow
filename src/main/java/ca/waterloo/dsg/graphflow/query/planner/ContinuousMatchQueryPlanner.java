@@ -89,6 +89,8 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         List<String> orderedVariables, QueryRelation diffRelation,
         Set<QueryRelation> permanentRelations, Set<QueryRelation> mergedRelations) {
         OneTimeMatchQueryPlan oneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
+        // Store variable ordering in {@link OneTimeMatchQueryPlan}
+        oneTimeMatchQueryPlan.setOrderedVariables(orderedVariables);
         List<GenericJoinIntersectionRule> stage;
         // Add the first stage. The first stage always starts with extending the diffRelation's
         // {@code fromVariable} to {@code toVariable} with the type on the relation.

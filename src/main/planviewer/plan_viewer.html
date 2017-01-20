@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Graphflow PlanViewer</title>
+        <meta name="description" content="Graphflow PlanViewer">
+        <meta charset="utf-8">
+        <!-- Materialize UI -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.8/css/materialize.min.css">
+        <!-- jQuery -->
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <!-- Underscore.js (javascript array/object/etc. help functions ) -->
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+        <!-- Custom css file -->
+        <link rel="stylesheet" href="css/plan_viewer.css">
+        <!-- Google fonts -->
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Crimson Text">
+    </head>
+
+    <body>
+        <div class="center">
+            <textarea id="query" style="margin-bottom: -10px; margin-top: 5px;"></textarea>
+            <input type="submit" value="Submit Query" onclick="submitQuery()"></input>
+        </div>
+
+        <div id="legend" class="legend">
+            <div>
+                <div class="graph-version-box current-graph legend-item">C</div>
+                <p class="legend-words">: Current Graph</p>
+            </div>
+
+            <div>
+                <div class="graph-version-box delta-graph legend-item">&Delta;</div>
+                <p class="legend-words">: Delta Graph</p>
+            </div>
+
+            <div>
+                <div class="new-graph legend-item">N</div>
+                <p class="legend-words">: New Graph</p>
+            </div>
+
+            <div>
+                <div class="simple-legend-entry"><b>&sigma;</b>: Filter</div>
+            </div>
+
+            <div>
+                <div class="simple-legend-entry"><b>&Pi;</b>: Projection</div>
+            </div>
+
+            <div>
+                <div class="simple-legend-entry"><b>&Gamma;</b>: Aggregate</div>
+            </div>
+
+            <div>
+                <div class="simple-legend-entry">------>: Outgoing</div>
+            </div>
+
+            <div>
+                <div class="simple-legend-entry"><------: Incoming</div>
+            </div>
+        </div>
+
+        <div id="stageSet"></div>
+
+        <!-- Constant definitions -->
+        <script type="text/javascript" src="js/constants.js"></script>
+        <!-- Utility functions -->
+        <script type="text/javascript" src="js/util.js"></script>
+        <script type="text/javascript" src="js/plan.js"></script>
+    </body>
+</html>

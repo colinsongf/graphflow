@@ -64,12 +64,9 @@ public class Graph implements GraphflowSerializable {
             return isForward;
         }
     }
-
-    private static Graph INSTANCE = new Graph();
-
     private static final Logger logger = LogManager.getLogger(Graph.class);
     private static final int DEFAULT_GRAPH_SIZE = 2;
-
+    private static Graph INSTANCE = new Graph();
     // Stores the highest vertex ID of the permanent graph.
     private int highestPermanentVertexId = -1;
     // Adjacency lists for the permanent graph, containing both the neighbour vertex IDs and edge

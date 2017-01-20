@@ -1,8 +1,12 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinExecutor;
+import ca.waterloo.dsg.graphflow.query.output.JsonOutputable;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
+import ca.waterloo.dsg.graphflow.util.JsonUtils;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.util.List;
 
@@ -17,7 +21,7 @@ import java.util.List;
  * outputs that are appended to it.
  * </ul>
  */
-public abstract class AbstractDBOperator {
+public abstract class AbstractDBOperator implements JsonOutputable {
 
     @VisibleForTesting
     public AbstractDBOperator nextOperator;
@@ -107,6 +111,26 @@ public abstract class AbstractDBOperator {
             stringBuilder.append(indentation).append(line).append("\n");
         }
         return stringBuilder.toString();
+    }
+
+    /**
+     * @return a {@code JsonArray} query plan
+     */
+    public JsonArray getJsonPlan() {
+        JsonArray jsonPlans = new JsonArray();
+        JsonObject jsonPlan = toJson();
+        JsonArray nextOperators = new JsonArray();
+        AbstractDBOperator operator = nextOperator;
+
+        while (null != operator) {
+            nextOperators.add(operator.toJson());
+            operator = operator.nextOperator;
+        }
+
+        jsonPlan.add(JsonUtils.NEXT_OPERATORS, nextOperators);
+        jsonPlans.add(jsonPlan);
+
+        return jsonPlans;
     }
 
     /**

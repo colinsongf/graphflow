@@ -1,13 +1,16 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.CountStar;
+import ca.waterloo.dsg.graphflow.query.output.JsonOutputable;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
+import ca.waterloo.dsg.graphflow.util.JsonUtils;
+import com.google.gson.JsonObject;
 
 /**
  * Represents the description of which vertex or edge IDs or properties should be used by an
  * operator.
  */
-public class EdgeOrVertexPropertyDescriptor {
+public class EdgeOrVertexPropertyDescriptor implements JsonOutputable {
 
     /**
      * Type of this descriptor, i.e., whether it describes a VERTEX_ID, VERTEX_PROPERTY, EDGE_ID,
@@ -64,5 +67,18 @@ public class EdgeOrVertexPropertyDescriptor {
         }
         return "isVertexOrVertexProperty: " + descriptorType + " index: " + index +
             " key: " + key;
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject jsonDescriptor = new JsonObject();
+        if (COUNTSTAR_DUMMY_DESCRIPTOR == this) {
+            jsonDescriptor.addProperty(JsonUtils.TYPE, JsonUtils.COUNT_STAR_DESCRIPTOR);
+        } else {
+            jsonDescriptor.addProperty(JsonUtils.TYPE, descriptorType.toString());
+            jsonDescriptor.addProperty(JsonUtils.INDEX, index);
+            jsonDescriptor.addProperty(JsonUtils.KEY, key);
+        }
+        return jsonDescriptor;
     }
 }

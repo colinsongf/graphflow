@@ -44,7 +44,6 @@ import java.util.function.Predicate;
  */
 public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
 
-
     private static final Logger logger = LogManager.getLogger(OneTimeMatchQueryPlanner.class);
     protected QueryGraph queryGraph = new QueryGraph();
     protected AbstractDBOperator outputSink;
@@ -150,6 +149,8 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         orderedVariables.add(variableWithHighestDegree);
         // Order the rest of the variables.
         orderRemainingVariables(orderedVariables);
+        // Store variable ordering in {@link OneTimeMatchQueryPlan}
+        oneTimeMatchQueryPlan.setOrderedVariables(orderedVariables);
         // Finally, create the plan.
         // Start from the second variable to create the first stage.
         for (int i = 1; i < orderedVariables.size(); i++) {

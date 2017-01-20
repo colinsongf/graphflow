@@ -2,7 +2,11 @@ package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
+import ca.waterloo.dsg.graphflow.query.output.JsonOutputable;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
+import ca.waterloo.dsg.graphflow.util.JsonUtils;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.util.List;
 
@@ -57,10 +61,30 @@ public class EdgeIdResolver extends AbstractDBOperator {
         return stringBuilder.toString();
     }
 
+    @Override
+    public JsonObject toJson() {
+        JsonObject jsonOperator = new JsonObject();
+
+        JsonArray jsonArguments = new JsonArray();
+        JsonObject jsonArgument = new JsonObject();
+        jsonArgument.addProperty(JsonUtils.NAME, "Src & Dst Vertex Indices & Types");
+        JsonArray jsonIndicesAndTypes = new JsonArray();
+        for (int i = 0; i < srcDstVertexIndicesAndTypes.size(); ++i) {
+            SourceDestinationIndexAndType indexAndType = srcDstVertexIndicesAndTypes.get(i);
+            jsonIndicesAndTypes.add(indexAndType.toJson());
+        }
+        jsonArgument.add(JsonUtils.VALUE, jsonIndicesAndTypes);
+        jsonArguments.add(jsonArgument);
+
+        jsonOperator.addProperty(JsonUtils.NAME, "Edge ID Resolver");
+        jsonOperator.add(JsonUtils.ARGS, jsonArguments);
+        return jsonOperator;
+    }
+
     /**
      * A triple storing a (sourceIndex, destinationIndex, type).
      */
-    public static class SourceDestinationIndexAndType {
+    public static class SourceDestinationIndexAndType implements JsonOutputable {
 
         public int sourceIndex;
         public int destinationIndex;
@@ -83,6 +107,15 @@ public class EdgeIdResolver extends AbstractDBOperator {
         public String toString() {
             return "(sourceIndex: " + sourceIndex + ", destinationIndex: " + destinationIndex
                 + ", type: " + type + ")";
+        }
+
+        @Override
+        public JsonObject toJson() {
+            JsonObject jsonSrcDstIndexAndType = new JsonObject();
+            jsonSrcDstIndexAndType.addProperty("Src Index", sourceIndex);
+            jsonSrcDstIndexAndType.addProperty("Dest Index", destinationIndex);
+            jsonSrcDstIndexAndType.addProperty("Type", type);
+            return jsonSrcDstIndexAndType;
         }
     }
 }

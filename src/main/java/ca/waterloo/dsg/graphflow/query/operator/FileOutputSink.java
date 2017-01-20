@@ -1,6 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
+import ca.waterloo.dsg.graphflow.util.JsonUtils;
+import com.google.gson.JsonObject;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,6 +42,14 @@ public class FileOutputSink extends AbstractDBOperator {
     @Override
     public String getHumanReadableOperator() {
         return "FileOutputSink:\n";
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject jsonOperator = new JsonObject();
+        jsonOperator.addProperty(JsonUtils.TYPE, JsonUtils.SINK);
+        jsonOperator.addProperty(JsonUtils.NAME, this.getClass().getSimpleName());
+        return jsonOperator;
     }
 
     @Override

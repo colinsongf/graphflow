@@ -84,7 +84,7 @@ distTar.enabled = false
 // Create the convenience executables.
 def scripts = [
     'graphflow-server'  : 'ca.waterloo.dsg.graphflow.server.GraphflowServerRunner',
-    'graphflow-cli'     : 'ca.waterloo.dsg.graphflow.cli.GraphflowCliRunner'
+    'graphflow-cli'     : 'ca.waterloo.dsg.graphflow.client.cli.GraphflowCliRunner'
 ]
 scripts.each() { fileName, className ->
     tasks.create(name: fileName, type: CreateStartScripts) {

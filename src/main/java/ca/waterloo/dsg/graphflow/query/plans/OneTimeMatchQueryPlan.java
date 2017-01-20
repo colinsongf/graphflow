@@ -1,10 +1,14 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinExecutor;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.util.JsonUtils;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +19,11 @@ import java.util.List;
 public class OneTimeMatchQueryPlan extends AbstractDBOperator implements QueryPlan {
 
     private List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
+
+    /**
+     * This is currently only used by the PlanViewer.
+     */
+    private List<String> orderedVariables;
 
     /**
      * Constructs a new {@link OneTimeMatchQueryPlan} with null next operator.
@@ -28,6 +37,67 @@ public class OneTimeMatchQueryPlan extends AbstractDBOperator implements QueryPl
 
     public void addStage(List<GenericJoinIntersectionRule> stage) {
         this.stages.add(stage);
+    }
+
+    /**
+     * Setter of {@code this.orderedVariables}.
+     *
+     * @param orderedVariables list of {@code String} variable symbols
+     */
+    public void setOrderedVariables(List<String> orderedVariables) {
+        this.orderedVariables = orderedVariables;
+    }
+
+    /**
+     * Converts {@link OneTimeMatchQueryPlan} into JSON format
+     *
+     * @return {@code JsonArray} containing one or more {@code JsonObject}
+     */
+    @Override
+    public JsonObject toJson() {
+        // Add "name", "variableOrdering", and "sink" to {@code planJson}
+        JsonObject planJson = new JsonObject();
+        planJson.addProperty(JsonUtils.NAME, "Q");
+        JsonArray variableOrdering = new JsonArray();
+        orderedVariables.forEach((variable) -> variableOrdering.add(variable));
+        planJson.add(JsonUtils.VAR_ORDERING, variableOrdering);
+
+        // Construct "stages" and add it to {@code planJson}
+        JsonArray stagesJson = new JsonArray();
+        JsonArray stageJson;
+        JsonObject ruleJson;
+        GenericJoinIntersectionRule rule;
+        for (int i = 0; i < stages.size(); ++i) {
+            stageJson = new JsonArray();
+            for (int j = 0; j < stages.get(i).size(); ++j) {
+                rule = stages.get(i).get(j);
+                ruleJson = new JsonObject();
+                ruleJson.addProperty(JsonUtils.GRAPH_VERSION, rule.getGraphVersion().toString());
+                ruleJson.addProperty(JsonUtils.VARIABLE, orderedVariables.get(rule
+                    .getPrefixIndex()));
+                ruleJson.addProperty(JsonUtils.DIRECTION, rule.getDirection().toString());
+                Short edgeTypeFilter = rule.getEdgeTypeFilter();
+                if (TypeAndPropertyKeyStore.ANY != edgeTypeFilter) {
+                    ruleJson.addProperty(JsonUtils.EDGE_TYPE, TypeAndPropertyKeyStore.getInstance()
+                        .mapShortToStringType(edgeTypeFilter));
+                }
+                Short fromVertexTypeFilter = rule.getFromVertexTypeFilter();
+                if (TypeAndPropertyKeyStore.ANY != fromVertexTypeFilter) {
+                    ruleJson.addProperty(JsonUtils.FROM_VERTEX_TYPE, TypeAndPropertyKeyStore
+                        .getInstance().mapShortToStringType(fromVertexTypeFilter));
+                }
+                Short toVertexTypeFilter = rule.getToVertexTypeFilter();
+                if (TypeAndPropertyKeyStore.ANY != toVertexTypeFilter) {
+                    ruleJson.addProperty(JsonUtils.TO_VERTEX_TYPE, TypeAndPropertyKeyStore
+                        .getInstance().mapShortToStringType(toVertexTypeFilter));
+                }
+                stageJson.add(ruleJson);
+            }
+            stagesJson.add(stageJson);
+        }
+        planJson.add(JsonUtils.STAGES, stagesJson);
+
+        return planJson;
     }
 
     /**

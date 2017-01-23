@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.graph;
 
+import ca.waterloo.dsg.graphflow.util.Type;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,6 +30,10 @@ public class EdgeStoreTest {
 
     @Test
     public void testSetAndGetPropertiesMethod() {
+        for (short i = 0; i < 5; ++i) {
+            TypeAndPropertyKeyStore.getInstance().propertyTypeStore.put(i, Type.STRING);
+        }
+
         EdgeStore testEdgeStore = new EdgeStore();
         HashMap<Short, String> properties = new HashMap<>();
         properties.put((short) 0, "fruit1");
@@ -56,7 +61,7 @@ public class EdgeStoreTest {
         System.arraycopy(testEdgeStore.edgePropertyData[0][0], 6, fruit1, 0, 6);
         Assert.assertEquals(new String(fruit1, StandardCharsets.UTF_8), "fruit1");
 
-        HashMap<Short, String> propertiesStored = testEdgeStore.getEdgeProperties(0);
+        HashMap<Short, Object> propertiesStored = testEdgeStore.getEdgeProperties(0);
         Assert.assertEquals("fruit1", propertiesStored.get((short) 0));
     }
 }

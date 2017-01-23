@@ -4,6 +4,7 @@ import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.IndexedKeyValueByteArrays;
 import ca.waterloo.dsg.graphflow.util.LongArrayList;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
+import ca.waterloo.dsg.graphflow.util.Type;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -152,6 +153,8 @@ public class Graph {
      * String} value pairs.
      * @param edgeType The type of the edge being added.
      * @param edgeProperties The properties of the edge being added.
+     * @throws NoSuchElementException if one of the {@code short} properties of fromVertex,
+     * toVertex or the edge is not present in the property store.
      */
     public void addEdgeTemporarily(int fromVertex, int toVertex, short fromVertexType,
         short toVertexType, HashMap<Short, String> fromVertexProperties, HashMap<Short,String>
@@ -164,8 +167,10 @@ public class Graph {
         // warned in the method comments.
         vertexTypes.set(fromVertex, fromVertexType);
         vertexTypes.set(toVertex, toVertexType);
-        vertexProperties.set(fromVertex, fromVertexProperties);
-        vertexProperties.set(toVertex, toVertexProperties);
+        vertexProperties.set(fromVertex, fromVertexProperties, TypeAndPropertyKeyStore.
+            getInstance().getPropertyTypes(fromVertexProperties));
+        vertexProperties.set(toVertex, toVertexProperties, TypeAndPropertyKeyStore.getInstance().
+            getPropertyTypes(toVertexProperties));
         addOrDeleteEdgeTemporarily(true /* addition */, fromVertex, toVertex, edgeType,
             edgeProperties);
         highestMergedVertexId = Integer.max(highestMergedVertexId, Integer.max(fromVertex,

@@ -2,13 +2,11 @@ package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
-import ca.waterloo.dsg.graphflow.util.IndexedKeyValueByteArrays;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
+import ca.waterloo.dsg.graphflow.util.Type;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
@@ -91,9 +89,10 @@ public class EdgeStore {
 
         byte[] propertiesAsBytes = new byte[0];
         if (null != properties) {
-            for (Map.Entry<Short, String> property : properties.entrySet()) {
-                byte[] propertyAsBytes = IndexedKeyValueByteArrays.getKeyValueAsByteArray(property.
-                    getKey(), property.getValue());
+            for (Short property : properties.keySet()) {
+                Type type = TypeAndPropertyKeyStore.getInstance().getPropertyType(property);
+                byte[] propertyAsBytes = Type.getKeyValueAsByteArray(property, type, properties.get(
+                    property));
                 propertiesAsBytes = Arrays.copyOf(propertiesAsBytes, propertiesAsBytes.length +
                     propertyAsBytes.length);
                 System.arraycopy(propertyAsBytes, 0, propertiesAsBytes, propertiesAsBytes.length -
@@ -125,7 +124,7 @@ public class EdgeStore {
      * edgeId} given the id has been previously assigned to an edge.
      * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
      */
-    public HashMap<Short, String> getEdgeProperties(long edgeId) {
+    public HashMap<Short, Object> getEdgeProperties(long edgeId) {
         if (edgeId >= nextIDNeverYetAssigned) {
             throw new NoSuchElementException("no edge with id " + edgeId);
         }
@@ -140,7 +139,7 @@ public class EdgeStore {
             endOffset = edgePropertyData[partitionId][bucketId].length;
         }
 
-        HashMap<Short, String> edgeProperties = new HashMap<>();
+        HashMap<Short, Object> edgeProperties = new HashMap<>();
         if (startOffset == endOffset + 1) { // no properties
             return edgeProperties;
         }
@@ -150,14 +149,28 @@ public class EdgeStore {
             endOffset - startOffset + 1);
 
         for (int i = 0; i < properties.length; ) {
-            short key = (short) ((short)(properties[i] << 8) | ((short)properties[i+1]));
-            int length = (((int) properties[i+2]) << 24) | (((int) properties[i+3]) << 16) &
-                (((int) properties[i+4]) << 8) | (int) properties[i+5];
-            byte[] value = new byte[length];
-            System.arraycopy(edgePropertyData[partitionId][bucketId], startOffset + 6 + i, value,
-                0, length);
-            edgeProperties.put(key, new String(value, StandardCharsets.UTF_8));
-            i += (6 + length);
+            short property = (short) ((short)(properties[i] << 8) | ((short)properties[i+1]));
+            Type type = TypeAndPropertyKeyStore.getInstance().getPropertyType(property);
+
+            int length;
+            int value_offset;
+            if (type == Type.STRING) {
+                length = (((int) properties[i + 2]) << 24) | (((int) properties[i + 3]) << 16) |
+                    (((int) properties[i + 4]) << 8) | (int) properties[i + 5];
+                value_offset = 6; // 2 bytes for short key + 4 for string length
+            } else {
+                length = Type.getNumberOfBytes(type);
+                value_offset = 2; // 2 bytes for short key
+            }
+
+            byte[] valueAsByte = new byte[length];
+            System.arraycopy(edgePropertyData[partitionId][bucketId], startOffset + value_offset,
+                valueAsByte, 0, length);
+
+            Object value = Type.getValue(type, valueAsByte);
+            edgeProperties.put(property, value);
+
+            i += (value_offset + length);
         }
 
         return edgeProperties;
@@ -182,9 +195,11 @@ public class EdgeStore {
             return true;
         }
 
-        HashMap<Short, String> edgeProperties = getEdgeProperties(edgeId);
-        for(Short key: properties.keySet()) {
-            if (!properties.get(key).equals(edgeProperties.get(key))) {
+        // CHANGE TO Type.equals(String val, Object obj, Type type)
+        HashMap<Short, Object> edgeProperties = getEdgeProperties(edgeId);
+        for(Short property: properties.keySet()) {
+            Type type = TypeAndPropertyKeyStore.getInstance().getPropertyType(property);
+            if (!Type.equals(type, properties.get(property), edgeProperties.get(property))) {
                 return false;
             }
         }

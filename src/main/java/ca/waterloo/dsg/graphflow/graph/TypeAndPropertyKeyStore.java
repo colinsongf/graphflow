@@ -1,12 +1,9 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
 import ca.waterloo.dsg.graphflow.util.Type;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +19,8 @@ public class TypeAndPropertyKeyStore {
     private static final TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
     private static StringToShortKeyStore typeKeyStore = new StringToShortKeyStore();
     private static StringToShortKeyStore propertyKeyStore = new StringToShortKeyStore();
-    private static Map<Short, Type> propertyTypeStore = new HashMap<>();
+    @PackagePrivateForTesting
+    static Map<Short, Type> propertyTypeStore = new HashMap<>();
 
     /**
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
@@ -156,10 +154,36 @@ public class TypeAndPropertyKeyStore {
         return propertyKeyStore.getKeyAsString(property);
     }
 
-    @ExistsForTesting
-    void resetStore() {
-        typeKeyStore.reset();
-        propertyKeyStore.reset();
+    /**
+     * @param property The {@code short} property to get a mapping of as a String.
+     * @return The property type stored as a {@code Type}.
+     * @throws NoSuchElementException if the {@code property} passed is not present in the property
+     * store.
+     */
+    public Type getPropertyType(short property) {
+        Type type = propertyTypeStore.get(property);
+        if (null == type) {
+            throw new NoSuchElementException("property " + property + " is not found in store.");
+        }
+
+        return type;
+    }
+
+    /**
+     * @param properties The {@code Short}, and {@code String} value properties to get their types.
+     * @return The properties type stored as a {@code Short}, and {@code Type} key values.
+     * @throws NoSuchElementException if the {@code property} passed is not present in the property
+     * store.
+     */
+    public HashMap<Short, Type> getPropertyTypes(HashMap<Short, String> properties) {
+        HashMap<Short, Type> propertyTypes = new HashMap<>();
+        if (null != properties) {
+            for (Short property: properties.keySet()) {
+                propertyTypeStore.put(property, getPropertyType(property));
+            }
+        }
+
+        return propertyTypes;
     }
 
     /**
@@ -237,6 +261,13 @@ public class TypeAndPropertyKeyStore {
                     thatPropertyType);
             }
         }
+    }
+
+    @ExistsForTesting
+    void resetStore() {
+        typeKeyStore.reset();
+        propertyKeyStore.reset();
+        propertyTypeStore.clear();
     }
 
     /**

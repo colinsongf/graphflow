@@ -450,8 +450,10 @@ public class Graph {
      * @param endIndex The end index for initializing {@link SortedAdjacencyList}, exclusive.
      */
     private void initializeSortedAdjacencyLists(int startIndex, int endIndex) {
-        Arrays.fill(forwardAdjLists, startIndex, endIndex, new SortedAdjacencyList());
-        Arrays.fill(backwardAdjLists, startIndex, endIndex, new SortedAdjacencyList());
+        for (int i = startIndex; i < endIndex; ++i) {
+            forwardAdjLists[i] = new SortedAdjacencyList();
+            backwardAdjLists[i] = new SortedAdjacencyList();
+        }
     }
 
     /**

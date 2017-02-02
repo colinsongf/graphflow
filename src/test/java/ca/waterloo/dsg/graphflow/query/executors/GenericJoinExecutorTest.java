@@ -41,8 +41,8 @@ public class GenericJoinExecutorTest {
     @Test
     public void testProcessTriangleQueryWithTypes() throws Exception {
         // Initialize the {@code TypeStore} with types used in the MATCH query.
-        TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrInsertIfDoesNotExist("FOLLOWS");
-        TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrInsertIfDoesNotExist("LIKES");
+        TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("FOLLOWS");
+        TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("LIKES");
         // Create a one time MATCH query plan for a complex triangle query with multiple
         // relations between variable having different edge types.
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +

@@ -119,7 +119,7 @@ public class IntQueue {
         return size;
     }
 
-    @ExistsForTesting
+    @UsedOnlyByTests
     void setSize(int size) {
         this.size = size;
     }
@@ -151,22 +151,22 @@ public class IntQueue {
         return builder.toString();
     }
 
-    @ExistsForTesting
+    @UsedOnlyByTests
     int getFirstItemIndex() {
         return firstItemIndex;
     }
 
-    @ExistsForTesting
+    @UsedOnlyByTests
     void setFirstItemIndex(int firstItemIndex) {
         this.firstItemIndex = firstItemIndex;
     }
 
-    @ExistsForTesting
+    @UsedOnlyByTests
     int getNextItemIndex() {
         return nextItemIndex;
     }
 
-    @ExistsForTesting
+    @UsedOnlyByTests
     void setNextItemIndex(int nextItemIndex) {
         this.nextItemIndex = nextItemIndex;
     }

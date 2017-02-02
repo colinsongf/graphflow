@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
- * Stores a mapping of {@code String} keys to {@code short} values. Each new {@code String} key
- * inserted gets a consecutively increasing short value starting from 0.
+ * Stores a mapping of {@code String} keys to {@code short} keys. Each new {@code String} key
+ * inserted gets a consecutively increasing short key starting from 0.
  */
 public class StringToShortKeyStore {
 
@@ -16,54 +16,54 @@ public class StringToShortKeyStore {
     private short nextKeyAsShort = 0;
 
     /**
-     * @param key The {@code String} value to get a mapping of as short.
-     * @return The {@code short} key.
+     * @param key The {@code String} key.
+     * @return The {@code Short} mapping of the given {@code String} key or {@code null} if the
+     * {@code key} is not in the store.
      * @throws IllegalArgumentException if {@code key} passed is {@code null}.
-     * @throws NoSuchElementException if {@code key} passed is not {@code null}, not an empty
-     * string, and is not present in the key store.
      */
-    public short getKeyAsShort(String key) {
+    public Short mapStringKeyToShort(String key) {
         if (null == key) {
-            throw new IllegalArgumentException("The key parameter passed is null");
-        }
-        if (!stringToShortMap.containsKey(key)) {
-            throw new NoSuchElementException("The String '" + key + "' does not exist in the key " +
-                "store.");
+            throw new IllegalArgumentException("The key parameter passed is null.");
         }
         return stringToShortMap.get(key);
     }
 
     /**
-     * @param key The {@code String} value to get a mapping of as short or to add to the key store.
-     * @return The {@code short} key.
-     * @throws IllegalArgumentException if {@code key} passed is {@code null}.
+     * @param stringKey The {@code String} key.
+     * @return The {@code short} mapping of the given {@code String} key.
+     * @throws IllegalArgumentException if {@code stringKey} passed is {@code null}.
      */
-    public short getKeyAsShortOrInsertIfDoesNotExist(String key) {
-        if (null == key) {
-            throw new IllegalArgumentException("The key parameter passed is null");
+    public short getKeyAsShortOrInsert(String stringKey) {
+        if (null == stringKey) {
+            throw new IllegalArgumentException("The stringKey parameter passed is null.");
         }
-        if (stringToShortMap.containsKey(key)) {
-            return stringToShortMap.get(key);
+        Short shortKey = stringToShortMap.get(stringKey);
+        if (null == shortKey) {
+            shortToStringMap = (String[]) ArrayUtils.resizeIfNecessary(shortToStringMap,
+                nextKeyAsShort + 1);
+            shortToStringMap[nextKeyAsShort] = stringKey;
+            stringToShortMap.put(stringKey, nextKeyAsShort);
+            return nextKeyAsShort++;
         }
-
-        shortToStringMap = (String[]) ArrayUtils.resizeIfNecessary(shortToStringMap,
-            nextKeyAsShort + 1);
-        shortToStringMap[nextKeyAsShort] = key;
-        stringToShortMap.put(key, nextKeyAsShort);
-        return nextKeyAsShort++;
+        return shortKey;
     }
 
     /**
-     * @param key The {@code short} value to get a mapping of as a String.
-     * @return The {@code short} key.
+     * @param shortKey The {@code short} key.
+     * @return The {@code String} mapping of the given {@code short} key.
      * @throws NoSuchElementException if {@code key} passed is not present in the key store.
      */
-    public String getKeyAsString(short key) {
-        if (key < 0 || key >= nextKeyAsShort) {
-            throw new NoSuchElementException("The short '" + key + "' is not present in the key " +
-                "store.");
+    public String mapShortKeyToString(short shortKey) {
+        if (shortKey < 0 || shortKey >= nextKeyAsShort) {
+            throw new NoSuchElementException("The short " + shortKey + " is not present in the " +
+                "key store.");
         }
-        return shortToStringMap[key];
+        return shortToStringMap[shortKey];
+    }
+
+    @UsedOnlyByTests
+    int getStringToShortMapSize() {
+        return stringToShortMap.size();
     }
 
     /**

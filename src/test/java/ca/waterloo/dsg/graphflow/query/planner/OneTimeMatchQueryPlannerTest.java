@@ -34,12 +34,15 @@ public class OneTimeMatchQueryPlannerTest {
         List<GenericJoinIntersectionRule> stage;
         // Stage 0 extends "a" to "b".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, TypeAndPropertyKeyStore.
+            ANY, null /* no property equality filters */));
         expectedOneTimeMatchQueryPlan.addStage(stage);
         // Stage 1 extends "ab" to "c".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeAndPropertyKeyStore.
+            ANY, null /* no property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, TypeAndPropertyKeyStore.
+            ANY, null /* no property equality filters */));
         expectedOneTimeMatchQueryPlan.addStage(stage);
 
         Assert.assertTrue(OneTimeMatchQueryPlan.isSameAs(actualOneTimeMatchQueryPlan,
@@ -54,9 +57,9 @@ public class OneTimeMatchQueryPlannerTest {
     public void testPlanTriangleQueryWithRelationTypes() throws Exception {
         // Initialize the {@code TypeStore} with types used in the MATCH query.
         short FOLLOWS_TYPE_ID = TypeAndPropertyKeyStore.getInstance().
-            getTypeAsShortOrInsertIfDoesNotExist("FOLLOWS");
+            mapStringTypeToShortOrInsert("FOLLOWS");
         short LIKES_TYPE_ID = TypeAndPropertyKeyStore.getInstance().
-            getTypeAsShortOrInsertIfDoesNotExist("LIKES");
+            mapStringTypeToShortOrInsert("LIKES");
         // Create a one time MATCH query plan for a complex triangle query with multiple
         // relations between variable having different edge types.
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
@@ -70,17 +73,21 @@ public class OneTimeMatchQueryPlannerTest {
         List<GenericJoinIntersectionRule> stage;
         // Stage 0 extends "b" to "a".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, FOLLOWS_TYPE_ID));
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, LIKES_TYPE_ID));
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, LIKES_TYPE_ID));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, FOLLOWS_TYPE_ID,
+            null /* no property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, LIKES_TYPE_ID,
+            null /* no property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, LIKES_TYPE_ID,
+            null /* no property equality filters */));
         expectedOneTimeMatchQueryPlan.addStage(stage);
         // Stage 1 extends "ba" to "c".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD,
-                                                        TypeAndPropertyKeyStore.ANY));
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-                                                        TypeAndPropertyKeyStore.ANY));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, FOLLOWS_TYPE_ID));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, TypeAndPropertyKeyStore.
+            ANY, null /* no property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeAndPropertyKeyStore.
+            ANY, null /* no property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, FOLLOWS_TYPE_ID,
+            null /* no property equality filters */));
         expectedOneTimeMatchQueryPlan.addStage(stage);
 
         Assert.assertTrue(OneTimeMatchQueryPlan.isSameAs(actualOneTimeMatchQueryPlan,
@@ -105,32 +112,32 @@ public class OneTimeMatchQueryPlannerTest {
         List<GenericJoinIntersectionRule> stage;
         // Stage 0 extends "b" to "c".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-                                                        TypeAndPropertyKeyStore.ANY));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeAndPropertyKeyStore.
+            ANY, null /* no property equality filters */));
         expectedOneTimeMatchQueryPlan.addStage(stage);
         // Stage 1 extends "bc" to "bcd".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-                                                        TypeAndPropertyKeyStore.ANY));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD,
-                                                        TypeAndPropertyKeyStore.ANY));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeAndPropertyKeyStore.
+            ANY, null /* no property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, TypeAndPropertyKeyStore.
+            ANY, null /* no property equality filters */));
         expectedOneTimeMatchQueryPlan.addStage(stage);
         // Stage 2 extends "bcd" to "bcda".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-                                                        TypeAndPropertyKeyStore.ANY));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeAndPropertyKeyStore.
+            ANY, null /* no property equality filters */));
         expectedOneTimeMatchQueryPlan.addStage(stage);
         // Stage 3 extends "bcda" to "bcdae".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD,
-                                                        TypeAndPropertyKeyStore.ANY));
-        stage.add(new GenericJoinIntersectionRule(3, Direction.FORWARD,
-                                                        TypeAndPropertyKeyStore.ANY));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeAndPropertyKeyStore.
+            ANY,     null /* no property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(3, Direction.FORWARD, TypeAndPropertyKeyStore.ANY,
+            null /* no property equality filters */));
         expectedOneTimeMatchQueryPlan.addStage(stage);
         // Stage 4 extends "bcdae" to "bcdaef".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD,
-                                                        TypeAndPropertyKeyStore.ANY));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, TypeAndPropertyKeyStore.
+            ANY, null /* no property equality filters */));
         expectedOneTimeMatchQueryPlan.addStage(stage);
 
         Assert.assertTrue(OneTimeMatchQueryPlan.isSameAs(actualOneTimeMatchQueryPlan,

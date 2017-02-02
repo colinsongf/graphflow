@@ -19,23 +19,25 @@ shortestPathQuery: SHORTEST whitespace PATH whitespace pathPattern ;
 
 matchPattern: variableEdge ( whitespace? ',' whitespace? variableEdge )* ;
 deletePattern : digitsEdgeWithOptionalType ( whitespace? ',' whitespace? digitsEdgeWithOptionalType )* ;
-createPattern : digitsEdgeWithType ( whitespace? ',' whitespace? digitsEdgeWithType )* ;
+createPattern : digitsEdgeWithTypeAndProperties ( whitespace? ',' whitespace? digitsEdgeWithTypeAndProperties )* ;
 pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
 
+variableEdge : variableVertex (DASH edgeOptionalTypeAndOptionalProperties)? DASH RIGHT_ARROWHEAD variableVertex ;
 digitsEdgeWithOptionalType : digitsVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD digitsVertex ;
-digitsEdgeWithType : digitsVertexWithType (DASH edgeTypeAndProperties) DASH RIGHT_ARROWHEAD digitsVertexWithType ;
-variableEdge : variableVertex (DASH edgeTypeAndProperties)? DASH RIGHT_ARROWHEAD variableVertex ;
+digitsEdgeWithTypeAndProperties : digitsVertexWithTypeAndProperties (DASH edgeTypeAndOptionalProperties) DASH RIGHT_ARROWHEAD
+                                  digitsVertexWithTypeAndProperties ;
 
 digitsVertex : '(' whitespace? Digits whitespace? ')' ;
-digitsVertexWithType : '(' whitespace? Digits whitespace? userDefinedType whitespace? properties? whitespace? ')' ;
+digitsVertexWithTypeAndProperties : '(' whitespace? Digits whitespace? ':' type whitespace? properties? whitespace? ')';
 variableVertex : '(' whitespace? variable whitespace? ')' ;
 
-edgeType : '[' whitespace? userDefinedType whitespace? ']' ;
-edgeTypeAndProperties : '[' whitespace? userDefinedType whitespace? properties? whitespace? ']' ;
+edgeType : '[' whitespace? ':' type whitespace? ']' ;
+edgeTypeAndOptionalProperties : '[' whitespace? ':' type whitespace? properties? whitespace? ']' ;
+edgeOptionalTypeAndOptionalProperties : '[' whitespace? ':' type? whitespace? properties? whitespace? ']' ;
 
-userDefinedType : ':' variable ;
+type : variable ;
 properties : '{' whitespace? ( property ( whitespace? ',' whitespace? property )* )? whitespace? '}' ;
-property : key whitespace? ':' whitespace? systemType whitespace? '=' whitespace? value ;
+property : key whitespace? ':' whitespace? dataType whitespace? '=' whitespace? value ;
 key : variable ;
 value : variable ;
 
@@ -43,13 +45,9 @@ userOperation : FILE ;
 operationLocation: variable;
 
 variable : ( Digits | Characters | UNDERSCORE | DASH | DOT )+ ;
-systemType : ( BYTE | SHORT | INT | LONG | FLOAT | DOUBLE | BOOLEAN | STRING ) ;
+dataType : ( INT | DOUBLE | BOOLEAN | STRING ) ;
 
-BYTE: B Y T E ;
-SHORT: S H O R T ;
 INT: I N T ;
-LONG: L O N G ;
-FLOAT: F L O A T ;
 DOUBLE: D O U B L E ;
 BOOLEAN: B O O L E A N ;
 STRING: S T R I N G;

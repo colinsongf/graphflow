@@ -3,67 +3,51 @@ package ca.waterloo.dsg.graphflow.util;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.NoSuchElementException;
-
 /**
  * Tests {@code SortedIntArrayList}.
  */
 public class StringToShortKeyStoreTest {
 
-    static StringToShortKeyStore keyStore = new StringToShortKeyStore();
-    static StringToShortKeyStore anotherKeyStore = new StringToShortKeyStore();
-
-    @Test(expected = NoSuchElementException.class)
-    public void testNoSuchElementExceptionForGetKeyAsString() {
-        keyStore.getKeyAsShort("Gibberish");
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testNoSuchElementExceptionForGetKeyAsShort1() {
-        keyStore.getKeyAsString((short) 32767);
-    }
-
-    @Test(expected = NoSuchElementException.class)
-    public void testNoSuchElementExceptionForGetKeyAsShort2() {
-        keyStore.getKeyAsString((short) -2);
-    }
+    private StringToShortKeyStore keyStore = new StringToShortKeyStore();
+    private StringToShortKeyStore anotherKeyStore = new StringToShortKeyStore();
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullPointerExceptionForGetKeyAsString() {
-        keyStore.getKeyAsShort(null);
+        keyStore.mapStringKeyToShort(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullPointerExceptionForGetKeyAsShortOrAddIfDoesNotExist() {
-        keyStore.getKeyAsShortOrInsertIfDoesNotExist(null);
+        keyStore.getKeyAsShortOrInsert(null);
     }
 
-    @Test(expected = NoSuchElementException.class)
+    @Test
     public void testGetOrInsertIfDoesNotExistAndResetStoreMethods() {
-        short BulbasaurIdx = keyStore.getKeyAsShortOrInsertIfDoesNotExist("Bulbasaur");
-        short IvysaurIdx = keyStore.getKeyAsShortOrInsertIfDoesNotExist("Ivysaur");
-        short VenusaurIdx = anotherKeyStore.getKeyAsShortOrInsertIfDoesNotExist("Venusaur");
-        short CharmanderIdx = anotherKeyStore.getKeyAsShortOrInsertIfDoesNotExist("Charmander");
+        short BulbasaurIdx = keyStore.getKeyAsShortOrInsert("Bulbasaur");
+        short IvysaurIdx = keyStore.getKeyAsShortOrInsert("Ivysaur");
+        short VenusaurIdx = anotherKeyStore.getKeyAsShortOrInsert("Venusaur");
+        short CharmanderIdx = anotherKeyStore.getKeyAsShortOrInsert("Charmander");
 
         Assert.assertEquals(0, BulbasaurIdx);
         Assert.assertEquals(1, IvysaurIdx);
         Assert.assertEquals(0, VenusaurIdx);
         Assert.assertEquals(1, CharmanderIdx);
 
-        Assert.assertEquals(0, keyStore.getKeyAsShort("Bulbasaur"));
-        Assert.assertEquals("Bulbasaur", keyStore.getKeyAsString((short) 0));
+        Assert.assertEquals(new Short((short) 0), keyStore.mapStringKeyToShort("Bulbasaur"));
+        Assert.assertEquals("Bulbasaur", keyStore.mapShortKeyToString((short) 0));
 
-        Assert.assertEquals(1, keyStore.getKeyAsShort("Ivysaur"));
-        Assert.assertEquals("Ivysaur", keyStore.getKeyAsString((short) 1));
+        Assert.assertEquals(new Short((short) 1), keyStore.mapStringKeyToShort("Ivysaur"));
+        Assert.assertEquals("Ivysaur", keyStore.mapShortKeyToString((short) 1));
 
-        Assert.assertEquals(0, anotherKeyStore.getKeyAsShort("Venusaur"));
-        Assert.assertEquals("Venusaur", anotherKeyStore.getKeyAsString((short) 0));
+        Assert.assertEquals(new Short((short) 0), anotherKeyStore.mapStringKeyToShort("Venusaur"));
+        Assert.assertEquals("Venusaur", anotherKeyStore.mapShortKeyToString((short) 0));
 
-        Assert.assertEquals(1, anotherKeyStore.getKeyAsShort("Charmander"));
-        Assert.assertEquals("Charmander", anotherKeyStore.getKeyAsString((short) 1));
+        Assert.assertEquals(new Short((short) 1), anotherKeyStore.mapStringKeyToShort("Charmander"));
+        Assert.assertEquals("Charmander", anotherKeyStore.mapShortKeyToString((short) 1));
 
-        // Empty the store. Assert an exception is thrown as the previously added key was removed.
-        keyStore.reset();
-        keyStore.getKeyAsShort("Bulbasaur");
+        Assert.assertEquals(null, anotherKeyStore.mapStringKeyToShort("Zapdos"));
+
+        Assert.assertEquals(2, keyStore.getStringToShortMapSize());
+        Assert.assertEquals(2, anotherKeyStore.getStringToShortMapSize());
     }
 }

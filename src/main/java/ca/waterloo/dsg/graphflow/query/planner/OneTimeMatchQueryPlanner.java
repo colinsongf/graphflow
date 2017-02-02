@@ -12,10 +12,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
 /**
@@ -29,6 +27,10 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
     public OneTimeMatchQueryPlanner(StructuredQuery structuredQuery) {
         super(structuredQuery);
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
+            TypeAndPropertyKeyStore.getInstance().assertAllKeyDataTypesMatchPreviousDeclarations(
+                queryRelation.getRelationProperties());
+            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(
+                queryRelation.getRelationType());
             queryGraph.addRelation(queryRelation);
         }
     }
@@ -96,9 +98,6 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
      * Creates a one time {@code MATCH} query plan for the given {@code structuredQuery}.
      *
      * @return A {@link QueryPlan} encapsulating an {@link OneTimeMatchQueryPlan}.
-     * @throws NoSuchElementException If any edge type {@code String} does not already exist in the
-     * {@link TypeAndPropertyKeyStore}, signifying that the one time {@code MATCH} query will return
-     * an empty result set.
      */
     public QueryPlan plan() {
         OneTimeMatchQueryPlan oneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
@@ -134,30 +133,16 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             // Loop across all variables covered in the previous stages.
             for (int j = 0; j < i; j++) {
                 String variableFromPreviousStage = orderedVariables.get(j);
-                if (queryGraph.containsRelation(variableFromPreviousStage,
-                    variableForCurrentStage)) {
+                if (queryGraph.containsRelation(variableFromPreviousStage, variableForCurrentStage))
+                {
                     for (QueryRelation queryRelation : queryGraph.getAdjacentRelations(
                         variableFromPreviousStage, variableForCurrentStage)) {
-                        // assert that the types of the edge properties in the query match with
-                        // previous property type declarations from previous executed queries.
-                        TypeAndPropertyKeyStore.getInstance().
-                            assertEachPropertyTypeMatchesPreviousDeclatationInTheStore(
-                                queryRelation.getRelationProperties());
                         stage.add(new GenericJoinIntersectionRule(j,
-                            // The {@code Direction} of the rule is {@code FORWARD} if
-                            // {@code queryRelation} is an edge from
-                            // {@code variableFromPreviousStage} to
-                            // {@code variableForCurrentStage}, else {@code BACKWARD}.
                             queryRelation.getFromQueryVariable().getVariableId().equals(
-                                variableFromPreviousStage) ? Direction.FORWARD :
-                                Direction.BACKWARD,
-                            // {@code TypeAndPropertyKeyStore#getShortIdOrAnyTypeIfNull()} will
-                            // throw a {@code NoSuchElementException} if the relation type {@code
-                            // String} of {@code queryRelation} does not already exist in the
-                            // {@code TypeAndPropertyKeyStore}. Same for the properties.
-                            TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrAnyIfNullOrEmpty(
+                                variableFromPreviousStage) ? Direction.FORWARD : Direction.BACKWARD,
+                            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
                                 queryRelation.getRelationType()), TypeAndPropertyKeyStore.
-                            getInstance().getPropertiesAsShortStringKeyValues(queryRelation.
+                            getInstance().mapStringPropertiesToShortAndDataType(queryRelation.
                             getRelationProperties())));
                     }
                 }

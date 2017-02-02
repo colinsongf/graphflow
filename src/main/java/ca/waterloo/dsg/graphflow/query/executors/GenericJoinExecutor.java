@@ -2,7 +2,6 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
-import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
@@ -42,11 +41,12 @@ public class GenericJoinExecutor {
 
     public void execute() {
         GenericJoinIntersectionRule firstGJIntersectionRule = stages.get(0).get(0);
-        // Get the initial set of edges filtered by the {@code GraphVersion}, the {@code Direction}
-        // and the edge type using the {@code firstGJIntersectionRule} of the first stage.
+        // Get the initial set of edges filtered by the {@code GraphVersion}, the {@code
+        // Direction}, the edge type filter and the property equality filters using the {@code
+        // firstGJIntersectionRule} of the first stage.
         Iterator<int[]> iterator = graph.getEdgesIterator(firstGJIntersectionRule.getGraphVersion(),
-            firstGJIntersectionRule.getDirection(), firstGJIntersectionRule.getEdgeType(),
-            firstGJIntersectionRule.getEdgeProperties());
+            firstGJIntersectionRule.getDirection(), firstGJIntersectionRule.getEdgeTypeFilter(),
+            firstGJIntersectionRule.getEdgePropertyEqualityFilters());
         if (!iterator.hasNext()) {
             // Obtained empty set of edges, nothing to execute.
             return;
@@ -72,11 +72,12 @@ public class GenericJoinExecutor {
             for (int i = 1; i < stages.get(0).size(); i++) {
                 // For each additional {@code GenericJoinIntersectionRule} present in the first
                 // stage, check if the edge ({@code prefix[0]}, {@code prefix[1]}) satisfies the
-                // {@code GraphVersion}, the {@code Direction}, the edge type and the edge
-                // properties of the rule, by checking its existence in the graph.
+                // {@code GraphVersion}, the {@code Direction}, and has the types and properties of
+                // the rule.
                 GenericJoinIntersectionRule rule = stages.get(0).get(i);
                 if (!graph.isEdgePresent(prefix[0], prefix[1], rule.getDirection(), rule.
-                    getGraphVersion(), rule.getEdgeType(), rule.getEdgeProperties())) {
+                    getGraphVersion(), rule.getEdgeTypeFilter(), rule.
+                    getEdgePropertyEqualityFilters())) {
                     // The {@code prefix} did not satisfy the rule {@code i} of the first stage.
                     isPrefixPresentForAllRules = false;
                     break;
@@ -119,8 +120,8 @@ public class GenericJoinExecutor {
             return;
         }
         logger.debug("Starting new recursion. Stage: " + stageIndex);
-        List<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages
-            .get(stageIndex);
+        List<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.
+            get(stageIndex);
         int newPrefixCount = 0;
         int[][] newPrefixes = new int[BATCH_SIZE][];
 
@@ -131,10 +132,10 @@ public class GenericJoinExecutor {
             // We need the initial set of extensions to be filtered because the call to
             // {@link SortedAdjacencyList#getIntersection} below will assume the input extensions
             // are already filtered.
-            IntArrayList extensions = this.graph.getSortedAdjacencyList(prefix[minCountRule
-                .getPrefixIndex()], minCountRule.getDirection(), minCountRule.getGraphVersion()).
-                getFilteredNeighbourIds(minCountRule.getEdgeType(), minCountRule.
-                    getEdgeProperties(), this.graph.getEdgeStore());
+            IntArrayList extensions = this.graph.getSortedAdjacencyList(prefix[minCountRule.
+                getPrefixIndex()], minCountRule.getDirection(), minCountRule.getGraphVersion()).
+                getFilteredNeighbourIds(minCountRule.getEdgeTypeFilter(), minCountRule.
+                    getEdgePropertyEqualityFilters());
             if (null == extensions || extensions.getSize() == 0) {
                 // No extensions found for the current {@code prefix}.
                 continue;
@@ -149,7 +150,7 @@ public class GenericJoinExecutor {
                 // to get the details of the getIntersection method.
                 extensions = this.graph.getSortedAdjacencyList(prefix[rule.getPrefixIndex()],
                     rule.getDirection(), rule.getGraphVersion()).getIntersection(extensions,
-                    rule.getEdgeType(), rule.getEdgeProperties(), this.graph.getEdgeStore());
+                    rule.getEdgeTypeFilter(), rule.getEdgePropertyEqualityFilters());
             }
             for (int j = 0; j < extensions.getSize(); j++) {
                 int[] newPrefix = new int[prefix.length + 1];
@@ -163,8 +164,6 @@ public class GenericJoinExecutor {
                 // they are recursively executed till final results are obtained before
                 // proceeding with the extending process in this stage.
                 if (newPrefixCount >= BATCH_SIZE) {
-                    // Recursing to extend to the next stage with a set of prefix results
-                    // equaling BATCH_SIZE.
                     this.extend(newPrefixes, stageIndex + 1, matchQueryResultType);
                     newPrefixCount = 0;
                 }

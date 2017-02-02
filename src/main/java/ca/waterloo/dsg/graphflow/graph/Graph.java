@@ -1,10 +1,10 @@
 package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
-import ca.waterloo.dsg.graphflow.util.IndexedKeyValueByteArrays;
+import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.LongArrayList;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
-import ca.waterloo.dsg.graphflow.util.Type;
+import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -68,28 +68,20 @@ public class Graph {
     // vertex IDs being added.
     private int highestMergedVertexId = -1;
 
+    private ShortArrayList vertexTypes;
+    private VertexPropertyStore vertexProperties;
+
     // Adjacency lists for the permanent graph, containing both the neighbour vertex IDs and edge
     // type IDs to those neighbours.
     private SortedAdjacencyList[] forwardAdjLists;
     private SortedAdjacencyList[] backwardAdjLists;
-    // EdgeStore provides the IDs to assign to the edges in the Adjacency lists. It also stores
-    // the properties for the edges.
-    private EdgeStore edgeStore;
-    // Array of vertex types.
-    private ShortArrayList vertexTypes;
-    // Array of vertex properties.
-    private IndexedKeyValueByteArrays vertexProperties;
     // Edges for additions and deletions.
     private List<int[]> diffPlusEdges;
     private List<int[]> diffMinusEdges;
-    // The types of the edges in the {@code GraphVersion.DIFF_PLUS} and {@code GraphVersion
-    // .DIFF_MINUS} graphs. Each edge at index i of {@link diffPlusEdges} or {@link diffMinusEdges}
-    // has a type at index i of {@link diffPlusEdgeTypes} or {@link diffMinusEdgeTypes}.
+    // Each edge at index i of {@link diffPlusEdges} or {@link diffMinusEdges} has a type at
+    // index i of {@link diffPlusEdgeTypes} or {@link diffMinusEdgeTypes}.
     private ShortArrayList diffPlusEdgeTypes;
     private ShortArrayList diffMinusEdgeTypes;
-    // The IDs of the edges in the {@code GraphVersion.DIFF_PLUS} and {@code GraphVersion
-    // .DIFF_MINUS} graphs. Each edge at index i of {@link diffPlusEdges} or {@link diffMinusEdges}
-    // has an ID at index i of {@link diffPlusEdgeTypes} or {@link diffMinusEdgeTypes}.
     private LongArrayList diffPlusEdgeIds;
     private LongArrayList diffMinusEdgeIds;
     // Updated adjacency lists for the vertices affected by additions and deletions.
@@ -113,8 +105,7 @@ public class Graph {
         mergedForwardAdjLists = new HashMap<>();
         mergedBackwardAdjLists = new HashMap<>();
         vertexTypes = new ShortArrayList();
-        vertexProperties = new IndexedKeyValueByteArrays();
-        edgeStore = new EdgeStore();
+        vertexProperties = new VertexPropertyStore();
     }
 
     /**
@@ -133,44 +124,37 @@ public class Graph {
      * Note: If an edge to {@code toVertex} with the given {@code edgeType} already exists, this
      * method returns without doing anything.
      * <p>
-     * Warning: Currently, as part of this call, we will override the current vertex types and
+     * Warning: Currently, as part of this call, we will overwrite the current vertex types and
      * properties of {@code fromVertex} and {@code toVertex} with {@code fromVertexType}, {@code
      * toVertexType}, {@code toVertexProperties}, and {@code fromVertexProperties}, respectively.
-     * The method also overrides the properties of the edges.
-     * Warning: The method makes the types and properties permanent.
+     * If the properties passed are {@code null}, no changes to the vertex properties occur.
+     * Otherwise, the vertex properties are overwritten.
+     * Warning: This method makes the types and properties permanent.
      * If a vertex u has type T, callers should always call this method with type T for u to keep
      * u's type.
-     * It the properties passed equals {@code null}, no changes to the vertex properties occur, else
-     * the vertex properties are overridden.
      *
-     * @param fromVertex The starting vertex ID for the edge.
-     * @param toVertex The ending vertex ID for the edge.
+     *
+     * @param fromVertex The source vertex ID for the edge.
+     * @param toVertex The destination vertex ID for the edge.
      * @param fromVertexType The type of {@code fromVertex}.
      * @param toVertexType The type of {@code toVertex}.
-     * @param fromVertexProperties The properties of {@code fromVertex} as {@code short} key and
-     * {@code String} value pairs.
-     * @param toVertexProperties The properties of {@code toVertex} as {@code short} key and {@code
-     * String} value pairs.
+     * @param fromVertexProperties The properties of {@code fromVertex}.
+     * @param toVertexProperties The properties of {@code toVertex}.
      * @param edgeType The type of the edge being added.
      * @param edgeProperties The properties of the edge being added.
-     * @throws NoSuchElementException if one of the {@code short} properties of fromVertex,
-     * toVertex or the edge is not present in the property store.
      */
     public void addEdgeTemporarily(int fromVertex, int toVertex, short fromVertexType,
-        short toVertexType, HashMap<Short, String> fromVertexProperties, HashMap<Short,String>
-        toVertexProperties, short edgeType, HashMap<Short, String> edgeProperties) {
+        short toVertexType, Map<Short, Pair<DataType, String>> fromVertexProperties,
+        Map<Short, Pair<DataType, String>> toVertexProperties, short edgeType,
+        Map<Short, Pair<DataType, String>> edgeProperties) {
         if ((fromVertex <= highestPermanentVertexId) && (null != forwardAdjLists[fromVertex]) &&
             (forwardAdjLists[fromVertex].contains(toVertex, edgeType))) {
             return; // Edge is already present. Skip.
         }
-        // We override vertex types and properties of {@code fromVertex} and {@code toVertex} as
-        // warned in the method comments.
         vertexTypes.set(fromVertex, fromVertexType);
         vertexTypes.set(toVertex, toVertexType);
-        vertexProperties.set(fromVertex, fromVertexProperties, TypeAndPropertyKeyStore.
-            getInstance().getPropertyTypes(fromVertexProperties));
-        vertexProperties.set(toVertex, toVertexProperties, TypeAndPropertyKeyStore.getInstance().
-            getPropertyTypes(toVertexProperties));
+        vertexProperties.set(fromVertex, fromVertexProperties);
+        vertexProperties.set(toVertex, toVertexProperties);
         addOrDeleteEdgeTemporarily(true /* addition */, fromVertex, toVertex, edgeType,
             edgeProperties);
         highestMergedVertexId = Integer.max(highestMergedVertexId, Integer.max(fromVertex,
@@ -198,7 +182,7 @@ public class Graph {
                 " does not exist.");
         }
         addOrDeleteEdgeTemporarily(false /* deletion */, fromVertex, toVertex, edgeType,
-            null /* no edge properties */);
+            null /* no property equality filters on deletion */);
     }
 
     /**
@@ -208,28 +192,27 @@ public class Graph {
      * @param fromVertex The starting vertex ID for the edge.
      * @param toVertex The ending vertex ID for the edge.
      * @param edgeType The type of the edge being added or deleted.
-     * @param edgeProperties The properties of the edge being added.
+     * @param edgeProperties The properties of the edge being added. Should equal {@code null} if
+     * deletion.
      */
     private void addOrDeleteEdgeTemporarily(boolean isAddition, int fromVertex, int toVertex,
-        short edgeType, HashMap<Short, String> edgeProperties) {
+        short edgeType, Map<Short, Pair<DataType, String>> edgeProperties) {
         List<int[]> diffEdges = isAddition ? diffPlusEdges : diffMinusEdges;
         ShortArrayList diffEdgeTypes = isAddition ? diffPlusEdgeTypes : diffMinusEdgeTypes;
         LongArrayList diffEdgeIds = isAddition ? diffPlusEdgeIds : diffMinusEdgeIds;
         // Saves the edge to the diffEdges list and the types to the diffEdgeTypes list.
         diffEdges.add(new int[]{fromVertex, toVertex});
         diffEdgeTypes.add(edgeType);
-        long edgeId;
+        long edgeId = -1;
         if (isAddition) {
-            edgeId = edgeStore.addEdge(edgeProperties);
+            edgeId = EdgeStore.getInstance().addEdge(edgeProperties);
             diffEdgeIds.add(edgeId);
         } else {
-            SortedAdjacencyList adjLists = mergedForwardAdjLists.get(fromVertex);
-            if (null != adjLists && -1 != adjLists.search(toVertex, edgeType)) {
-                // edgeId index found in mergedForwardAdjLists of fromVertex
-                edgeId = adjLists.getEdgeId(adjLists.search(toVertex, edgeType));
+            SortedAdjacencyList fromVertexMergedAdjList = mergedForwardAdjLists.get(fromVertex);
+            if (null != fromVertexMergedAdjList) {
+                edgeId = fromVertexMergedAdjList.getEdgeId(toVertex, edgeType);
             } else { // edgeId is in permanentEdges
-                edgeId = forwardAdjLists[fromVertex].getEdgeId(forwardAdjLists[fromVertex].search(
-                    toVertex, edgeType));
+                edgeId = forwardAdjLists[fromVertex].getEdgeId(toVertex, edgeType);
             }
             diffEdgeIds.add(edgeId);
         }
@@ -298,7 +281,7 @@ public class Graph {
         }
         // delete edgeIds from the edge store.
         for (int i = 0; i < diffMinusEdgeIds.getSize(); ++i) {
-            edgeStore.deleteEdge(diffMinusEdgeIds.get(i));
+            EdgeStore.getInstance().deleteEdge(diffMinusEdgeIds.get(i));
         }
         // Reset the diff and merged graph states.
         diffPlusEdges.clear();
@@ -317,9 +300,9 @@ public class Graph {
      *
      * @param graphVersion The {@code GraphVersion} for which list of edges is required.
      * @param direction The {@code Direction} of the edges.
-     * @param edgeType The {@code short} type of the edges.
-     * @param edgeProperties The {@code short} key, and {@code String} value pairs as properties
-     * of the edges.
+     * @param typeFilter The type of the edges returned by the iterator.
+     * @param propertyEqualityFilters The property equality filters to apply on the edges
+     * returned by the iterator.
      * @return An iterator to the list of edges for the given {@code graphVersion} and
      * {@code direction}.
      * @throws UnsupportedOperationException Exception thrown when {@code graphVersion} is
@@ -327,7 +310,7 @@ public class Graph {
      * {@link Direction#BACKWARD}.
      */
     public Iterator<int[]> getEdgesIterator(GraphVersion graphVersion, Direction direction,
-        short edgeType, HashMap<Short, String> edgeProperties) {
+        short typeFilter, Map<Short, Pair<DataType, String>> propertyEqualityFilters) {
         if ((GraphVersion.DIFF_PLUS == graphVersion || GraphVersion.DIFF_MINUS == graphVersion) &&
             Direction.BACKWARD == direction) {
             throw new UnsupportedOperationException("Getting edges for the DIFF_PLUS "
@@ -335,10 +318,10 @@ public class Graph {
         }
         if (GraphVersion.DIFF_PLUS == graphVersion) {
             return new DiffEdgesIterator(diffPlusEdges, diffPlusEdgeTypes, diffPlusEdgeIds,
-                edgeType, edgeProperties, edgeStore);
+                typeFilter, propertyEqualityFilters);
         } else if (GraphVersion.DIFF_MINUS == graphVersion) {
             return new DiffEdgesIterator(diffMinusEdges, diffMinusEdgeTypes, diffMinusEdgeIds,
-                edgeType, edgeProperties, edgeStore);
+                typeFilter, propertyEqualityFilters);
         } else {
             SortedAdjacencyList[] permanentAdjacencyLists;
             Map<Integer, SortedAdjacencyList> mergedAdjLists;
@@ -359,26 +342,26 @@ public class Graph {
                 return Collections.<int[]>emptyList().iterator();
             }
             return new PermanentAndMergedEdgesIterator(graphVersion, permanentAdjacencyLists,
-                mergedAdjLists, edgeType, edgeProperties, edgeStore, lastVertexId);
+                mergedAdjLists, typeFilter, propertyEqualityFilters, lastVertexId);
         }
     }
 
     /**
      * Checks if an edge is present between {@code fromVertexId} and {@code toVertexId} in the
-     * given {@code graphVersion} of the graph, for the given {@code direction} and
-     * {@code edgeTypeId}.
+     * given {@code graphVersion} of the graph, for the given {@code direction}, with a given
+     * edge type and a set of properties.
      *
      * @param fromVertexId The from vertex ID.
      * @param toVertexId The to vertex ID.
      * @param direction The {@link Direction} of the edge.
      * @param graphVersion The {@link GraphVersion} where the edge's presence needs to be checked.
-     * @param edgeType The {@code short} type of the edge.
-     * @param edgeProperties The {@code short} key, and {@code String} value pairs as properties
-     * of the edges.
+     * @param typeFilter The type of the edge being searched for.
+     * @param propertyEqualityFilters The properties that the edge being searched should contain.
      * @return {@code true} if the edge is present, {@code false} otherwise.
      */
     public boolean isEdgePresent(int fromVertexId, int toVertexId, Direction direction,
-        GraphVersion graphVersion, short edgeType, HashMap<Short, String> edgeProperties) {
+        GraphVersion graphVersion, short typeFilter,
+        Map<Short, Pair<DataType, String>> propertyEqualityFilters) {
         if (GraphVersion.DIFF_MINUS == graphVersion || GraphVersion.DIFF_PLUS == graphVersion) {
             throw new UnsupportedOperationException("Checking presence of an edge in the DIFF_PLUS "
                 + "or DIFF_MINUS graph is not supported.");
@@ -401,11 +384,11 @@ public class Graph {
             mergedAdjLists = mergedBackwardAdjLists;
         }
         if (graphVersion == GraphVersion.MERGED && mergedAdjLists.containsKey(fromVertexId)) {
-            return mergedAdjLists.get(fromVertexId).contains(toVertexId, edgeType, edgeProperties,
-                edgeStore);
+            return mergedAdjLists.get(fromVertexId).contains(toVertexId, typeFilter,
+                propertyEqualityFilters);
         }
-        return permanentAdjacencyLists[fromVertexId].contains(toVertexId, edgeType, edgeProperties,
-            edgeStore);
+        return permanentAdjacencyLists[fromVertexId].contains(toVertexId, typeFilter,
+            propertyEqualityFilters);
     }
 
     /**
@@ -444,10 +427,6 @@ public class Graph {
             // Use the adjacency list of the permanent graph.
             return permanentAdjList[vertexId];
         }
-    }
-
-    public EdgeStore getEdgeStore() {
-        return edgeStore;
     }
 
     /**

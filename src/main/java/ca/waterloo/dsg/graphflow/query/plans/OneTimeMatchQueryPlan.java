@@ -4,7 +4,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinExecutor;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,7 @@ public class OneTimeMatchQueryPlan implements QueryPlan {
      * @return {@code true} if the {@code a} object values are the same as the
      * {@code b} object values, {@code false} otherwise.
      */
-    @ExistsForTesting
+    @UsedOnlyByTests
     public static boolean isSameAs(OneTimeMatchQueryPlan a, OneTimeMatchQueryPlan b) {
         if (a == b) {
             return true;

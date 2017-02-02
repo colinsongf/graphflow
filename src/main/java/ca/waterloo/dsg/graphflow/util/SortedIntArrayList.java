@@ -41,28 +41,6 @@ public class SortedIntArrayList {
         sort();
     }
 
-    public int removeFromIndex(int index) throws ArrayIndexOutOfBoundsException {
-        if (index >= size) {
-            throw new ArrayIndexOutOfBoundsException(index);
-        }
-        int numMoved = size - index - 1;
-        int valueToBeRemoved = data[index];
-        if (numMoved > 0) {
-            System.arraycopy(data, index + 1, data, index, numMoved);
-        }
-        --size;
-        sort();
-        return valueToBeRemoved;
-    }
-
-    public int removeElement(int value) throws ArrayIndexOutOfBoundsException {
-        int index = search(value);
-        if (index != -1) {
-            removeFromIndex(index);
-        }
-        return index;
-    }
-
     public int getSize() {
         return size;
     }
@@ -105,8 +83,7 @@ public class SortedIntArrayList {
 
     /**
      * Intersects this {@code SortedIntArrayList} and the given {@code newList} and returns the
-     * result as
-     * {@code SortedIntArrayList}.
+     * result as {@code SortedIntArrayList}.
      *
      * @param newList
      * @return SortedIntArrayList

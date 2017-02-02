@@ -1,14 +1,15 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
+import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
+import ca.waterloo.dsg.graphflow.util.DataType;
+import org.antlr.v4.runtime.misc.Pair;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -27,55 +28,82 @@ public class CreateQueryPlan implements QueryPlan {
      *
      * @param graph the {@link Graph} instance to use during the plan execution.
      * @param outputSink the {@link OutputSink} to which the execution output is written.
+     * @throws IncorrectDataTypeException if there are two new properties in the query with the same
+     * key but different {@link DataType} or if the {@link DataType} of a property key K is not
+     * the same as the {@link DataType} that has been stored previously for K.
      */
     public void execute(Graph graph, OutputSink outputSink) {
         try {
+            TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
             for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
+                Map<String, Pair<String, String>> stringFromVertexProperties = queryRelation.
+                    getFromQueryVariable().getVariableProperties();
+                Map<String, Pair<String, String>> stringToVertexProperties = queryRelation.
+                    getToQueryVariable().getVariableProperties();
+                Map<String, Pair<String, String>> stringEdgeProperties = queryRelation.
+                    getRelationProperties();
 
-                // assert that the types of the properties in the query match within themselves and
-                // are also matched with previous property declarations from previous executed
-                // queries.
-                TypeAndPropertyKeyStore.getInstance().assertEachPropertyTypeCorrectness(
-                    queryRelation.getFromQueryVariable().getVariableProperties(), queryRelation.
-                        getToQueryVariable().getVariableProperties(), queryRelation.
-                        getRelationProperties());
+                assertDataTypesAreConsistent(stringFromVertexProperties,
+                    stringToVertexProperties);
+                assertDataTypesAreConsistent(stringEdgeProperties,
+                    stringFromVertexProperties);
+                assertDataTypesAreConsistent(stringEdgeProperties,
+                    stringToVertexProperties);
 
-                // get the from and to vertex Ids.
+                typeAndPropertyKeyStore.assertExistingKeyDataTypesMatchPreviousDeclarations(
+                    stringFromVertexProperties);
+                typeAndPropertyKeyStore.assertExistingKeyDataTypesMatchPreviousDeclarations(
+                    stringToVertexProperties);
+                typeAndPropertyKeyStore.assertExistingKeyDataTypesMatchPreviousDeclarations(
+                    stringEdgeProperties);
+
                 int fromVertex = Integer.parseInt(queryRelation.getFromQueryVariable().
                     getVariableId());
                 int toVertex = Integer.parseInt(queryRelation.getToQueryVariable().getVariableId());
 
-                // Insert the types into the {@code TypeAndPropertyKeyStore} if they do not already
-                // exist, and get their {@code short} IDs.
-                short fromVertexType = TypeAndPropertyKeyStore.getInstance().
-                    getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getFromQueryVariable().
-                        getVariableType());
-                short toVertexType = TypeAndPropertyKeyStore.getInstance().
-                    getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getToQueryVariable().
-                        getVariableType());
-                short edgeType = TypeAndPropertyKeyStore.getInstance().
-                    getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getRelationType());
+                short fromVertexType = typeAndPropertyKeyStore.mapStringTypeToShortOrInsert(
+                    queryRelation.getFromQueryVariable().getVariableType());
+                short toVertexType = typeAndPropertyKeyStore.mapStringTypeToShortOrInsert(
+                    queryRelation.getToQueryVariable().getVariableType());
+                short edgeType = typeAndPropertyKeyStore.mapStringTypeToShortOrInsert(
+                    queryRelation.getRelationType());
 
-                // get the properties as short key, string value pairs from vertices and edge.
-                HashMap<Short, String> fromVertexProperties = TypeAndPropertyKeyStore
-                    .getInstance().getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
-                        queryRelation.getFromQueryVariable().getVariableProperties());
-                HashMap<Short, String> toVertexProperties = TypeAndPropertyKeyStore
-                    .getInstance().getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
-                        queryRelation.getToQueryVariable().getVariableProperties());
-                HashMap<Short, String> edgeProperties = TypeAndPropertyKeyStore
-                    .getInstance().getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
-                        queryRelation.getRelationProperties());
+                Map<Short, Pair<DataType, String>> fromVertexProperties = typeAndPropertyKeyStore.
+                    mapStringPropertiesToShortAndDataTypeOrInsert(stringFromVertexProperties);
+                Map<Short, Pair<DataType, String>> toVertexProperties = typeAndPropertyKeyStore.
+                    mapStringPropertiesToShortAndDataTypeOrInsert(stringToVertexProperties);
+                Map<Short, Pair<DataType, String>> edgeProperties = typeAndPropertyKeyStore.
+                    mapStringPropertiesToShortAndDataTypeOrInsert(stringEdgeProperties);
 
-                // Add the new edge to the graph.
                 graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexType, toVertexType,
                     fromVertexProperties, toVertexProperties, edgeType, edgeProperties);
             }
             ContinuousMatchQueryExecutor.getInstance().execute(graph);
             graph.finalizeChanges();
+            // TODO(amine): bug, count the actual number of edges created to append to sink.
             outputSink.append(structuredQuery.getQueryRelations().size() + " edges created.");
         } catch (UnsupportedOperationException e) {
             outputSink.append("ERROR: " + e.getMessage());
+        }
+    }
+
+    private void assertDataTypesAreConsistent(
+        Map<String, Pair<String, String>> thisPropertiesCollection,
+        Map<String, Pair<String, String>> thatPropertiesCollection) {
+        if (null == thisPropertiesCollection || null == thatPropertiesCollection) {
+            return;
+        }
+        for (String propertyKey: thisPropertiesCollection.keySet()) {
+            String thisDataType = thisPropertiesCollection.get(propertyKey).a.toUpperCase();
+            String thatDataType = null;
+            if (null != thatPropertiesCollection.get(propertyKey)) {
+                thatDataType = thatPropertiesCollection.get(propertyKey).a.toUpperCase();
+            }
+            if (null != thatDataType && !thisDataType.equals(thatDataType)) {
+                throw new IncorrectDataTypeException("Inconsistent DataType usage - property " +
+                    "key " + propertyKey + " is used with two different data types: " +
+                    thisDataType + " and " + thatDataType + ".");
+            }
         }
     }
 }

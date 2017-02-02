@@ -1,54 +1,54 @@
 package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
-import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
+import ca.waterloo.dsg.graphflow.util.DataType;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
-import ca.waterloo.dsg.graphflow.util.Type;
+import org.antlr.v4.runtime.misc.Pair;
 
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
- * Encapsulates the assigned and recycled edge IDs and edge properties of the Graph.
+ * Stores the IDs and properties of the edges in the Graph.
+ * Warning: The properties of a deleted are not deleted. The ID of the deleted edge is recycled and
+ * the properties are overwritten by those of the edge that gets assigned the recycled ID next.
  */
-public class EdgeStore {
+public class EdgeStore extends PropertyStore {
+
+    private static final EdgeStore INSTANCE = new EdgeStore();
 
     private static final int INITIAL_CAPACITY = 2;
-    private final int MAX_EDGES_PER_BUCKET = 8;
-    private final int MAX_BUCKETS_PER_PARTITION = 1000000;
+    public final int MAX_EDGES_PER_BUCKET = 8;
+    public final int MAX_BUCKETS_PER_PARTITION = 1000000;
 
     private long nextIDNeverYetAssigned = 0;
     private byte nextBucketOffset = 0;
     private int nextBucketId = 0;
     private int nextPartitionId = 0;
 
-    private long[] recycledIds;
+    private long[] recycledIds = new long[INITIAL_CAPACITY];
     private int recycledIdsSize = 0;
 
     @PackagePrivateForTesting
-    byte[][][] edgePropertyData;
+    byte[][][] data = new byte[INITIAL_CAPACITY][][];
     @PackagePrivateForTesting
-    int[][][] edgePropertyDataOffsets;
+    int[][][] dataOffsets = new int[INITIAL_CAPACITY][][];
 
     /**
-     * Creates {@link EdgeStore} with default capacity.
+     * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
+     * class.
      */
-    public EdgeStore() {
-        edgePropertyData = new byte[INITIAL_CAPACITY][][];
-        edgePropertyDataOffsets = new int[INITIAL_CAPACITY][][];
-        recycledIds = new long[INITIAL_CAPACITY];
-    }
+    private EdgeStore() { }
 
     /**
-     * Generates the next Id to assign to edge added. Sets the properties of the edge in the
-     * edgestore based on the Id.
+     * Adds a new edge and sets its properties to the given properties.
      *
-     * @param properties The {@code short} and {@code String} key value pairs representing the
-     * properties.
-     * @return The {@code long} id assigned to the edge added.
+     * @param properties The properties of the edge as <key, <DataType, value>> pairs.
+     * @return The ID of the added edge.
      */
-    public long addEdge(HashMap<Short, String> properties) {
+    public long addEdge(Map<Short, Pair<DataType, String>> properties) {
         long edgeId = getNextIdToAssign();
         setProperties(edgeId, properties);
         return edgeId;
@@ -57,12 +57,17 @@ public class EdgeStore {
     /**
      * Returns the next ID to assign to an edge. If there are recycled IDs, which is an ID
      * previously assigned to an edge that was deleted, the last added ID to the recycled IDs array
-     * is returned. Else, the {@code long} ID bytes are as follows: (1) The 3 most significant
-     * bytes are those of the partition ID. (2) The next 4 bytes are the bucket ID, where each
-     * partition is made of a max number of buckets, and (3) the last byte presents the maximum
-     * number of edges per bucket.
+     * is returned. Otherwise, the 8 byte {@code long} ID is assigned as follows:
+     * <ul>
+     *     <li>The 3 most significant bytes are the partition ID. There are up to {@link
+     *     EdgeStore#MAX_BUCKETS_PER_PARTITION} buckets in each partition.</li>
+     *     <li> The next 4 bytes are the bucket ID. There are up to
+     *     {@link EdgeStore#MAX_EDGES_PER_BUCKET} edges in each bucket.</li>
+     *     <li> The last byte is the index of the edge in the bucket.</li>
+     * </ul>
      */
-    public long getNextIdToAssign() {
+    @PackagePrivateForTesting
+    long getNextIdToAssign() {
         long nextIDToAssign;
         if (recycledIdsSize > 0) {
             nextIDToAssign = recycledIds[--recycledIdsSize];
@@ -74,205 +79,125 @@ public class EdgeStore {
     }
 
     /**
-     * Sets the bytes array value at {@code edgeId} with a list of {@code short} key, and {@code
-     * String} value pairs representing the properties of the edge with {@code edgeId}.
+     * Returns the {@code Short} key, and {@code Object} value pair properties of the edge with the
+     * given ID.
+     * Warning: If the ID provided is an ID of a deleted edge, the properties of the deleted edge
+     * are returned.
      *
-     * @param edgeId The id of the edge.
-     * @param properties The {@code short} key and {@code String} value pair properties of the edge.
+     * @param edgeId The ID of the edge.
+     * @return The properties of the edge as a Map<Short, Object>.
+     * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
      */
-    public void setProperties(long edgeId, HashMap<Short, String> properties) {
-        int partitionId = (int) (edgeId >> 40);
-        int bucketId = (int) (edgeId >> 8);
-        byte bucketOffset = (byte) edgeId;
+    public Map<Short, Object> getProperties(long edgeId) {
+        if (edgeId >= nextIDNeverYetAssigned) {
+            throw new NoSuchElementException("Edge with ID " + edgeId + " does not exist.");
+        }
+        int partitionId = (int) ((edgeId & 0xFFF00000) >> 40);
+        int bucketId = (int) ((edgeId & 0x000FFFF0) >> 8);
+        byte bucketOffset = (byte) (edgeId & 0x000000F);
 
+        int dataOffsetStart = dataOffsets[partitionId][bucketId][bucketOffset];
+        int dataOffsetEnd;
+        if (bucketOffset == MAX_EDGES_PER_BUCKET - 1) {
+            dataOffsetEnd = data[partitionId][bucketId].length - 1;
+        } else {
+            dataOffsetEnd = dataOffsets[partitionId][bucketId][bucketOffset + 1] - 1;
+        }
+
+        return deserializeProperties(data[partitionId][bucketId], dataOffsetStart,
+            dataOffsetEnd - dataOffsetStart + 1);
+    }
+
+    /**
+     * Sets the properties of the given edge to the given properties serialized to bytes.
+     *
+     * @param edgeId The ID of the edge.
+     * @param properties The properties of the edge. See {@link #addEdge(Map)}.
+     */
+    @PackagePrivateForTesting
+    void setProperties(long edgeId, Map<Short, Pair<DataType, String>> properties) {
+        int partitionId = (int) ((edgeId & 0xFFF00000) >> 40);
+        int bucketId = (int) ((edgeId & 0x000FFFF0) >> 8);
+        byte bucketOffset = (byte) (edgeId & 0x000000F);
         resizeIfNecessary(partitionId, bucketId);
 
-        byte[] propertiesAsBytes = new byte[0];
-        if (null != properties) {
-            for (Short property : properties.keySet()) {
-                Type type = TypeAndPropertyKeyStore.getInstance().getPropertyType(property);
-                byte[] propertyAsBytes = Type.getKeyValueAsByteArray(property, type, properties.get(
-                    property));
-                propertiesAsBytes = Arrays.copyOf(propertiesAsBytes, propertiesAsBytes.length +
-                    propertyAsBytes.length);
-                System.arraycopy(propertyAsBytes, 0, propertiesAsBytes, propertiesAsBytes.length -
-                    propertyAsBytes.length, propertyAsBytes.length);
-            }
-        }
-
-        if (null == edgePropertyData[partitionId][bucketId]) {
-            edgePropertyData[partitionId][bucketId] = new byte[0];
-        }
-
-        int dataOffsetStart = edgePropertyDataOffsets[partitionId][bucketId][bucketOffset];
-        int dataOffsetEnd = -1;
-        if (bucketOffset < MAX_EDGES_PER_BUCKET - 1) {
-            dataOffsetEnd = edgePropertyDataOffsets[partitionId][bucketId][bucketOffset + 1] - 1;
-        }
-
-        updatePropertyDataAndOffsets(propertiesAsBytes, dataOffsetStart, dataOffsetEnd,
-            partitionId, bucketId, bucketOffset);
-    }
-
-    /**
-     * Returns the {@code Short} key, and {@code String} value properties stored for an edge with
-     * the given id. If the id provided is an id of a deleted edge, the properties of the deleted
-     * edge are returned.
-     *
-     * @param edgeId The id of the edge.
-     * @return {@code Short} key, and {@code String} value properties of edge for the given {@code
-     * edgeId} given the id has been previously assigned to an edge.
-     * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
-     */
-    public HashMap<Short, Object> getEdgeProperties(long edgeId) {
-        if (edgeId >= nextIDNeverYetAssigned) {
-            throw new NoSuchElementException("no edge with id " + edgeId);
-        }
-
-        int partitionId = (int) (edgeId >> 40);
-        int bucketId = (int) (edgeId >> 8);
-        byte bucketOffset = (byte) edgeId;
-
-        int startOffset = edgePropertyDataOffsets[partitionId][bucketId][bucketOffset];
-        int endOffset = edgePropertyDataOffsets[partitionId][bucketId][bucketOffset + 1] - 1;
+        int dataOffsetStart = dataOffsets[partitionId][bucketId][bucketOffset];
+        int dataOffsetEnd;
         if (bucketOffset == MAX_EDGES_PER_BUCKET - 1) {
-            endOffset = edgePropertyData[partitionId][bucketId].length;
+            dataOffsetEnd = data[partitionId][bucketId].length - 1;
+        } else {
+            dataOffsetEnd = dataOffsets[partitionId][bucketId][bucketOffset + 1] - 1;
         }
 
-        HashMap<Short, Object> edgeProperties = new HashMap<>();
-        if (startOffset == endOffset + 1) { // no properties
-            return edgeProperties;
+        byte[] propertiesAsBytes = serializeProperties(properties);
+        int bucketLength = data[partitionId][bucketId].length;
+        byte[] newPropertiesForTheBucket = new byte[dataOffsetStart /* length of 1st half */ +
+            bucketLength - (dataOffsetEnd + 1) /* length of 2nd half */ + propertiesAsBytes.length];
+
+        // copy the old data + new properties to the new array.
+        System.arraycopy(data[partitionId][bucketId], 0, newPropertiesForTheBucket, 0,
+            dataOffsetStart);
+        System.arraycopy(propertiesAsBytes, 0, newPropertiesForTheBucket, dataOffsetStart,
+            propertiesAsBytes.length);
+        if (newPropertiesForTheBucket.length > propertiesAsBytes.length + dataOffsetStart) {
+            System.arraycopy(data[partitionId][bucketId], dataOffsetEnd, newPropertiesForTheBucket,
+                dataOffsetStart + propertiesAsBytes.length, bucketLength - (dataOffsetEnd + 1));
         }
+        data[partitionId][bucketId] = newPropertiesForTheBucket;
 
-        byte[] properties = new byte[endOffset - startOffset + 1];
-        System.arraycopy(edgePropertyData[partitionId][bucketId], startOffset, properties, 0,
-            endOffset - startOffset + 1);
-
-        for (int i = 0; i < properties.length; ) {
-            short property = (short) ((short)(properties[i] << 8) | ((short)properties[i+1]));
-            Type type = TypeAndPropertyKeyStore.getInstance().getPropertyType(property);
-
-            int length;
-            int value_offset;
-            if (type == Type.STRING) {
-                length = (((int) properties[i + 2]) << 24) | (((int) properties[i + 3]) << 16) |
-                    (((int) properties[i + 4]) << 8) | (int) properties[i + 5];
-                value_offset = 6; // 2 bytes for short key + 4 for string length
-            } else {
-                length = Type.getNumberOfBytes(type);
-                value_offset = 2; // 2 bytes for short key
+        // update the offsets
+        int shiftOffset = dataOffsetStart - (dataOffsetEnd + 1) + propertiesAsBytes.length;
+        if (shiftOffset != 0) {
+            for (int i = bucketOffset + 1; i < MAX_EDGES_PER_BUCKET; ++i) {
+                dataOffsets[partitionId][bucketId][i] += shiftOffset;
             }
-
-            byte[] valueAsByte = new byte[length];
-            System.arraycopy(edgePropertyData[partitionId][bucketId], startOffset + value_offset,
-                valueAsByte, 0, length);
-
-            Object value = Type.getValue(type, valueAsByte);
-            edgeProperties.put(property, value);
-
-            i += (value_offset + length);
         }
-
-        return edgeProperties;
     }
 
     /**
-     * Returns the {@code Short} key, and {@code String} value properties stored for an edge with
-     * the given id.
+     * Returns true if the properties of the edge {@code e} with the given edge ID match all of
+     * the given edge equality filters. Specifically, checks whether for each property P in the
+     * given equality filters, there is a property P' of e where P' has the same key and value as P.
      *
-     * @param edgeId The id of the edge.
-     * @param properties The properties to check against those of the given {@code edgeId} and
-     * see if they match.
-     * @return whether the {@code properties} passed matches those of the edge at {@code edgeId}.
+     * @param edgeId The ID of the edge.
+     * @param propertyEqualityFilters The property filters to match in the edge.
+     * @return true if the edge with the given {code edgeId} matches all of the given {@code
+     * propertyEqualityFilters}.
      * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
      */
-    public boolean edgePropertiesMatches(long edgeId, HashMap<Short, String> properties) {
+    public boolean checkEqualityFilters(long edgeId,
+        Map<Short, Pair<DataType, String>> propertyEqualityFilters) {
         if (edgeId >= nextIDNeverYetAssigned) {
-            throw new NoSuchElementException("no edge with id " + edgeId);
+            throw new NoSuchElementException("Edge with ID " + edgeId + " does not exist.");
         }
 
-        if (null == properties || properties.size() == 0) {
+        if (null == propertyEqualityFilters || propertyEqualityFilters.isEmpty()) {
             return true;
         }
 
-        // CHANGE TO Type.equals(String val, Object obj, Type type)
-        HashMap<Short, Object> edgeProperties = getEdgeProperties(edgeId);
-        for(Short property: properties.keySet()) {
-            Type type = TypeAndPropertyKeyStore.getInstance().getPropertyType(property);
-            if (!Type.equals(type, properties.get(property), edgeProperties.get(property))) {
+        Map<Short, Object> edgeProperties = getProperties(edgeId);
+        for(Short key: propertyEqualityFilters.keySet()) {
+            if (!DataType.equals(propertyEqualityFilters.get(key).a, edgeProperties.get(key),
+                propertyEqualityFilters.get(key).b)) {
                 return false;
             }
         }
         return true;
     }
 
-    private void updatePropertyDataAndOffsets (byte[] properties, int dataOffsetStart,
-        int dataOffsetEnd, int partitionId, int bucketId, int bucketOffset) {
-        if (properties.length == 0) { // no properties, only set the next bucketOffset.
-            if (bucketOffset < MAX_EDGES_PER_BUCKET - 1) {
-                edgePropertyDataOffsets[partitionId][bucketId][bucketOffset + 1] = edgePropertyData[
-                    partitionId][bucketId].length;
-            }
-            return;
-        }
-        if (dataOffsetEnd < 0) { // First time assigning properties for the edgeId or offset is max.
-            edgePropertyData[partitionId][bucketId] = Arrays.copyOf(edgePropertyData[partitionId][
-                bucketId], dataOffsetStart + properties.length);
-            System.arraycopy(properties, 0, edgePropertyData[partitionId][bucketId],
-                dataOffsetStart, properties.length);
-            if (bucketOffset < MAX_EDGES_PER_BUCKET - 1) {
-                edgePropertyDataOffsets[partitionId][bucketId][bucketOffset + 1] = edgePropertyData[
-                    partitionId][bucketId].length;
-            }
-        } else { // recycled edgeId, need to insert the new properties.
-            int lastIndex = edgePropertyData[partitionId][bucketId].length - 1;
-            int diffInOffset = properties.length - (dataOffsetEnd - dataOffsetStart + 1);
-
-            byte[] oldData = null;
-            if (diffInOffset < 0) {
-                oldData = new byte[edgePropertyData[partitionId][bucketId].length];
-                System.arraycopy(edgePropertyData[partitionId][bucketId], 0, oldData, 0,
-                    edgePropertyData[partitionId][bucketId].length);
-            }
-
-            // copy the properties of the edges with bigger Id and in the same bucket.
-            edgePropertyData[partitionId][bucketId] = Arrays.copyOf(edgePropertyData[partitionId][
-                bucketId], dataOffsetStart + properties.length + edgePropertyData[partitionId][
-                    bucketId].length - dataOffsetEnd - 1);
-
-            // copy the properties of the edges with bigger Id and in the same bucket.
-            if (diffInOffset > 0) { // shifting to the right, start from the end.
-                for (int i = lastIndex; i > dataOffsetEnd; i--) {
-                    edgePropertyData[partitionId][bucketId][i + diffInOffset] = edgePropertyData[
-                        partitionId][bucketId][i];
-                }
-            }
-            else if (diffInOffset < 0) { // shifting to the left, start from the start.
-                for (int i = dataOffsetEnd + 1; i < oldData.length; i++) {
-                    edgePropertyData[partitionId][bucketId][i + diffInOffset] = oldData[i];
-                }
-            }
-
-            // copy the properties of the edge.
-            System.arraycopy(properties, 0, edgePropertyData[partitionId][bucketId],
-                dataOffsetStart, properties.length);
-            // update the offsets.
-            for (int i = bucketOffset + 1; i < MAX_EDGES_PER_BUCKET; ++i) {
-                if (edgePropertyDataOffsets[partitionId][bucketId][i] != 0) {
-                    edgePropertyDataOffsets[partitionId][bucketId][i] += diffInOffset;
-                }
-            }
-        }
-    }
-
     /**
-     * Adds the given ID to the recycled IDs array.
+     * Deletes the edge with the given ID.
+     * Warning: Internally adds the given ID to the recycled IDs array.
      *
-     * @param id The {@code long} id to add to the recycled IDs array.
+     * @param edgeId The ID of the edge to delete.
+     * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
      */
-    public void deleteEdge(long id) {
+    public void deleteEdge(long edgeId) {
+        if (edgeId >= nextIDNeverYetAssigned) {
+            throw new NoSuchElementException("Edge with ID " + edgeId + " does not exist.");
+        }
         recycledIds = ArrayUtils.resizeIfNecessary(recycledIds, recycledIdsSize + 1);
-        recycledIds[recycledIdsSize++] = id;
+        recycledIds[recycledIdsSize++] = edgeId;
     }
 
     private void incrementNextIDNeverYetAssigned() {
@@ -287,36 +212,93 @@ public class EdgeStore {
                 nextPartitionId++;
             }
         }
-        nextIDNeverYetAssigned = (((long) nextPartitionId) << 40) | (nextBucketId << 8) |
+        nextIDNeverYetAssigned = (((long) nextPartitionId) << 40) | (((long) nextBucketId) << 8) |
             nextBucketOffset;
     }
 
     private void resizeIfNecessary(int partitionId, int bucketId) {
-        edgePropertyData = ArrayUtils.resizeIfNecessary(edgePropertyData, partitionId + 1);
-        edgePropertyDataOffsets = ArrayUtils.resizeIfNecessary(edgePropertyDataOffsets,
-            partitionId + 1);
+        data = ArrayUtils.resizeIfNecessary(data, partitionId + 1);
+        dataOffsets = ArrayUtils.resizeIfNecessary(dataOffsets, partitionId + 1);
 
-        if (null == edgePropertyData[partitionId]) {
-            edgePropertyData[partitionId] = new byte[0][];
+        if (null == data[partitionId]) {
+            data[partitionId] = new byte[0][];
         }
-        if (null == edgePropertyDataOffsets[partitionId]) {
-            edgePropertyDataOffsets[partitionId] = new int[0][];
+        if (null == dataOffsets[partitionId]) {
+            dataOffsets[partitionId] = new int[0][];
         }
 
-        edgePropertyData[partitionId] = ArrayUtils.resizeIfNecessary(edgePropertyData[partitionId],
+        data[partitionId] = ArrayUtils.resizeIfNecessary(data[partitionId], bucketId + 1);
+        dataOffsets[partitionId] = ArrayUtils.resizeIfNecessary(dataOffsets[partitionId],
             bucketId + 1);
-        edgePropertyDataOffsets[partitionId] = ArrayUtils.resizeIfNecessary(
-            edgePropertyDataOffsets[partitionId], bucketId + 1);
 
-        if (null == edgePropertyDataOffsets[partitionId][bucketId]) {
-            edgePropertyDataOffsets[partitionId][bucketId] = new int[MAX_EDGES_PER_BUCKET];
+        if (null == data[partitionId][bucketId]) {
+            data[partitionId][bucketId] = new byte[0];
+        }
+        if (null == dataOffsets[partitionId][bucketId]) {
+            dataOffsets[partitionId][bucketId] = new int[MAX_EDGES_PER_BUCKET];
         }
     }
 
-    @ExistsForTesting
-    void setNextIDParams (int partitionID, int bucketID, byte bucketOffset) {
+    @PackagePrivateForTesting
+    Map<Short, Object> deserializeProperties(byte[] properties, int startIndex,
+        int propertiesLength) {
+        Map<Short, Object> edgeProperties = new HashMap<>();
+        int nextPropertyIndex = startIndex;
+        while (nextPropertyIndex < startIndex + propertiesLength) {
+            short key = (short) ((short) (properties[nextPropertyIndex] << 8) |
+                ((short) properties[nextPropertyIndex+1]));
+            DataType dataType = TypeAndPropertyKeyStore.getInstance().getPropertyDataType(key);
+
+            int length;
+            int valueOffset;
+            if (DataType.STRING == dataType) {
+                length = (((int) properties[nextPropertyIndex + 2]) << 24) |
+                    (((int) properties[nextPropertyIndex + 3]) << 16) |
+                    (((int) properties[nextPropertyIndex + 4]) << 8) |
+                    (int) properties[nextPropertyIndex + 5];
+                // 2 bytes for short key + 4 for an int storing the length of the String.
+                valueOffset = 6;
+            } else {
+                length = DataType.getLength(dataType);
+                // 2 bytes for short key. We do not store the lengths of data types other than
+                // Strings since they are fixed.
+                valueOffset = 2;
+            }
+
+            Object value = DataType.deserialize(dataType, properties, nextPropertyIndex +
+                valueOffset, length);
+            edgeProperties.put(key, value);
+            nextPropertyIndex += (valueOffset + length);
+        }
+        return  edgeProperties;
+    }
+
+    @UsedOnlyByTests
+    void setNextIDNeverYetAssigned(int partitionID, int bucketID, byte bucketOffset) {
         this.nextPartitionId = partitionID;
         this.nextBucketId = bucketID;
         this.nextBucketOffset = bucketOffset;
+        addEdge(null); /* add an edge with the current Id */
+    }
+
+    @UsedOnlyByTests
+    void reset() {
+        nextIDNeverYetAssigned = 0;
+        nextBucketOffset = 0;
+        nextBucketId = 0;
+        nextPartitionId = 0;
+
+        recycledIds = new long[INITIAL_CAPACITY];
+        recycledIdsSize = 0;
+
+        data = new byte[INITIAL_CAPACITY][][];
+        dataOffsets = new int[INITIAL_CAPACITY][][];
+    }
+
+    /**
+     * Returns the singleton instance {@link #INSTANCE} of {@link EdgeStore}.
+     */
+    public static EdgeStore getInstance() {
+        return INSTANCE;
     }
 }

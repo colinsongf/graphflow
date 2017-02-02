@@ -2,8 +2,9 @@ package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
+import ca.waterloo.dsg.graphflow.util.DataType;
+import org.antlr.v4.runtime.misc.Pair;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -22,10 +23,9 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
     // Stores the next destination vertex ID, represented by an index to the adjacency list of
     // {@code nextFromVertexId}. 0 <= {@code nextFromVertexIdAdjListIndex} < length of adjacency
     // list of {@code nextFromVertexId}.
-    private int nextFromVertexIdAdjListIndex = -1;
-    private short edgeType;
-    private HashMap<Short, String> edgeProperties;
-    private EdgeStore edgeStore;
+    private int nextFromVertexAdjListIndex = -1;
+    private short edgeTypeFilter;
+    private Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters;
 
     /**
      * Constructor for {@link PermanentAndMergedEdgesIterator} with all possible vertex and edge
@@ -36,21 +36,19 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
      * the {@link Direction#FORWARD} or {@link Direction#BACKWARD} directions.
      * @param mergedAdjLists The adjacency lists for the merged version of the graph in the {@link
      * Direction#FORWARD} or {@link Direction#BACKWARD} directions.
-     * @param edgeType The type which the selected edge type should be.
-     * @param edgeProperties The properties which the selected edge properties should match.
-     * @param edgeStore The instance of edge store containing the graph's edge properties.
+     * @param edgeTypeFilter The type which the iterated edges should have.
+     * @param edgePropertyEqualityFilters The properties which the iterated edges should contain.
      * @param lastVertexId The vertex with the highest ID for the given graph version.
      */
     public PermanentAndMergedEdgesIterator(GraphVersion graphVersion,
         SortedAdjacencyList[] permanentAdjacencyLists,
-        Map<Integer, SortedAdjacencyList> mergedAdjLists, short edgeType,
-        HashMap<Short, String> edgeProperties, EdgeStore edgeStore, int lastVertexId) {
+        Map<Integer, SortedAdjacencyList> mergedAdjLists, short edgeTypeFilter,
+        Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters, int lastVertexId) {
         this.graphVersion = graphVersion;
         this.permanentAdjacencyLists = permanentAdjacencyLists;
         this.mergedAdjLists = mergedAdjLists;
-        this.edgeType = edgeType;
-        this.edgeProperties = edgeProperties;
-        this.edgeStore = edgeStore;
+        this.edgeTypeFilter = edgeTypeFilter;
+        this.edgePropertyEqualityFilters = edgePropertyEqualityFilters;
         this.lastVertexId = lastVertexId;
         setIndicesToNextEdge();
     }
@@ -61,48 +59,41 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
      */
     private void setIndicesToNextEdge() {
         while (nextFromVertexId <= lastVertexId) {
-            nextFromVertexIdAdjListIndex++;
+            nextFromVertexAdjListIndex++;
             if (GraphVersion.MERGED == graphVersion && mergedAdjLists.
                 containsKey(nextFromVertexId)) {
                 // {@code nextFromVertexId} matches the given {@link #fromVertexType} and is
                 // present in the merged graph.
-                while (nextFromVertexIdAdjListIndex < mergedAdjLists.get(nextFromVertexId).
+                while (nextFromVertexAdjListIndex < mergedAdjLists.get(nextFromVertexId).
                     getSize()) {
-                    if ((TypeAndPropertyKeyStore.ANY == edgeType || mergedAdjLists.get(
-                        nextFromVertexId).getEdgeType(nextFromVertexIdAdjListIndex) == edgeType)
-                        && ((null == edgeStore) || edgeStore.edgePropertiesMatches(mergedAdjLists
-                        .get(nextFromVertexId).getEdgeId(nextFromVertexIdAdjListIndex),
-                        edgeProperties))) {
-                        // The neighbour at {@code nextFromVertexIdAdjListIndex} matches {@code
-                        // toVertexType} and the edge it forms with {@code nextFromVertexId}
-                        // matches {@code edgeType}. In addition, the adjacency list of {@code
-                        // nextFromVertexId} in the merged graph has vertices not yet iterated over.
-                        // edgeProperties are ignored if {@code edgeStore} is {@code null}.
+                    SortedAdjacencyList fromVertexMergedAdjList = mergedAdjLists.get(
+                        nextFromVertexId);
+                    if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
+                        fromVertexMergedAdjList.getEdgeType(nextFromVertexAdjListIndex) == edgeTypeFilter) &&
+                        (null == edgePropertyEqualityFilters || EdgeStore.getInstance().
+                            checkEqualityFilters(fromVertexMergedAdjList.getEdgeId(
+                                nextFromVertexAdjListIndex), edgePropertyEqualityFilters))) {
                         return;
                     }
-                    nextFromVertexIdAdjListIndex++;
+                    nextFromVertexAdjListIndex++;
                 }
             } else if (null != permanentAdjacencyLists[nextFromVertexId]) {
-                while (nextFromVertexIdAdjListIndex < permanentAdjacencyLists[nextFromVertexId].
+                while (nextFromVertexAdjListIndex < permanentAdjacencyLists[nextFromVertexId].
                     getSize()) {
-                    if ((TypeAndPropertyKeyStore.ANY == edgeType || permanentAdjacencyLists[
-                        nextFromVertexId].getEdgeType(nextFromVertexIdAdjListIndex) == edgeType)
-                        && ((null == edgeStore) || edgeStore.edgePropertiesMatches
-                        (permanentAdjacencyLists[nextFromVertexId].getEdgeId(
-                            nextFromVertexIdAdjListIndex), edgeProperties))) {
-                        // The neighbour at {@code nextFromVertexIdAdjListIndex} matches {@code
-                        // toVertexType} and the edge it forms with {@code nextFromVertexId}
-                        // matches {@code edgeType}. In addition, the adjacency list of {@code
-                        // nextFromVertexId} in the permanent graph has vertices not yet iterated
-                        // over.
-                        // edgeProperties are ignored if {@code edgeStore} is {@code null}.
+                    SortedAdjacencyList fromVertexPermanentAdjList = permanentAdjacencyLists[
+                        nextFromVertexId];
+                    if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
+                        fromVertexPermanentAdjList.getEdgeType(nextFromVertexAdjListIndex) == edgeTypeFilter) &&
+                        (null == edgePropertyEqualityFilters || EdgeStore.getInstance().
+                            checkEqualityFilters(fromVertexPermanentAdjList.getEdgeId(
+                                nextFromVertexAdjListIndex), edgePropertyEqualityFilters))) {
                         return;
                     }
-                    nextFromVertexIdAdjListIndex++;
+                    nextFromVertexAdjListIndex++;
                 }
             }
             nextFromVertexId++;
-            nextFromVertexIdAdjListIndex = -1;
+            nextFromVertexAdjListIndex = -1;
         }
     }
 
@@ -115,7 +106,7 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
     public int[] next() {
         if (GraphVersion.DIFF_PLUS == graphVersion || GraphVersion.DIFF_MINUS == graphVersion) {
             throw new UnsupportedOperationException("This iterator cannot be used to get the " +
-                "edges for DIFF_PLUS and DIFF_MINUS graph versions");
+                "edges for DIFF_PLUS and DIFF_MINUS graph versions.");
         }
         if (!hasNext()) {
             throw new NoSuchElementException();
@@ -124,12 +115,12 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
         if (GraphVersion.MERGED == graphVersion && mergedAdjLists.containsKey(nextFromVertexId)) {
             // {@code nextFromVertexId} is present in the merged graph.
             result = new int[]{nextFromVertexId, mergedAdjLists.get(nextFromVertexId).
-                getNeighbourId(nextFromVertexIdAdjListIndex)};
+                getNeighbourId(nextFromVertexAdjListIndex)};
         } else {
             // Send the permanent version of {@code nextFromVertexId} even for a merged graph
             // request, because the merged version of {@code nextFromVertexId} is not present.
             result = new int[]{nextFromVertexId, permanentAdjacencyLists[nextFromVertexId].
-                getNeighbourId(nextFromVertexIdAdjListIndex)};
+                getNeighbourId(nextFromVertexAdjListIndex)};
         }
         setIndicesToNextEdge();
         return result;

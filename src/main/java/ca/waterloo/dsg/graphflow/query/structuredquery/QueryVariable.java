@@ -1,8 +1,9 @@
 package ca.waterloo.dsg.graphflow.query.structuredquery;
 
-import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
+import org.antlr.v4.runtime.misc.Pair;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -12,26 +13,16 @@ public class QueryVariable implements AbstractStructuredQuery {
 
     private String variableId;
     private String variableType;
-    private HashMap<String, String[]> variableProperties;
+    // The Strings below refer to: Map<key, Pair<dataType, value>>
+    private Map<String, Pair<String, String>> variableProperties;
 
     /**
-     * Constructs a {@code QueryVariable} with the variable type set to {@code null}.
+     * Constructs a {@code QueryVariable} with the variable type and properties set to {@code null}.
      *
      * @param variableId The {@code String} vertex variable.
      */
     public QueryVariable(String variableId) {
         this.variableId = variableId;
-    }
-
-    /**
-     * Constructs a {@code QueryVariable}.
-     *
-     * @param variableId The {@code String} vertex variable.
-     * @param variableType The {@code String} type of the variable.
-     */
-    public QueryVariable(String variableId, String variableType) {
-        this.variableId = variableId;
-        this.variableType = variableType;
     }
 
     public String getVariableId() {
@@ -42,11 +33,15 @@ public class QueryVariable implements AbstractStructuredQuery {
         return variableType;
     }
 
-    public HashMap<String, String[]> getVariableProperties() {
+    public Map<String, Pair<String, String>> getVariableProperties() {
         return variableProperties;
     }
 
-    public void setVariableProperties(HashMap<String, String[]> variableProperties) {
+    public void setVariableType(String variableType) {
+        this.variableType = variableType;
+    }
+
+    public void setVariableProperties(Map<String, Pair<String, String>> variableProperties) {
         this.variableProperties = variableProperties;
     }
 
@@ -59,7 +54,7 @@ public class QueryVariable implements AbstractStructuredQuery {
      * @return {@code true} if the {@code a} object values are the same as the
      * {@code b} object values, {@code false} otherwise.
      */
-    @ExistsForTesting
+    @UsedOnlyByTests
     public static boolean isSameAs(QueryVariable a, QueryVariable b) {
         if (a == b) {
             return true;
@@ -67,7 +62,26 @@ public class QueryVariable implements AbstractStructuredQuery {
         if (null == a || null == b) {
             return false;
         }
-        return Objects.equals(a.variableId, b.variableId) &&
-            Objects.equals(a.variableType, b.variableType);
+        if (!Objects.equals(a.variableId, b.variableId) ||
+            !Objects.equals(a.variableType, b.variableType)) {
+            return false;
+        }
+
+        if (null == a.variableProperties && null == b.variableProperties) {
+            return true;
+        } else if ((null != a.variableProperties && null == b.variableProperties) ||
+            (null == a.variableProperties) || (a.variableProperties.size() != b.variableProperties.
+            size())) {
+            return false;
+        }
+        for (String key : a.variableProperties.keySet()) {
+            if (!a.variableProperties.get(key).b.equals((b.variableProperties.get(key).b)) ||
+                !a.variableProperties.get(key).a.toUpperCase().equals((b.variableProperties.get(
+                    key).a.toUpperCase()))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

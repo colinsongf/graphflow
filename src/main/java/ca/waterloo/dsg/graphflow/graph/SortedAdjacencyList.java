@@ -1,18 +1,20 @@
 package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
-import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
+import ca.waterloo.dsg.graphflow.util.DataType;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
+import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.StringJoiner;
 
 /**
  * Represents the adjacency list of a vertex. Stores the IDs of the vertex's neighbours, the
- * types and the properties of edges the vertex has to these neighbours in sorted arrays. Arrays
- * are sorted first by neighbour IDs and then by edge type IDs.
+ * types, and the IDs of edges that the vertex has to these neighbours in sorted arrays. Arrays
+ * are sorted first by neighbour IDs and then by edge {@code short} type values.
  */
 public class SortedAdjacencyList {
 
@@ -46,11 +48,11 @@ public class SortedAdjacencyList {
     }
 
     /**
-     * Adds a new neighbour with the given ID, type and edgeId.
+     * Adds a new neighbour with the given ID, type, and edgeId.
      *
      * @param neighbourId The ID of the neighbour.
      * @param edgeType The type of the edge to the neighbour.
-     * @param edgeId the Id of the edge to the neighbour.
+     * @param edgeId The ID of the edge to the neighbour.
      */
     public void add(int neighbourId, short edgeType, long edgeId) {
         ensureCapacity(size + 1);
@@ -87,28 +89,30 @@ public class SortedAdjacencyList {
      */
     public int getNeighbourId(int index) {
         if (index >= size) {
-            throw new ArrayIndexOutOfBoundsException("No neighbour ID at index" + index);
+            throw new ArrayIndexOutOfBoundsException("No edge at index " + index + ". Therefore " +
+                "cannot return the neighbour ID.");
         }
         return neighbourIds[index];
     }
 
     /**
-     * Gets the {@code short} edge type at the given {@code index}.
+     * Returns the edge type at the given {@code index}.
      *
      * @param index The index of the edge type.
-     * @return The {@code short} edge type at the given index.
+     * @return The edge type at the given index.
      * @throws ArrayIndexOutOfBoundsException If {@code index} is greater than the size of this
      * {@code SortedAdjacencyList}.
      */
     public short getEdgeType(int index) {
         if (index >= size) {
-            throw new ArrayIndexOutOfBoundsException("No Edge type at index" + index);
+            throw new ArrayIndexOutOfBoundsException("No edge at index " + index + ". Therefore " +
+                "cannot return the edge type.");
         }
         return edgeTypes[index];
     }
 
     /**
-     * Gets the edge ID at the given {@code index}.
+     * Returns the edge ID at the given {@code index}.
      *
      * @param index The index of the edge ID.
      * @return The edge ID at the given index.
@@ -117,31 +121,44 @@ public class SortedAdjacencyList {
      */
     public long getEdgeId(int index) {
         if (index >= size) {
-            throw new ArrayIndexOutOfBoundsException("No EdgeId at index " + index);
+            throw new ArrayIndexOutOfBoundsException("No edge at index " + index + ". Therefore " +
+                "cannot return the edge ID.");
         }
         return edgeIds[index];
     }
 
     /**
-     * Returns the subset of the neighbour IDs of this {@link SortedAdjacencyList} whose type
-     * matches the given {@code edgeType}.
+     * Returns the ID of the edge with the given neighbour ID and edgeType.
      *
-     * @param edgeType The edge type for filtering.
-     * @param edgeProperties The edge properties.
-     * @param edgeStore The edgeStore instance found in the graph.
-     * @return IntArrayList The subset of neighbour IDs matching {@code edgeType} and {@code
-     * edgeProperties}.
+     * @param neighbourId The neighbour ID of the edge.
+     * @param edgeType The type of the edge.
+     * @return The edge ID at the given index.
      */
-    public IntArrayList getFilteredNeighbourIds(short edgeType,
-        HashMap<Short, String> edgeProperties, EdgeStore edgeStore) {
+    public long getEdgeId(int neighbourId, short edgeType) {
+        int index = search(neighbourId, edgeType);
+        return (index != -1) ? edgeIds[index] : -1;
+    }
+
+    /**
+     * Returns the subset of the neighbour IDs whose type matches the given {@code edgeTypeFilter}.
+     *
+     * @param edgeTypeFilter The edge type for filtering.
+     * @param edgePropertyEqualityFilters The edge properties for filtering.
+     * @return IntArrayList The subset of neighbour IDs matching {@code edgeTypeFilter} and {@code
+     * edgePropertyEqualityFilters}.
+     */
+    public IntArrayList getFilteredNeighbourIds(short edgeTypeFilter,
+        Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters) {
+        //TODO(amine): Reconsider where we want to apply the edgePropertyFilters
         IntArrayList filteredList = new IntArrayList(size);
-        if (TypeAndPropertyKeyStore.ANY == edgeType && (null == edgeProperties || edgeProperties.
-            size() == 0)) {
+        if (TypeAndPropertyKeyStore.ANY == edgeTypeFilter && (null == edgePropertyEqualityFilters ||
+            edgePropertyEqualityFilters.isEmpty())) {
             filteredList.addAll(Arrays.copyOf(neighbourIds, size));
         } else {
             for (int i = 0; i < size; i++) {
-                if ((TypeAndPropertyKeyStore.ANY == edgeType || edgeTypes[i] == edgeType) &&
-                    edgeStore.edgePropertiesMatches(edgeIds[i], edgeProperties)) {
+                if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter || edgeTypes[i] == edgeTypeFilter)
+                    && ((null == edgePropertyEqualityFilters) || EdgeStore.getInstance().
+                    checkEqualityFilters(edgeIds[i], edgePropertyEqualityFilters))) {
                     filteredList.add(neighbourIds[i]);
                 }
             }
@@ -150,13 +167,15 @@ public class SortedAdjacencyList {
     }
 
     /**
-     * Removes the neighbour with the given {@code neighbourId} and {@code edgeType}.
+     * Removes the neighbour with the given {@code neighbourId} and {@code edgeTypeFilter}. The
+     * properties of the edge are not deleted. The ID of the edge is recycled and the properties
+     * are overwritten by those of the edge that gets the recycled id next.
      *
      * @param neighbourId The ID of the neighbour in the edge to remove.
-     * @param edgeType The type of the edge to the neighbour to remove.
+     * @param edgeTypeFilter The type of the edge to the neighbour to remove.
      */
-    public void removeNeighbour(int neighbourId, short edgeType) {
-        int index = search(neighbourId, edgeType);
+    public void removeNeighbour(int neighbourId, short edgeTypeFilter) {
+        int index = search(neighbourId, edgeTypeFilter);
         if (index != -1) {
             int numElementsToShiftLeft = size - index - 1;
             if (numElementsToShiftLeft > 0) {
@@ -170,30 +189,29 @@ public class SortedAdjacencyList {
     }
 
     /**
-     * Intersects the current {@link SortedAdjacencyList} with the given
-     * {@code sortedListToIntersect}. If, 1) {@code edgeType} equals
-     * {@link TypeAndPropertyKeyStore#ANY}, only the vertex ID will be considered when
-     * intersecting. 2) Else a valid intersection will match both the vertex ID and the edge type
-     * ID.
+     * Intersects the current {@link SortedAdjacencyList} with the given {@code
+     * sortedListToIntersect}. If {@code edgeTypeFilter} equals {@link TypeAndPropertyKeyStore#ANY}
+     * and {@code edgePropertyEqualityFilters} is {@code null}, only the vertex ID will be
+     * considered when intersecting. Otherwise, a valid intersection will match both the vertex ID,
+     * the {@code edgeTypeFilter}, and the {@code edgePropertyEqualityFilters}.
+     * Warning: We assume that the edges in {@code sortedListToIntersect} already satisfy the
+     * {@code edgeTypeFilter} and {@code edgePropertyEqualityFilters}. Also, we assume that it is
+     * sorted in monotonically increasing order of neighbourIds first and then types.
      *
      * @param sortedListToIntersect The {@link IntArrayList} to intersect.
-     * @param edgeType The edge type for filtering the intersections.
-     * @param edgeProperties The edge properties for filtering the intersections.
-     * @param edgeStore The instance of edge store containing the graph's edge properties.
+     * @param edgeTypeFilter The edge type for filtering the intersections.
+     * @param edgePropertyEqualityFilters The edge properties for filtering the intersections.
      * @return The set of intersected vertices as an {@link IntArrayList}.
      */
-    public IntArrayList getIntersection(IntArrayList sortedListToIntersect, short edgeType,
-        HashMap<Short, String> edgeProperties, EdgeStore edgeStore) {
-        // Warning: We assume that {@code sortedListToIntersect} is filtered with edgeType and
-        // edgeProperties. That it is sorted in monotonically increasing order. Execution will
-        // also be faster if {@code sortedListToIntersect} is shorter than {@code this}.
+    public IntArrayList getIntersection(IntArrayList sortedListToIntersect, short edgeTypeFilter,
+        Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters) {
         IntArrayList intersection = new IntArrayList();
         int index = 0;
         for (int i = 0; i < sortedListToIntersect.getSize(); i++) {
             // We return only one neighbour vertex regardless of how many times neighbour vertex
             // may be present in the adjacency list, with different edge types.
-            int resultIndex = search(sortedListToIntersect.get(i), edgeType, edgeProperties,
-                edgeStore, index);
+            int resultIndex = search(sortedListToIntersect.get(i), edgeTypeFilter,
+                edgePropertyEqualityFilters, index);
             if (resultIndex != -1) {
                 intersection.add(sortedListToIntersect.get(i));
                 index = resultIndex;
@@ -226,71 +244,52 @@ public class SortedAdjacencyList {
     }
 
     /**
-     * Searches for the given {@code neighbourId} in {@code neighbourIds} starting from the
-     * given zero and continuing in monotonically increasing fashion. Returns either
-     * the index of {@code neighbourId} or -1 if it is not found.
+     * Returns true if the given {@code neighbourId} with edge {@code edgeTypeFilter} and
+     * properties {@code edgePropertyEqualityFilters} exists in the sorted adjacency list, and
+     * false otherwise.
      *
      * @param neighbourId The neighbour ID to be searched.
-     * @param edgeType The edge type to filter by.
-     * @return Index of {@code neighbourId} or -1.
+     * @param edgeTypeFilter The edge type to filter by.
+     * @param edgePropertyEqualityFilters The edge properties to filter by.
+     * @return True if the {@code neighbourId} and {@code typeId} pair exists; and false otherwise.
      */
-    int search(int neighbourId, int edgeType) {
-        return search(neighbourId, edgeType, 0);
+    public boolean contains(int neighbourId, short edgeTypeFilter,
+        Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters) {
+        return search(neighbourId, edgeTypeFilter, edgePropertyEqualityFilters,
+            0 /* start index */) != -1;
     }
 
     /**
-     * Returns true if the given {@code neighbourId} and {@code edgeType} pair exists, and false
-     * otherwise.
-     *
-     * @param neighbourId The neighbour ID to be searched.
-     * @param edgeType The edge type to filter by.
-     * @return boolean Value representing whether the {@code neighbourId} and {@code typeId} pair
-     * exists.
+     * @see #contains(int, short, Map)
      */
-    public boolean contains(int neighbourId, int edgeType) {
-        return search(neighbourId, edgeType, 0) != -1;
+    public boolean contains(int neighbourId, short edgeTypeFilter) {
+        return search(neighbourId, edgeTypeFilter, null /* no property equality filters */,
+            0 /* start index */) != -1;
     }
 
     /**
-     * Returns true if the given {@code neighbourId}, {@code type} and {@code properties} triple
-     * exists, and false otherwise.
+     * A linear search for the given {@code neighbourId} in {@code neighbourIds} starting from the
+     * given {@code startIndex}. Returns either the index of {@code neighbourId} or -1 if it is
+     * not found.
      *
      * @param neighbourId The neighbour ID to be searched.
-     * @param edgeType The edge type to filter by.
-     * @param edgeProperties The edge properties to filter by.
-     * @param edgeStore The edgeStore instance containing all edge properties.
-     * @return boolean Value representing whether the {@code neighbourId} and {@code typeId} pair
-     * exists.
-     */
-    public boolean contains(int neighbourId, int edgeType, HashMap<Short, String> edgeProperties,
-        EdgeStore edgeStore) {
-        return search(neighbourId, edgeType, edgeProperties, edgeStore, 0) != -1;
-    }
-
-    /**
-     * Searches for the given {@code neighbourId} in {@code neighbourIds} starting from the
-     * given {@code startIndex} and searching one by one to the right. Returns either
-     * the index of {@code neighbourId} or -1 if it is not found.
-     *
-     * @param neighbourId The neighbour ID to be searched.
-     * @param edgeType The type to filter by.
-     * @param edgeProperties The properties to filter by. Ignored if {@code edgeStore} is {@code
-     * null}.
-     * @param edgeStore  The instance of edge store containing the graph's edge properties.
+     * @param edgeTypeFilter The type of the edge searched for.
+     * @param edgePropertyEqualityFilters The set of equality filters to match the properties of the
+     * edge being searched for.
      * @param startIndex The index to start the search from.
      * @return Index of the neighbour or -1 if the neighbour is not in the list.
      */
-    @PackagePrivateForTesting
-    int search(int neighbourId, int edgeType, HashMap<Short, String> edgeProperties,
-        EdgeStore edgeStore, int startIndex) {
+    public int search(int neighbourId, short edgeTypeFilter,
+        Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters, int startIndex) {
         int next = startIndex;
         while (next < size) {
             if (neighbourIds[next] == neighbourId) {
-                if ((TypeAndPropertyKeyStore.ANY == edgeType || edgeType == edgeTypes[next]) &&
-                    ((null == edgeStore) || edgeStore.edgePropertiesMatches(edgeIds[next],
-                    edgeProperties))) {
+                if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
+                    edgeTypeFilter == edgeTypes[next]) && (null == edgePropertyEqualityFilters ||
+                    EdgeStore.getInstance().checkEqualityFilters(edgeIds[next],
+                        edgePropertyEqualityFilters))) {
                     return next;
-                } else if (edgeTypes[next] > edgeType) {
+                } else if (edgeTypes[next] > edgeTypeFilter) {
                     return -1;
                 }
             } else if (neighbourIds[next] > neighbourId) {
@@ -302,12 +301,11 @@ public class SortedAdjacencyList {
     }
 
     /**
-     * @see #search(int, int, HashMap, EdgeStore, int);
+     * @see #search(int, short, Map, int)
      */
-    @PackagePrivateForTesting
-    int search(int neighbourId, int edgeType, int startIndex) {
-        return search(neighbourId, edgeType, null /* no edge properties */,
-            null /* edge store instance not required */, startIndex);
+    public int search(int neighbourId, short edgeTypeFilter) {
+        return search(neighbourId, edgeTypeFilter, null /* no edge property equality filters */,
+            0 /* start index */);
     }
 
     /**
@@ -348,7 +346,7 @@ public class SortedAdjacencyList {
      * @return {@code true} if the {@code a} object values are the same as the
      * {@code b} object values, {@code false} otherwise.
      */
-    @ExistsForTesting
+    @UsedOnlyByTests
     public static boolean isSameAs(SortedAdjacencyList a, SortedAdjacencyList b) {
         if (a == b) {
             return true;
@@ -360,8 +358,8 @@ public class SortedAdjacencyList {
             return false;
         }
         for (int i = 0; i < a.size; i++) {
-            if ((a.getNeighbourId(i) != b.getNeighbourId(i)) || (a.getEdgeType(i) !=
-                b.getEdgeType(i))) {
+            if ((a.getNeighbourId(i) != b.getNeighbourId(i)) ||
+                (a.getEdgeType(i) != b.getEdgeType(i)) || (a.getEdgeId(i) != b.getEdgeId(i))) {
                 return false;
             }
         }

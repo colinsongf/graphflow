@@ -1,8 +1,9 @@
 package ca.waterloo.dsg.graphflow.query.structuredquery;
 
-import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
+import org.antlr.v4.runtime.misc.Pair;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -13,30 +14,20 @@ public class QueryRelation implements AbstractStructuredQuery {
     private QueryVariable fromQueryVariable;
     private QueryVariable toQueryVariable;
     private String relationType;
-    private HashMap<String, String[]> properties;
+    // The Strings below refer to: Map<key, Pair<dataType, value>>
+    private Map<String, Pair<String, String>> relationProperties;
 
     /**
-     * Constructs a {@code QueryRelation} with the relation type set to {@code null}.
-     *
-     * @see QueryRelation#QueryRelation(QueryVariable, QueryVariable, String)
-     */
-    public QueryRelation(QueryVariable fromQueryVariable, QueryVariable toQueryVariable) {
-        this(fromQueryVariable, toQueryVariable, null);
-    }
-
-    /**
-     * Constructs a {@link QueryRelation}. The direction of the {@link QueryRelation} is implicit
-     * from {@code fromQueryVariable} to {@code toQueryVariable}.
+     * Constructs a {@code QueryRelation} with the relation type and properties set to {@code null}.
+     * The direction of the {@link QueryRelation} is from {@code fromQueryVariable} to {@code
+     * toQueryVariable}.
      *
      * @param fromQueryVariable The from variable of the relation.
      * @param toQueryVariable The to variable of the relation.
-     * @param relationType the {@code String} relation type.
      */
-    public QueryRelation(QueryVariable fromQueryVariable, QueryVariable toQueryVariable,
-        String relationType) {
+    public QueryRelation(QueryVariable fromQueryVariable, QueryVariable toQueryVariable) {
         this.fromQueryVariable = fromQueryVariable;
         this.toQueryVariable = toQueryVariable;
-        this.relationType = relationType;
     }
 
     public QueryVariable getFromQueryVariable() {
@@ -51,16 +42,16 @@ public class QueryRelation implements AbstractStructuredQuery {
         return relationType;
     }
 
-    public HashMap<String, String[]> getRelationProperties() {
-        return properties;
+    public Map<String, Pair<String, String>> getRelationProperties() {
+        return relationProperties;
     }
 
     public void setRelationType(String relationType) {
         this.relationType = relationType;
     }
 
-    public void setRelationProperties(HashMap<String, String[]> properties) {
-        this.properties = properties;
+    public void setRelationProperties(Map<String, Pair<String, String>> properties) {
+        this.relationProperties = properties;
     }
 
     /**
@@ -72,7 +63,7 @@ public class QueryRelation implements AbstractStructuredQuery {
      * @return {@code true} if the {@code a} object values are the same as the
      * {@code b} object values, {@code false} otherwise.
      */
-    @ExistsForTesting
+    @UsedOnlyByTests
     public static boolean isSameAs(QueryRelation a, QueryRelation b) {
         if (a == b) {
             return true;
@@ -80,8 +71,27 @@ public class QueryRelation implements AbstractStructuredQuery {
         if (null == a || null == b) {
             return false;
         }
-        return QueryVariable.isSameAs(a.fromQueryVariable, b.fromQueryVariable) &&
-            QueryVariable.isSameAs(a.toQueryVariable, b.toQueryVariable) &&
-            Objects.equals(a.relationType, b.relationType);
+        if (!QueryVariable.isSameAs(a.fromQueryVariable, b.fromQueryVariable) ||
+            !QueryVariable.isSameAs(a.toQueryVariable, b.toQueryVariable) ||
+            !Objects.equals(a.relationType, b.relationType)) {
+            return false;
+        }
+
+        if (null == a.relationProperties && null == b.relationProperties) {
+            return true;
+        } else if ((null != a.relationProperties && null == b.relationProperties) ||
+            (null == a.relationProperties) || (a.relationProperties.size() != b.relationProperties.
+            size())) {
+            return false;
+        }
+        for (String key : a.relationProperties.keySet()) {
+            if (!a.relationProperties.get(key).b.equals((b.relationProperties.get(key).b)) ||
+                !a.relationProperties.get(key).a.toUpperCase().equals((b.relationProperties.get(
+                    key).a.toUpperCase()))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

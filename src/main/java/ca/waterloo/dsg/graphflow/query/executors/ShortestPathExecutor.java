@@ -5,7 +5,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.graph.SortedAdjacencyList;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
-import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.IntQueue;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 import org.apache.logging.log4j.LogManager;
@@ -62,7 +62,7 @@ public class ShortestPathExecutor {
     /**
      * Used to set executor state for testing purposes.
      */
-    @ExistsForTesting
+    @UsedOnlyByTests
     ShortestPathExecutor(Graph graph, short[] visitedLevels, int[] visitedVerticesByQueryId,
         int queryId) {
         this.graph = graph;

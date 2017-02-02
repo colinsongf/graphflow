@@ -1,13 +1,12 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
+import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-
-import java.util.NoSuchElementException;
 
 /**
  * Class representing plan for a DELETE operation.
@@ -27,19 +26,21 @@ public class DeleteQueryPlan implements QueryPlan {
      * @param outputSink the {@link OutputSink} to which the execution output is written.
      */
     public void execute(Graph graph, OutputSink outputSink) {
-        try {
-            for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
-                graph.deleteEdgeTemporarily(
-                    Integer.parseInt(queryRelation.getFromQueryVariable().getVariableId()),
-                    Integer.parseInt(queryRelation.getToQueryVariable().getVariableId()),
-                    TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrAnyIfNullOrEmpty(
+        for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
+            try {
+                TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(queryRelation.
+                    getRelationType());
+                graph.deleteEdgeTemporarily(Integer.parseInt(queryRelation.getFromQueryVariable().
+                    getVariableId()), Integer.parseInt(queryRelation.getToQueryVariable().
+                    getVariableId()), TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
                         queryRelation.getRelationType()));
+            } catch (NoSuchTypeException e) {
+                outputSink.append("ERROR: " + e.getMessage());
             }
-            ContinuousMatchQueryExecutor.getInstance().execute(graph);
-            graph.finalizeChanges();
-            outputSink.append(structuredQuery.getQueryRelations().size() + " edges deleted.");
-        } catch (NoSuchElementException e) {
-            outputSink.append("ERROR: " + e.getMessage());
         }
+        ContinuousMatchQueryExecutor.getInstance().execute(graph);
+        graph.finalizeChanges();
+        // TODO(amine): bug, count the actual num of edges deleted to append to sink.
+        outputSink.append(structuredQuery.getQueryRelations().size() + " edges deleted.");
     }
 }

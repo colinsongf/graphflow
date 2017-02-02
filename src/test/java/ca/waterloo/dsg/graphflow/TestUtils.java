@@ -76,12 +76,12 @@ public class TestUtils {
             // get their {@code short} IDs. An exception in the above {@code parseInt()} calls
             // will prevent the insertion of any new type to the {@code TypeStore}.
             short fromVertexTypeId = TypeAndPropertyKeyStore.getInstance().
-                getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getFromQueryVariable().
+                mapStringTypeToShortOrInsert(queryRelation.getFromQueryVariable().
                     getVariableType());
             short toVertexTypeId = TypeAndPropertyKeyStore.getInstance().
-                getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getToQueryVariable().getVariableType());
+                mapStringTypeToShortOrInsert(queryRelation.getToQueryVariable().getVariableType());
             short edgeTypeId = TypeAndPropertyKeyStore.getInstance().
-                getTypeAsShortOrInsertIfDoesNotExist(queryRelation.getRelationType());
+                mapStringTypeToShortOrInsert(queryRelation.getRelationType());
             // Add the new edge to the graph.
             graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexTypeId, toVertexTypeId, null
                 /* no fromVertex properties */, null /* no toVertex properties */, edgeTypeId,
@@ -114,7 +114,7 @@ public class TestUtils {
             graph.deleteEdgeTemporarily(
                 Integer.parseInt(queryRelation.getFromQueryVariable().getVariableId()),
                 Integer.parseInt(queryRelation.getToQueryVariable().getVariableId()),
-                TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrAnyIfNullOrEmpty(
+                TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
                     queryRelation.getRelationType()));
         }
     }

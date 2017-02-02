@@ -58,7 +58,7 @@ public class GraphflowServer {
             } catch (Exception e) {
                 logger.error("Unknown error when executing the query '" + request.getMessage() +
                     "'. Exception stack trace:", e);
-                result = "ERROR:" + e.getMessage();
+                result = "ERROR: " + e.getMessage();
             }
             ServerQueryResult queryResult = ServerQueryResult.newBuilder().setMessage(result)
                 .build();

@@ -20,15 +20,6 @@ public class ShortArrayList {
     }
 
     /**
-     * Creates {@link ShortArrayList} with the given {@code capacity}.
-     *
-     * @param capacity The initial capacity of the underlying array.
-     */
-    public ShortArrayList(int capacity) {
-        data = new short[capacity];
-    }
-
-    /**
      * Adds a new short to the {@link ShortArrayList}.
      *
      * @param element The new short to be added to the collection.
@@ -36,17 +27,6 @@ public class ShortArrayList {
     public void add(short element) {
         data = ArrayUtils.resizeIfNecessary(data, size + 1);
         data[size++] = element;
-    }
-
-    /**
-     * Appends the given array of integers to the list.
-     *
-     * @param elements The array of integers to be appended to the collection.
-     */
-    public void addAll(short[] elements) {
-        data = ArrayUtils.resizeIfNecessary(data, size + elements.length);
-        System.arraycopy(elements, 0, data, size, elements.length);
-        size += elements.length;
     }
 
     /**
@@ -83,52 +63,13 @@ public class ShortArrayList {
         return data[index];
     }
 
-    /**
-     * Removes the value at the given index.
-     *
-     * @param index The index in the underlying array from which the value should be removed.
-     * @return short Removed value.
-     * @throws ArrayIndexOutOfBoundsException Throws exception if index is greater than the size
-     * of the {@link ShortArrayList} collection.
-     */
-    public short removeFromIndex(int index) {
-        if (index >= size) {
-            throw new ArrayIndexOutOfBoundsException("No element at index " + index);
-        }
-        int numElementsToShiftLeft = size - index - 1;
-        short valueToBeRemoved = data[index];
-        if (numElementsToShiftLeft > 0) {
-            System.arraycopy(data, index + 1, data, index, numElementsToShiftLeft);
-        }
-        --size;
-        return valueToBeRemoved;
-    }
-
     public int getSize() {
         return size;
     }
 
-    /**
-     * Returns a copy of the collection stored in {@link ShortArrayList} as an array.
-     *
-     * @return short[] The copy of {@code data}.
-     */
-    public short[] toArray() {
+    @PackagePrivateForTesting
+    short[] toArray() {
         return Arrays.copyOf(data, size);
-    }
-
-    /**
-     * Gives a string representation of {@link ShortArrayList}.
-     *
-     * @return String The string representation that is returned.
-     */
-    @Override
-    public String toString() {
-        StringJoiner sj = new StringJoiner(", ");
-        for (int i = 0; i < size; i++) {
-            sj.add("" + data[i]);
-        }
-        return "[" + sj.toString() + "]";
     }
 
     /**

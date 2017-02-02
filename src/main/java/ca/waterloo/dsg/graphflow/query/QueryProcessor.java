@@ -1,5 +1,8 @@
 package ca.waterloo.dsg.graphflow.query;
 
+import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
+import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
+import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.outputsink.FileOutputSink;
 import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
@@ -17,16 +20,20 @@ import ca.waterloo.dsg.graphflow.query.plans.DeleteQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
+import ca.waterloo.dsg.graphflow.server.GraphflowServer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.NoSuchElementException;
 
 /**
  * Class to accept incoming queries from the gRPC server, process them and return the results.
  */
 public class QueryProcessor {
+
+    private static final Logger logger = LogManager.getLogger(QueryProcessor.class);
 
     private static String TMP_DIRECTORY = "/tmp/";
     private Graph graph = new Graph();
@@ -49,30 +56,31 @@ public class QueryProcessor {
         } catch (ParseCancellationException e) {
             return "ERROR parsing: " + e.getMessage();
         }
-        try {
-            switch (structuredQuery.getQueryOperation()) {
-                case CREATE:
-                    return handleCreateQuery(structuredQuery);
-                case DELETE:
-                    return handleDeleteQuery(structuredQuery);
-                case MATCH:
-                    return handleMatchQuery(structuredQuery);
-                case CONTINUOUS_MATCH:
-                    return handleContinuousMatchQuery(structuredQuery);
-                default:
-                    return "ERROR: the operation '" + structuredQuery.getQueryOperation() +
-                        "' is not defined.";
-            }
-        } catch (IllegalArgumentException e) {
-            // due to type mismatch in properties in create queries.
-            return "ERROR " + e.getMessage();
+        switch (structuredQuery.getQueryOperation()) {
+            case CREATE:
+                return handleCreateQuery(structuredQuery);
+            case DELETE:
+                return handleDeleteQuery(structuredQuery);
+            case MATCH:
+                return handleMatchQuery(structuredQuery);
+            case CONTINUOUS_MATCH:
+                return handleContinuousMatchQuery(structuredQuery);
+            default:
+                return "ERROR: the operation '" + structuredQuery.getQueryOperation() +
+                    "' is not defined.";
         }
     }
 
     private String handleCreateQuery(StructuredQuery structuredQuery) {
         OutputSink outputSink = new InMemoryOutputSink();
-        ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(graph,
-            outputSink);
+        try {
+            ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(graph,
+                outputSink);
+        }
+        catch (IncorrectDataTypeException e) {
+            logger.debug(e.getMessage());
+            outputSink.append("ERROR: " + e.getMessage());
+       }
         return outputSink.toString();
     }
 
@@ -88,8 +96,9 @@ public class QueryProcessor {
         try {
             ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery).plan()).execute(
                 graph, outputSink);
-        } catch (NoSuchElementException e) {
-            // Exception raised if a type or a property in the MATCH query input does not exist.
+        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
+            logger.debug(e.getMessage());
+            outputSink.append("ERROR: " + e.getMessage());
         }
         return (0 == outputSink.toString().length()) ? "{}" : outputSink.toString();
     }
@@ -101,14 +110,14 @@ public class QueryProcessor {
         try {
             outputSink = new FileOutputSink(new File(TMP_DIRECTORY + fileName));
         } catch (IOException e) {
-            return "IO ERROR for file: " + fileName;
+            return "IO ERROR for file: " + fileName + ".";
         }
         try {
             ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
                 (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
                     outputSink).plan());
-        } catch (NoSuchElementException e) {
-            // Exception raised because a type in the CONTINUOUS MATCH query input does not exist.
+        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
+            logger.debug(e.getMessage());
             return "ERROR: The CONTINUOUS MATCH query could not be registered. " + e.getMessage();
         }
         return "The CONTINUOUS MATCH query has been added to the list of continuous queries.";

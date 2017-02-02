@@ -1,26 +1,33 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
+import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
+import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
+import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
 import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
-import ca.waterloo.dsg.graphflow.util.Type;
+import ca.waterloo.dsg.graphflow.util.DataType;
+import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 /**
- * Stores a mapping for types and properties between their {@code String} values as encountered
- * in queries and their internal {@code short} value representation.
-*/
+ * Stores a mapping from {@code String} types and property keys to {@code short} types and
+ * property keys.
+ */
 public class TypeAndPropertyKeyStore {
 
     public static final short ANY = -1;
     private static final TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
-    private static StringToShortKeyStore typeKeyStore = new StringToShortKeyStore();
-    private static StringToShortKeyStore propertyKeyStore = new StringToShortKeyStore();
     @PackagePrivateForTesting
-    static Map<Short, Type> propertyTypeStore = new HashMap<>();
+    StringToShortKeyStore typeKeyStore = new StringToShortKeyStore();
+    // TypeAndPropertyKeyStore has the invariant that if a property key has a short key,
+    // then the property key certainly has a DataType associated with it.
+    @PackagePrivateForTesting
+    StringToShortKeyStore propertyKeyStore = new StringToShortKeyStore();
+    @PackagePrivateForTesting
+    Map<Short, DataType> propertyDataTypeStore = new HashMap<>();
 
     /**
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
@@ -29,245 +36,183 @@ public class TypeAndPropertyKeyStore {
     private TypeAndPropertyKeyStore() { }
 
     /**
-     * @param type The {@code String} type to get a mapping of as short.
-     * @return The type as a {@code short}. If the {@code type} passed is either {@code null} or an
-     * empty string, {@link TypeAndPropertyKeyStore#ANY} is returned.
-     * @throws NoSuchElementException if {@code type} passed is not {@code null}, not an empty
-     * string, and is not present in the key store.
+     * @param stringType The {@code String} type.
+     * @return The {@code Short} type. If {@code stringType} is either {@code null} or an empty
+     * string, {@link TypeAndPropertyKeyStore#ANY} is returned.
      */
-    public short getTypeAsShortOrAnyIfNullOrEmpty(String type) {
-        if (isNullOrEmpty(type)) {
+    public Short mapStringTypeToShort(String stringType) {
+        if (isNullOrEmpty(stringType)) {
             return ANY;
         }
-        return typeKeyStore.getKeyAsShort(type);
+        return typeKeyStore.mapStringKeyToShort(stringType);
     }
 
     /**
-     * @param property The {@code String} property to get a mapping of as short.
-     * @return The property as a {@code short}. If the {@code property} passed is either {@code
-     * null} or an empty string, {@link TypeAndPropertyKeyStore#ANY} is returned.
-     * @throws NoSuchElementException if {@code property} passed is not {@code null}, not an empty
-     * string, and is not present in the key store.
+     * @param stringType The {@code String} type.
+     * @return The {@code short} type. If {@code stringType} is either {@code null} or an empty
+     * string, {@link TypeAndPropertyKeyStore#ANY} is returned.
      */
-    public short getPropertyAsShortOrAnyIfNullOrEmpty(String property) {
-        if (isNullOrEmpty(property)) {
+    public short mapStringTypeToShortOrInsert(String stringType) {
+        if (isNullOrEmpty(stringType)) {
             return ANY;
         }
-        return propertyKeyStore.getKeyAsShort(property);
+        return typeKeyStore.getKeyAsShortOrInsert(stringType);
     }
 
     /**
-     * @param type The {@code String} type to get a mapping of as short or to add to the type store.
-     * @return The type value stored as a {@code short}. If the {@code type} passed is either {@code
-     * null} or an empty string, {@link TypeAndPropertyKeyStore#ANY} is returned.
+     * Asserts the {@code Short} type has been inserted in the store previously.
+     *
+     * @throws NoSuchTypeException if the type is not found in the store.
      */
-    public short getTypeAsShortOrInsertIfDoesNotExist(String type) {
-        if (isNullOrEmpty(type)) {
-            return ANY;
-        }
-        return typeKeyStore.getKeyAsShortOrInsertIfDoesNotExist(type);
-    }
-
-    /**
-     * @param properties The {@code Short} key, and {@code String} value properties to get a
-     * mapping of as {@code short} keys and {@code String} values or to add to the property store.
-     * @return The properties key value pairs stored as a {@code short} key and {@code String}. If
-     * the {@code properties} passed is {@code null}, {@code null} is returned.
-     * @throws IllegalArgumentException if any of the property types has been previously stored
-     * with a type value different from the one passed.
-     */
-    public HashMap<Short, String> getPropertiesAsShortStringKeyValuesOrInsertIfDoesNotExist(
-        HashMap<String, String[]> properties) {
-        HashMap<Short, String> resultProperties = null;
-        if (null != properties) {
-            resultProperties = new HashMap<>();
-            for (String property : properties.keySet()) {
-                String type = properties.get(property)[0];
-                String value = properties.get(property)[1];
-                short propertyAsShort = getPropertyAsShortOrInsertIfDoesNotExist(property, type);
-                resultProperties.put(propertyAsShort, value);
+    public Short mapStringTypeToShortAndAssertTypeExists(String type) {
+        if (null != type) {
+            Short shortType = mapStringTypeToShort(type);
+            if (null == shortType) {
+                throw new NoSuchTypeException("The type " + type + " is not found in the store.");
             }
+            return shortType;
+        }
+        return ANY;
+    }
+
+    /**
+     * @param key The {@code short} property key.
+     * @return The data type of the property with the given key.
+     * @throws NoSuchPropertyKeyException if the {@code key} passed is not present in the store.
+     */
+    public DataType getPropertyDataType(short key) {
+        DataType dataType = propertyDataTypeStore.get(key);
+        if (null == dataType) {
+            throw new NoSuchPropertyKeyException("Property key " + key + " is not found in " +
+                " the store.");
+        }
+        return dataType;
+    }
+
+    /**
+     * Given some properties as Map<String (key), Pair<String (dataType), String (value)>>,
+     * returns the same properties as Map<Short, Pair<DataType, String>>. If a property key K
+     * does not exist in the given properties, K is inserted into the store.
+     *
+     * @param stringProperties The properties as {@code Map<String, Pair<String, String>>}.
+     * @return The properties as {@code Map<Short, Pair<DataType, String>>}. If the {@code
+     * stringProperties} passed is {@code null}, {@code null} is returned.
+     * @throws IncorrectDataTypeException if any of the property keys has been previously
+     * stored with a different data type from the one passed.
+     */
+    public Map<Short, Pair<DataType, String>> mapStringPropertiesToShortAndDataTypeOrInsert(
+        Map<String, Pair<String, String>> stringProperties) {
+        return mapStringPropertiesToShortAndDataType(stringProperties,
+            true /* insert if key doesn't exist */,
+            true /* assert all keys exist. Argument not used since a key is inserted if it doesn't
+            exist */);
+    }
+
+    /**
+     * Given some properties as Map<String (key), Pair<String (dataType), String (value)>>,
+     * returns the same properties as Map<Short, Pair<DataType, String>>.
+     *
+     * @param stringProperties The properties as {@code Map<String, Pair<String, String>>}.
+     * @return The properties as as {@code Map<Short, Pair<DataType, String>>}. If the {@code
+     * stringProperties} passed is {@code null}, {@code null} is returned.
+     * @throws IncorrectDataTypeException if any of the property keys has been previously
+     * stored with a different data type from the one passed.
+     * @throws NoSuchPropertyKeyException if any of the property keys is not in the store.
+     */
+    public Map<Short, Pair<DataType, String>> mapStringPropertiesToShortAndDataType(
+        Map<String, Pair<String, String>> stringProperties) {
+        return mapStringPropertiesToShortAndDataType(stringProperties,
+            false /* do not insert if key doesn't exist */, true /* assert all keys exist */);
+    }
+
+    /**
+     * Ensures for each property in properties that its associated data type is the same as that
+     * in the store if it had previously been inserted.
+     *
+     * @param properties The properties to check the data types of in the store.
+     * @throws IncorrectDataTypeException if the dataType of any property key is not the
+     * same as that in the store if it had been previously inserted.
+     */
+    public void assertExistingKeyDataTypesMatchPreviousDeclarations(
+        Map<String, Pair<String, String>> properties) {
+        mapStringPropertiesToShortAndDataType(properties,
+            false /* do not insert if key doesn't exist */,
+            false /* do not assert on key existence */);
+    }
+
+    /**
+     * Ensures for each property in properties that its associated data type is the same as that
+     * in the store.
+     *
+     * @param properties The properties to check the data types of in the store.
+     * @throws NoSuchPropertyKeyException if the property key is not found in the store.
+     * @throws IncorrectDataTypeException if the dataType of any property is not the same
+     * as that in the store if it had been previously inserted.
+     */
+    public void assertAllKeyDataTypesMatchPreviousDeclarations(
+        Map<String, Pair<String, String>> properties) {
+        mapStringPropertiesToShortAndDataType(properties,
+            false /* do not insert if key doesn't exist */, true /* assert all keys exist */);
+    }
+
+    private Map<Short, Pair<DataType, String>> mapStringPropertiesToShortAndDataType(
+        Map<String, Pair<String, String>> stringProperties, boolean insertIfKeyDoesntExist,
+        boolean assertAllKeysExist) {
+        if (null == stringProperties) {
+            return null;
+        }
+        Pair<Short, DataType> keyDataTypePair;
+        Pair<String, String> stringDataTypeValuePair;
+        Map<Short, Pair<DataType, String>> resultProperties = new HashMap<>();
+        for (String stringKey : stringProperties.keySet()) {
+            stringDataTypeValuePair = stringProperties.get(stringKey);
+            keyDataTypePair = mapStringPropertyKeyValueToShortAndDataType(stringKey,
+                stringDataTypeValuePair.a/* DataType as String */, insertIfKeyDoesntExist,
+                assertAllKeysExist);
+            resultProperties.put(keyDataTypePair.a /* key as short */, new Pair<>(
+                keyDataTypePair.b/* DataType */, stringDataTypeValuePair.b/* value as String */));
         }
         return resultProperties;
     }
 
-
     @PackagePrivateForTesting
-    short getPropertyAsShortOrInsertIfDoesNotExist(String property, String type) {
-        if (isNullOrEmpty(property)) {
-            return ANY;
+    Pair<Short, DataType> mapStringPropertyKeyValueToShortAndDataType(String stringKey,
+        String stringDataType, boolean insertIfKeyDoesntExist, boolean assertKeyExist) {
+        if (isNullOrEmpty(stringKey)) {
+            throw new IllegalArgumentException("Property keys can't be null or the empty string.");
         }
-        short key;
-        try {
-            key = propertyKeyStore.getKeyAsShort(property);
-            String typeStored = propertyTypeStore.get(key).name();
-            if (!typeStored.equals(type.toUpperCase())) {
-                throw new IllegalArgumentException("Type mismatch: property " + property +
-                    " has been declared as " + typeStored + " in a previous query but used " +
-                    "instead as " + type.toUpperCase());
+        Short key = propertyKeyStore.mapStringKeyToShort(stringKey);
+        DataType dataType = DataType.mapStringToDataType(stringDataType);
+        if (null != key) {
+            DataType dataTypeStored = propertyDataTypeStore.get(key);
+            if (dataTypeStored != dataType) {
+                throw new IncorrectDataTypeException("Incorrect DataType usage - property key " +
+                    stringKey + " has been declared as " + dataTypeStored + " previously but " +
+                    "now it used as " + stringDataType.toUpperCase() + ".");
             }
-        } catch (NoSuchElementException e) {
-            key = propertyKeyStore.getKeyAsShortOrInsertIfDoesNotExist(property);
-            propertyTypeStore.put(key, Type.convert(type));
+        } else if (insertIfKeyDoesntExist) {
+            key = propertyKeyStore.getKeyAsShortOrInsert(stringKey);
+            propertyDataTypeStore.put(key, dataType);
+        } else if (assertKeyExist) {
+            throw new NoSuchPropertyKeyException("The property key " + stringKey + " is not " +
+                "found in the store.");
         }
-        return key;
+        return new Pair<>(key, dataType);
     }
 
-    /**
-     * @param edgeProperties The {@code String} key, and {@code String} value properties to get a
-     * mapping of as {@code short} keys and {@code String} values.
-     * @return The properties key value pairs stored as a {@code short} key and {@code String}. If
-     * the {@code edgeProperties} passed is {@code null}, {@code null} is returned.
-     * @throws NoSuchElementException if {@code edgeProperties} is not null and if a given
-     * property, that is not {@code null}, and not an empty string, is not present in the key store.
-     */
-    public HashMap<Short, String> getPropertiesAsShortStringKeyValues(
-        HashMap<String, String[]> edgeProperties) {
-        if (null == edgeProperties) {
-            return null;
+    @UsedOnlyByTests
+    Short mapStringPropertyKeyToShort(String stringKey) {
+        if (isNullOrEmpty(stringKey)) {
+            throw new IllegalArgumentException("property keys can't be null or the empty string.");
         }
-
-        HashMap<Short, String> properties = new HashMap<>();
-        for (String key: edgeProperties.keySet()) {
-            short keyAsShort = getPropertyAsShortOrAnyIfNullOrEmpty(key);
-            properties.put(keyAsShort, edgeProperties.get(key)[1]);
-        }
-        return properties;
+        return propertyKeyStore.mapStringKeyToShort(stringKey);
     }
 
-    /**
-     * @param type The {@code short} type to get a mapping of as a String.
-     * @return The type value stored as a {@code short}.
-     * @throws NoSuchElementException if the {@code type} passed is not present in the type store.
-     */
-    public String getTypeAsString(short type) {
-        return typeKeyStore.getKeyAsString(type);
-    }
-
-    /**
-     * @param property The {@code short} property to get a mapping of as a String.
-     * @return The property value stored as a {@code short}.
-     * @throws NoSuchElementException if the {@code property} passed is not present in the property
-     * store.
-     */
-    public String getPropertyAsString(short property) {
-        return propertyKeyStore.getKeyAsString(property);
-    }
-
-    /**
-     * @param property The {@code short} property to get a mapping of as a String.
-     * @return The property type stored as a {@code Type}.
-     * @throws NoSuchElementException if the {@code property} passed is not present in the property
-     * store.
-     */
-    public Type getPropertyType(short property) {
-        Type type = propertyTypeStore.get(property);
-        if (null == type) {
-            throw new NoSuchElementException("property " + property + " is not found in store.");
-        }
-
-        return type;
-    }
-
-    /**
-     * @param properties The {@code Short}, and {@code String} value properties to get their types.
-     * @return The properties type stored as a {@code Short}, and {@code Type} key values.
-     * @throws NoSuchElementException if the {@code property} passed is not present in the property
-     * store.
-     */
-    public HashMap<Short, Type> getPropertyTypes(HashMap<Short, String> properties) {
-        HashMap<Short, Type> propertyTypes = new HashMap<>();
-        if (null != properties) {
-            for (Short property: properties.keySet()) {
-                propertyTypeStore.put(property, getPropertyType(property));
-            }
-        }
-
-        return propertyTypes;
-    }
-
-    /**
-     * Ensures that for a given edge, each property type in the edge as well as the from and to
-     * vertices is declared correctly.
-     * The type has to be the same in the from and to vertices and edge. The type has to also be
-     * the same as that in the store if it had previously been inserted.
-     *
-     * @param fromProperties The properties of the from vertex.
-     * @param toProperties The properties of the to vertex.
-     * @param edgeProperties The properties of the edge.
-     * @throws IllegalArgumentException if the type is not the same in the from, to vertices
-     * or edge. Also if the type of any property is not the same as that in the store if it had
-     * been previously inserted.
-     */
-    public void assertEachPropertyTypeCorrectness(
-        HashMap<String, String[]> fromProperties, HashMap<String, String[]> toProperties,
-        HashMap<String, String[]> edgeProperties) {
-
-        // For a given type of a property in fromVertex properties, ensure the type used is the
-        // same for the same property in edge and toVertex properties.
-        compareTypesOfTwoPropertyCollection(fromProperties, toProperties);
-        compareTypesOfTwoPropertyCollection(edgeProperties, fromProperties);
-
-        // For a given type of a property in edge properties, ensure the type used is the
-        // same for the same property toVertex properties.
-        compareTypesOfTwoPropertyCollection(edgeProperties, toProperties);
-
-        assertEachPropertyTypeMatchesPreviousDeclatationInTheStore(fromProperties);
-        assertEachPropertyTypeMatchesPreviousDeclatationInTheStore(toProperties);
-        assertEachPropertyTypeMatchesPreviousDeclatationInTheStore(edgeProperties);
-    }
-
-    /**
-     * Ensures that for a given set of properties, the type of each is declared correctly.
-     * The type has to be the same as that in the store if it had previously been inserted.
-     *
-     * @param properties The properties to check the types of in the store.
-     * @throws IllegalArgumentException if the type of any property is not the same as that in the
-     * store if it had been previously inserted.
-     */
-    public void assertEachPropertyTypeMatchesPreviousDeclatationInTheStore(
-        HashMap<String, String[]> properties) {
-        if (null != properties) {
-            for (String property : properties.keySet()) {
-                String type = properties.get(property)[0].toUpperCase();
-                try {
-                    String typeStored = propertyTypeStore.get(propertyKeyStore.getKeyAsShort(
-                        property)).name();
-                    if (!typeStored.equals(type)) {
-                        throw new IllegalArgumentException("Type mismatch: property " + property +
-                            " has been declared as " + typeStored + " in a previous query" +
-                            " but used instead as " + type);
-                    }
-                } catch (NoSuchElementException e) {
-                    // Escape. The key doesn't exist. Any type is fine.
-                }
-            }
-        }
-    }
-
-    private void compareTypesOfTwoPropertyCollection(
-        HashMap<String, String[]> thisPropertiesCollection,
-        HashMap<String, String[]> thatPropertiesCollection) {
-        if (null == thisPropertiesCollection || null == thatPropertiesCollection) {
-            return;
-        }
-
-        for (String property: thisPropertiesCollection.keySet()) {
-            String thisPropertyType = thisPropertiesCollection.get(property)[0].toUpperCase();
-            String thatPropertyType = thatPropertiesCollection.get(property)[0].toUpperCase();
-            if (null != thatPropertyType && !thisPropertyType.equals(thatPropertyType)) {
-                throw new IllegalArgumentException("Type mismatch: property " + property +
-                    " is used with two different types: " + thisPropertyType + " and " +
-                    thatPropertyType);
-            }
-        }
-    }
-
-    @ExistsForTesting
-    void resetStore() {
+    @UsedOnlyByTests
+    void reset() {
         typeKeyStore.reset();
         propertyKeyStore.reset();
-        propertyTypeStore.clear();
+        propertyDataTypeStore.clear();
     }
 
     /**

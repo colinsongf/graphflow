@@ -23,13 +23,16 @@ public class GraphTest {
     @Test
     public void testInsertions() throws Exception {
         // Create a graph.
-        int[][] edges = {{0, 6}, {0, 3}, {0, 5}, {0, 1}, {0, 4}, {0, 2}, {5, 6}, {1, 6}, {4, 6},
-            {3, 6}, {2, 6}};
+        int[][] edges = {{0, 6} /* edgeId: 0 */, {0, 3} /* edgeId: 1 */, {0, 5} /* edgeId: 2 */,
+            {0, 1} /* edgeId: 3 */, {0, 4} /* edgeId: 4 */, {0, 2} /* edgeId: 5 */,
+            {5, 6} /* edgeId: 6 */, {1, 6} /* edgeId: 7 */, {4, 6} /* edgeId: 256 + 0 */,
+            {3, 6} /* edgeId: 256 + 1 */, {2, 6} /* edgeId: 256 + 2 */};
         short[] edgeTypes = {6, 3, 5, 1, 4, 2, 6, 6, 6, 6, 6};
         short[][] vertexTypes = {{0, 12}, {0, 6}, {0, 10}, {0, 2}, {0, 8}, {0, 4}, {10, 12},
             {2, 12}, {8, 12}, {6, 12}, {4, 12}};
-        Graph graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
 
+        EdgeStore.getInstance().reset();
+        Graph graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
         assertInsertions(graph);
 
         // Reinsert the previously inserted edges to test whether duplication happens.
@@ -39,7 +42,6 @@ public class GraphTest {
                 properties */, edgeTypes[i], null /* no edge properties */);
         }
         graph.finalizeChanges();
-
         assertInsertions(graph);
     }
 
@@ -49,24 +51,26 @@ public class GraphTest {
         // Test outgoing adjacency lists. The adjacency lists should be in sorted order.
         int[][] expectedOutgoingAdjLists = {{1, 2, 3, 4, 5, 6}, {6}, {6}, {6}, {6}, {6}, {}};
         short[][] expectedOutgoingEdgeTypes = {{1, 2, 3, 4, 5, 6}, {6}, {6}, {6}, {6}, {6}, {}};
+        long[][] expectedOutgoingEdgeIds = {{3, 5, 1, 4, 2, 0}, {7}, {258}, {257}, {256}, {6}, {}};
         for (int i = 0; i < expectedOutgoingAdjLists.length; i++) {
             SortedAdjacencyList expectedSortedAdjacencyList = new SortedAdjacencyList();
             for (int j = 0; j < expectedOutgoingAdjLists[i].length; j++) {
                 expectedSortedAdjacencyList.add(expectedOutgoingAdjLists[i][j],
-                    expectedOutgoingEdgeTypes[i][j], -1 /* stub for edgeId */);
+                    expectedOutgoingEdgeTypes[i][j], expectedOutgoingEdgeIds[i][j]);
             }
-            Assert.assertTrue("Testing FORWARD vertex id: " + i, SortedAdjacencyList.isSameAs(
-                graph.getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT),
+            Assert.assertTrue("Testing FORWARD vertex id: " + i, SortedAdjacencyList.isSameAs(graph.
+                getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT),
                 expectedSortedAdjacencyList));
         }
         // Test incoming adjacency lists. The adjacency lists should be in sorted order.
         int[][] expectedIncomingAdjLists = {{}, {0}, {0}, {0}, {0}, {0}, {0, 1, 2, 3, 4, 5}};
         short[][] expectedIncomingEdgeTypes = {{}, {1}, {2}, {3}, {4}, {5}, {6, 6, 6, 6, 6, 6}};
+        long[][] expectedIncomingEdgeIds = {{}, {3}, {5}, {1}, {4}, {2}, {0, 7, 258, 257, 256, 6}};
         for (int i = 0; i < expectedIncomingAdjLists.length; i++) {
             SortedAdjacencyList expectedSortedAdjacencyList = new SortedAdjacencyList();
             for (int j = 0; j < expectedIncomingEdgeTypes[i].length; j++) {
                 expectedSortedAdjacencyList.add(expectedIncomingAdjLists[i][j],
-                    expectedIncomingEdgeTypes[i][j], -1 /* stub for edgeId */);
+                    expectedIncomingEdgeTypes[i][j], expectedIncomingEdgeIds[i][j]);
             }
             Assert.assertTrue("Testing BACKWARD vertex id: " + i, SortedAdjacencyList.isSameAs(
                 graph.getSortedAdjacencyList(i, Direction.BACKWARD, GraphVersion.PERMANENT),
@@ -81,9 +85,12 @@ public class GraphTest {
     @Test
     public void testDeletionOfExistingEdges() throws Exception {
         // Create a graph.
-        int[][] edges = {{0, 3}, {0, 1}, {1, 3}, {1, 2}, {4, 0}, {4, 1}};
+        int[][] edges = {{0, 3} /* edgeId: 0 */, {0, 1}  /* edgeId: 1 */, {1, 3}  /* edgeId: 2 */,
+            {1, 2}  /* edgeId: 3 */, {4, 0}  /* edgeId: 4 */, {4, 1}  /* edgeId: 5 */};
         short[] edgeTypes = {3, 1, 3, 2, 0, 9};
         short[][] vertexTypes = {{0, 3}, {0, 1}, {1, 3}, {1, 2}, {4, 0}, {4, 1}};
+
+        EdgeStore.getInstance().reset();
         Graph graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
         // Delete a list of edges.
         int[][] deleteEdges = {{0, 1}, {4, 1}}; /* Edges exist in the graph.*/
@@ -98,26 +105,29 @@ public class GraphTest {
         // Test the forward adjacency lists.
         int[][] expectedOutgoingAdjLists = {{3}, {2, 3}, {}, {}, {0}};
         short[][] expectedOutgoingEdgeTypes = {{3}, {2, 3}, {}, {}, {0}};
+        long[][] expectedOutgoingEdgeIds = {{0}, {3, 2}, {}, {}, {4}};
         for (int i = 0; i < expectedOutgoingAdjLists.length; i++) {
             SortedAdjacencyList expected = new SortedAdjacencyList();
             for (int j = 0; j < expectedOutgoingAdjLists[i].length; j++) {
                 expected.add(expectedOutgoingAdjLists[i][j], expectedOutgoingEdgeTypes[i][j],
-                    -1 /* stub for edgeId */);
+                    expectedOutgoingEdgeIds[i][j]);
             }
-            Assert.assertTrue("Testing FORWARD vertex id: " + i, SortedAdjacencyList.isSameAs(graph
-                .getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT), expected));
+            Assert.assertTrue("Testing FORWARD vertex id: " + i, SortedAdjacencyList.isSameAs(graph.
+                getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT), expected));
         }
         // Test the backward adjacency lists.
         int[][] expectedIncomingAdjLists = {{4}, {}, {1}, {0, 1}, {}};
         short[][] expectedIncomingEdgeTypes = {{0}, {}, {2}, {3, 3}, {}};
+        long[][] expectedIncomingEdgeIds = {{4}, {}, {3}, {0, 2}, {}};
         for (int i = 0; i < expectedIncomingAdjLists.length; i++) {
             SortedAdjacencyList expected = new SortedAdjacencyList();
             for (int j = 0; j < expectedIncomingAdjLists[i].length; j++) {
                 expected.add(expectedIncomingAdjLists[i][j], expectedIncomingEdgeTypes[i][j],
-                    -1 /* stub for edgeId */);
+                    expectedIncomingEdgeIds[i][j]);
             }
-            Assert.assertTrue("Testing BACKWARD vertex id: " + i, SortedAdjacencyList.isSameAs(graph
-                .getSortedAdjacencyList(i, Direction.BACKWARD, GraphVersion.PERMANENT), expected));
+            Assert.assertTrue("Testing BACKWARD vertex id: " + i, SortedAdjacencyList.isSameAs(
+                graph.getSortedAdjacencyList(i, Direction.BACKWARD, GraphVersion.PERMANENT),
+                expected));
         }
     }
 

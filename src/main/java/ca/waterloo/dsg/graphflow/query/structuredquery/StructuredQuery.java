@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.structuredquery;
 
-import ca.waterloo.dsg.graphflow.util.ExistsForTesting;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,7 +70,7 @@ public class StructuredQuery implements AbstractStructuredQuery {
      * @return {@code true} if the {@code a} object values are the same as the
      * {@code b} object values, {@code false} otherwise.
      */
-    @ExistsForTesting
+    @UsedOnlyByTests
     public static boolean isSameAs(StructuredQuery a, StructuredQuery b) {
         if (a == b) {
             return true;

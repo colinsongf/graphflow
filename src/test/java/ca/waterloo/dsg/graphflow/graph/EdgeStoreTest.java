@@ -1,67 +1,170 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.util.Type;
+import ca.waterloo.dsg.graphflow.util.DataType;
+import org.antlr.v4.runtime.misc.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Tests {@code EdgeStore}.
  */
 public class EdgeStoreTest {
 
-    @Test
-    public void testGetNextIDNeverYetAssignedMethod() {
-        EdgeStore testEdgeStore = new EdgeStore();
-        Assert.assertEquals(0, testEdgeStore.getNextIdToAssign());
-        Assert.assertEquals(1, testEdgeStore.getNextIdToAssign());
-        testEdgeStore.deleteEdge(0);
-        Assert.assertEquals(0, testEdgeStore.getNextIdToAssign());
-        testEdgeStore.deleteEdge(1);
-        Assert.assertEquals(1, testEdgeStore.getNextIdToAssign());
+    private String[] values = {"Fruit", "Ninja", "NinjaFruit", "13", "77", "true", "14.0"};
+    private short[] keys = {0, 1, 2, 3, 4, 5, 6};
+    private Map<Short, Pair<DataType, String>> propertiesOfEdgeToAdd = new HashMap<>();
+    private int propertiesLengthInBytes;
 
-        testEdgeStore.setNextIDParams(1,24, (byte) 2);
-        testEdgeStore.getNextIdToAssign(); // This discards the 2 and updates based on the new IDs.
-        Assert.assertEquals((long) Math.pow(2,40) + 24 * 256 + 2 + 1, testEdgeStore.
+    private void resetPopulateTypeStoreAndPropertiesMap() {
+        EdgeStore.getInstance().reset();
+        TypeAndPropertyKeyStore.getInstance().reset();
+
+        for (short i = 0; i < 3; ++i) {
+            TypeAndPropertyKeyStore.getInstance().propertyDataTypeStore.put(keys[i], DataType.
+                STRING);
+        }
+        for (short i = 3; i < 5; ++i) {
+            TypeAndPropertyKeyStore.getInstance().propertyDataTypeStore.put(keys[i], DataType.INT);
+        }
+        TypeAndPropertyKeyStore.getInstance().propertyDataTypeStore.put(keys[5], DataType.BOOLEAN);
+        TypeAndPropertyKeyStore.getInstance().propertyDataTypeStore.put(keys[6], DataType.DOUBLE);
+
+        for (short i = 0; i < 3; ++i) {
+            propertiesOfEdgeToAdd.put(keys[i], new Pair<>(DataType.STRING, values[i]));
+        }
+        propertiesLengthInBytes = 3 * 6 /* 2 bytes for short key + 4 bytes for int length */ +
+            values[0].length() + values[1].length() + values[2].length();
+    }
+
+    @Test
+    public void testGetNextIdNeverYetAssignedInsertsFrom0AndGivesLastDeletedId() {
+        EdgeStore.getInstance().reset();
+        Assert.assertEquals(0, EdgeStore.getInstance().getNextIdToAssign());
+        Assert.assertEquals(1, EdgeStore.getInstance().getNextIdToAssign());
+        EdgeStore.getInstance().deleteEdge(0);
+        EdgeStore.getInstance().deleteEdge(1);
+        Assert.assertEquals(1, EdgeStore.getInstance().getNextIdToAssign());
+        Assert.assertEquals(0, EdgeStore.getInstance().getNextIdToAssign());
+    }
+
+    @Test
+    public void testGetNextIdNeverYetAssignedConstructsIdCorrectly() {
+        EdgeStore.getInstance().setNextIDNeverYetAssigned(1 /* partition ID */, 24 /* bucket ID */,
+            (byte) 2 /* offset ID */);
+        Assert.assertEquals((long) Math.pow(2, 40) + 24 * 256 + 2 + 1, EdgeStore.getInstance().
             getNextIdToAssign());
     }
 
     @Test
-    public void testSetAndGetPropertiesMethod() {
-        for (short i = 0; i < 5; ++i) {
-            TypeAndPropertyKeyStore.getInstance().propertyTypeStore.put(i, Type.STRING);
+    public void testAddEdgeAndVerifyProperties() {
+        resetPopulateTypeStoreAndPropertiesMap();
+        // Adds an edge with ID 0. Ensures length of the bucket and dataOffset are set correctly.
+        EdgeStore.getInstance().addEdge(propertiesOfEdgeToAdd);
+
+        Map<Short, Object> propertiesStored = EdgeStore.getInstance().getProperties(0);
+        Assert.assertEquals(3 /* setUp stores 3 properties */, propertiesStored.size());
+        for (int i = 0; i < propertiesOfEdgeToAdd.size(); ++i) {
+            Assert.assertEquals(values[i], propertiesStored.get(keys[i]));
+        }
+        Assert.assertEquals(propertiesLengthInBytes, EdgeStore.getInstance().data[0][0].length);
+        Assert.assertEquals(propertiesLengthInBytes, EdgeStore.getInstance().dataOffsets[0][0][1]);
+    }
+
+    @Test
+    public void testAddEdgeWithNoPropertiesAtStartMiddleAndEndOfABucket() {
+        resetPopulateTypeStoreAndPropertiesMap();
+        EdgeStore edgeStore = EdgeStore.getInstance();
+
+        // Add 7 edges with IDs from 0 to 6.
+        edgeStore.addEdge(null);
+        edgeStore.addEdge(propertiesOfEdgeToAdd);
+        EdgeStore.getInstance().addEdge(null);
+        for (int i = 0; i < 4; ++i) {
+            edgeStore.addEdge(propertiesOfEdgeToAdd);
+        }
+        EdgeStore.getInstance().addEdge(null);
+
+        Map<Short, Object> propertiesStored = edgeStore.getProperties(0 /* edge ID */);
+        Assert.assertEquals(0, propertiesStored.size());
+        propertiesStored = edgeStore.getProperties(2 /* edge ID */);
+        Assert.assertEquals(0, propertiesStored.size());
+        propertiesStored = edgeStore.getProperties(7 /* edge ID */);
+        Assert.assertEquals(0, propertiesStored.size());
+
+        Assert.assertEquals(5 * propertiesLengthInBytes, edgeStore.data[0][0].length);
+        Assert.assertEquals(0, edgeStore.dataOffsets[0][0][0]);
+        Assert.assertEquals(0, edgeStore.dataOffsets[0][0][1]);
+        Assert.assertEquals(propertiesLengthInBytes, edgeStore.dataOffsets[0][0][2]);
+        Assert.assertEquals(propertiesLengthInBytes, edgeStore.dataOffsets[0][0][3]);
+        Assert.assertEquals(2 * propertiesLengthInBytes, edgeStore.dataOffsets[0][0][4]);
+        Assert.assertEquals(3 * propertiesLengthInBytes, edgeStore.dataOffsets[0][0][5]);
+        Assert.assertEquals(4 * propertiesLengthInBytes, edgeStore.dataOffsets[0][0][6]);
+        Assert.assertEquals(5 * propertiesLengthInBytes, edgeStore.dataOffsets[0][0][7]);
+    }
+
+    @Test
+    public void testAddEdgeWithMultipleDataTypeProperties() {
+        resetPopulateTypeStoreAndPropertiesMap();
+        for (short i = 0; i < 3; ++i) {
+            propertiesOfEdgeToAdd.put(keys[i], new Pair<>(DataType.STRING, values[i]));
+        }
+        for (short i = 3; i < 5; ++i) {
+            propertiesOfEdgeToAdd.put(keys[i], new Pair<>(DataType.INT, values[i]));
+        }
+        propertiesOfEdgeToAdd.put(keys[5], new Pair<>(DataType.BOOLEAN, values[5]));
+        propertiesOfEdgeToAdd.put(keys[6], new Pair<>(DataType.DOUBLE, values[6]));
+
+        EdgeStore.getInstance().addEdge(propertiesOfEdgeToAdd);
+
+        Map<Short, Object> propertiesStored = EdgeStore.getInstance().getProperties(0 /* edge ID */);
+        Assert.assertEquals(values.length, propertiesStored.size());
+        for (int i = 0; i < 3; ++i) {
+            Assert.assertEquals(values[i], propertiesStored.get(keys[i]));
+        }
+        for (int i = 3; i < 5; ++i) {
+            Assert.assertEquals(Integer.parseInt(values[i]), propertiesStored.get(keys[i]));
+        }
+        Assert.assertEquals(Boolean.parseBoolean(values[5]), propertiesStored.get(keys[5]));
+        Assert.assertEquals(Double.parseDouble(values[6]), propertiesStored.get(keys[6]));
+    }
+
+    @Test
+    public void testAddEdgeWithLargeEdgeIds() {
+        resetPopulateTypeStoreAndPropertiesMap();
+        EdgeStore edgeStore = EdgeStore.getInstance();
+
+        edgeStore.setNextIDNeverYetAssigned(0 /* partition ID */, 10 /* bucket ID */,
+            (byte) 5 /* offset ID */);
+        edgeStore.addEdge(propertiesOfEdgeToAdd); // added edge has offset ID 6.
+        Assert.assertEquals(propertiesLengthInBytes, edgeStore.data[0][10].length);
+        for (int i = 0; i < edgeStore.MAX_EDGES_PER_BUCKET - 1; ++i) {
+            Assert.assertEquals(0, edgeStore.dataOffsets[0][10][i]);
+        }
+        Assert.assertEquals(propertiesLengthInBytes, edgeStore.dataOffsets[0][10][7]);
+
+        Map<Short, Object> propertiesStored = EdgeStore.getInstance().getProperties(
+            10 * 256 + 5 + 1);
+        for (int i = 0; i < propertiesOfEdgeToAdd.size(); ++i) {
+            Assert.assertEquals(values[i], propertiesStored.get(keys[i]));
         }
 
-        EdgeStore testEdgeStore = new EdgeStore();
-        HashMap<Short, String> properties = new HashMap<>();
-        properties.put((short) 0, "fruit1");
-        properties.put((short) 1, "fruit2");
-        properties.put((short) 2, "fruit3");
-        testEdgeStore.addEdge(properties);
-        Assert.assertEquals(36, testEdgeStore.edgePropertyData[0][0].length);
-        Assert.assertEquals(36, testEdgeStore.edgePropertyDataOffsets[0][0][1]);
-        testEdgeStore.setProperties(1, null);
-        Assert.assertEquals(36, testEdgeStore.edgePropertyData[0][0].length);
-        Assert.assertEquals(36, testEdgeStore.edgePropertyDataOffsets[0][0][2]);
-        testEdgeStore.setProperties(2, properties);
-        Assert.assertEquals(72, testEdgeStore.edgePropertyData[0][0].length);
-        testEdgeStore.setProperties(3, properties);
-        Assert.assertEquals(36 * 3, testEdgeStore.edgePropertyData[0][0].length);
-
-        properties.put((short) 3, "fruit4");
-        properties.put((short) 4, "fruit5");
-        testEdgeStore.setProperties(4, properties);
-        Assert.assertEquals(12 * (9 + 5), testEdgeStore.edgePropertyData[0][0].length);
-        testEdgeStore.setProperties(2, properties);
-        Assert.assertEquals(12 * (6 + 10), testEdgeStore.edgePropertyData[0][0].length);
-
-        byte[] fruit1 = new byte[6];
-        System.arraycopy(testEdgeStore.edgePropertyData[0][0], 6, fruit1, 0, 6);
-        Assert.assertEquals(new String(fruit1, StandardCharsets.UTF_8), "fruit1");
-
-        HashMap<Short, Object> propertiesStored = testEdgeStore.getEdgeProperties(0);
-        Assert.assertEquals("fruit1", propertiesStored.get((short) 0));
+        edgeStore.setNextIDNeverYetAssigned(1 /* partition ID */, 24 /* bucket ID */,
+            (byte) 2 /* offset ID */);
+        EdgeStore.getInstance().addEdge(propertiesOfEdgeToAdd); // added edge has offset ID 3.
+        Assert.assertEquals(propertiesLengthInBytes, edgeStore.data[1][24].length);
+        for (int i = 0; i < 4; ++i) {
+            Assert.assertEquals(0, edgeStore.dataOffsets[1][24][i]);
+        }
+        for (int i = 4; i < edgeStore.MAX_EDGES_PER_BUCKET; ++i) {
+            Assert.assertEquals(propertiesLengthInBytes, edgeStore.dataOffsets[1][24][i]);
+        }
+        propertiesStored = EdgeStore.getInstance().getProperties((long) Math.
+            pow(2, 40) + 24 * 256 + 2 + 1);
+        for (int i = 0; i < propertiesOfEdgeToAdd.size(); ++i) {
+            Assert.assertEquals(values[i], propertiesStored.get(keys[i]));
+        }
     }
 }

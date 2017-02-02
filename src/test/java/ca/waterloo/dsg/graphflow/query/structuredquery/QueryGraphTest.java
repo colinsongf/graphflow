@@ -17,18 +17,26 @@ public class QueryGraphTest {
         // Create the {@code QueryGraph}.
         QueryGraph queryGraph = new QueryGraph();
         // Three relations between "a" and "b" with defined edge types.
-        queryGraph.addRelation(new QueryRelation(new QueryVariable("a"), new QueryVariable("b"),
-            "FOLLOWS"));
-        queryGraph.addRelation(new QueryRelation(new QueryVariable("a"), new QueryVariable("b"),
-            "LIKES"));
-        queryGraph.addRelation(new QueryRelation(new QueryVariable("b"), new QueryVariable("a"),
-            "LIKES"));
+        QueryVariable queryVariable1 = new QueryVariable("a");
+        QueryVariable queryVariable2 = new QueryVariable("b");
+        QueryVariable queryVariable3 = new QueryVariable("c");
+
+        QueryRelation queryRelation = new QueryRelation(queryVariable1, queryVariable2);
+        queryRelation.setRelationType("FOLLOWS");
+        queryGraph.addRelation(queryRelation);
+        queryRelation.setRelationType("LIKES");
+        queryGraph.addRelation(queryRelation);
+        queryRelation = new QueryRelation(queryVariable2, queryVariable1);
+        queryGraph.addRelation(queryRelation);
         // Two relations between "b" and "c" with undefined edge types.
-        queryGraph.addRelation(new QueryRelation(new QueryVariable("b"), new QueryVariable("c")));
-        queryGraph.addRelation(new QueryRelation(new QueryVariable("c"), new QueryVariable("b")));
+        queryRelation = new QueryRelation(queryVariable2, queryVariable3);
+        queryGraph.addRelation(queryRelation);
+        queryRelation = new QueryRelation(queryVariable3, queryVariable2);
+        queryGraph.addRelation(queryRelation);
         // One relation between "a" and "c" with a defined edge type.
-        queryGraph.addRelation(new QueryRelation(new QueryVariable("c"), new QueryVariable("a"),
-            "LIKES"));
+        queryRelation = new QueryRelation(queryVariable3, queryVariable1);
+        queryRelation.setRelationType("LIKES");
+        queryGraph.addRelation(queryRelation);
 
         // Test the number of adjacent relations for each variable.
         Assert.assertEquals(4, queryGraph.getNumberOfAdjacentRelations("a"));

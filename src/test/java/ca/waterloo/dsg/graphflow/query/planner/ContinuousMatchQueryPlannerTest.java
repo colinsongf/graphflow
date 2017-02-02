@@ -45,12 +45,15 @@ public class ContinuousMatchQueryPlannerTest {
         query = new OneTimeMatchQueryPlan();
         // Extend "a" to "b".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
+             TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ab" to "c".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 1 for variable ordering "abc" where the diffRelation is "a"->"b" using the
@@ -58,12 +61,15 @@ public class ContinuousMatchQueryPlannerTest {
         query = new OneTimeMatchQueryPlan();
         // Extend "a" to "b".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ab" to "c".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 2 for variable ordering "bca" where the diffRelation is "b"->"c" using the
@@ -71,12 +77,15 @@ public class ContinuousMatchQueryPlannerTest {
         query = new OneTimeMatchQueryPlan();
         // Extend "b" to "c".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "bc" to "a".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 3 for variable ordering "bca" where the diffRelation is "b"->"c" using the
@@ -84,12 +93,15 @@ public class ContinuousMatchQueryPlannerTest {
         query = new OneTimeMatchQueryPlan();
         // Extend "b" to "c".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "bc" to "a".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 4 for variable ordering "cab" where the diffRelation is "c"->"a" using the
@@ -97,12 +109,15 @@ public class ContinuousMatchQueryPlannerTest {
         query = new OneTimeMatchQueryPlan();
         // Extend "c" to "a".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ca" to "b".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 5 for variable ordering "cab" where the diffRelation is "c"->"a" using the
@@ -110,12 +125,15 @@ public class ContinuousMatchQueryPlannerTest {
         query = new OneTimeMatchQueryPlan();
         // Extend "c" to "a".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ca" to "b".
         stage = new ArrayList<>();
-        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED));
+        stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
+        stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED,
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
 
@@ -132,8 +150,8 @@ public class ContinuousMatchQueryPlannerTest {
         OutputSink outputSink = new InMemoryOutputSink();
 
         // Initialize the {@code TypeStore} with types used in the MATCH query.
-        short FOLLOWS_TYPE_ID = TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrInsertIfDoesNotExist("FOLLOWS");
-        short LIKES_TYPE_ID = TypeAndPropertyKeyStore.getInstance().getTypeAsShortOrInsertIfDoesNotExist("LIKES");
+        short FOLLOWS_TYPE_ID = TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("FOLLOWS");
+        short LIKES_TYPE_ID = TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("LIKES");
         // Create a continuous MATCH query plan for a complex triangle query with multiple
         // relations between variable having different edge types.
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
@@ -153,20 +171,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "a" to "b".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.PERMANENT,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ab" to "c".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 1 for variable ordering "abc" where the diffRelation is "a"-[:FOLLOWS]->"b" using
@@ -175,20 +193,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "a" to "b".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.PERMANENT,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ab" to "c".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 2 for variable ordering "abc" where the diffRelation is "a"-[:LIKES]->"b" using
@@ -197,20 +215,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "a" to "b".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.MERGED,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ab" to "c".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 3 for variable ordering "abc" where the diffRelation is "a"-[:LIKES]->"b" using
@@ -219,20 +237,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "a" to "b".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.MERGED,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ab" to "c".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 4 for variable ordering "bac" where the diffRelation is "b"-[:LIKES]->"a" using
@@ -241,20 +259,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "b" to "a".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ba" to "c".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.PERMANENT,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 5 for variable ordering "bac" where the diffRelation is "b"-[:LIKES]->"a" using
@@ -263,20 +281,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "b" to "a".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ba" to "c".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.PERMANENT,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 6 for variable ordering "bca" where the diffRelation is "b"->"c" using the
@@ -285,20 +303,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "b" to "c".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "bc" to "a".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 7 for variable ordering "bca" where the diffRelation is "b"->"c" using the
@@ -307,20 +325,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "b" to "c".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.PERMANENT,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "bc" to "a".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.PERMANENT,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 8 for variable ordering "cba" where the diffRelation is "c"->"b" using the
@@ -329,20 +347,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "c" to "b".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "cb" to "a".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.PERMANENT,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.MERGED,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 9 for variable ordering "cba" where the diffRelation is "c"->"b" using the
@@ -351,20 +369,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "c" to "b".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "cb" to "a".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.PERMANENT,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.MERGED,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 10 for variable ordering "cab" where the diffRelation is "c"-[:FOLLOWS]->"a" using
@@ -373,20 +391,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "c" to "a".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ca" to "b".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.MERGED,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
         // Stage 11 for variable ordering "cab" where the diffRelation is "c"-[:FOLLOWS]->"a" using
@@ -395,20 +413,20 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "c" to "a".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_MINUS,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ca" to "b".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, GraphVersion.MERGED,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.MERGED,
-            TypeAndPropertyKeyStore.ANY));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED,
-            FOLLOWS_TYPE_ID));
+            FOLLOWS_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.FORWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, GraphVersion.MERGED,
-            LIKES_TYPE_ID));
+            LIKES_TYPE_ID, null /* no edge property equality filters */));
         query.addStage(stage);
         expectedContinuousMatchQueryPlan.addOneTimeMatchQueryPlan(query);
 

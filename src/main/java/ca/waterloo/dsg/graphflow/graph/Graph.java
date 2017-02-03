@@ -440,7 +440,7 @@ public class Graph {
         int oldCapacity = forwardAdjLists.length;
         forwardAdjLists = (SortedAdjacencyList[]) ArrayUtils.resizeIfNecessary(forwardAdjLists,
             minCapacity);
-        backwardAdjLists =(SortedAdjacencyList[]) ArrayUtils.resizeIfNecessary(backwardAdjLists,
+        backwardAdjLists = (SortedAdjacencyList[]) ArrayUtils.resizeIfNecessary(backwardAdjLists,
             minCapacity);
         initializeSortedAdjacencyLists(oldCapacity, forwardAdjLists.length);
     }

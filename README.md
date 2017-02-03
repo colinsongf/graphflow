@@ -33,7 +33,7 @@ for the list of supported queries.
 
 You can also start the Graphflow server with a custom log4j2 config file:
   ```
-  $ export GRAPHFLOW_SERVER_OPTS="-Dlog4j.configurationFile=file:/path/to/log4j2.properties"
+  $ export GRAPHFLOW_SERVER_OPTS="-Dlog4j.configurationFile=file:/path/to/log4j2.properties"  
   $ ./build/install/graphflow/bin/graphflow-server
   ```
 

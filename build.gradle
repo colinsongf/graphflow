@@ -68,7 +68,7 @@ sourceSets.main.java.srcDirs += "$buildDir/generated-src/proto/main/java"
 
 // Enable additional compile time warnings.
 compileJava {
-    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    options.compilerArgs << "-Xlint:all" << "-Xlint:-processing" << "-Xlint:-cast" << "-Xlint:-serial"
 }
 
 apply plugin: 'application'

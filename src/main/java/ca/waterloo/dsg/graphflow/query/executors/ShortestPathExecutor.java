@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
+import ca.waterloo.dsg.graphflow.exceptions.NoSuchVertexIDException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
@@ -15,6 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.StringJoiner;
 
@@ -138,19 +140,24 @@ public class ShortestPathExecutor {
      * are output to the given {@code outputSink}. If no paths are found, an empty result set is
      * output to the {@code outputSink}.
      *
-     * @param start The source vertex of the shortest path query.
+     * @param source The source vertex of the shortest path query.
      * @param target The target vertex for the shortest path query.
+     * @throws NoSuchVertexIDException Throws exception if the specified {@code source} and
+     * {@code target} vertex IDs don't exist.
      */
-    public void execute(int start, int target, OutputSink outputSink) {
+    public void execute(int source, int target, OutputSink outputSink)
+        throws NoSuchVertexIDException {
+        assertVertexIDExists(source);
+        assertVertexIDExists(target);
         initQuery();
         Set<Integer> intersectionSet = new HashSet<>();
         boolean foundIntersections = false;
         short forwardLevelNumber = 1;
         short backwardLevelNumber = -1;
-        forwardQueue.enqueue(start);
-        visitedVerticesByQueryId[start] = queryId;
-        visitedDirections[start] = Direction.FORWARD.getBooleanValue();
-        visitedLevels[start] = 1;
+        forwardQueue.enqueue(source);
+        visitedVerticesByQueryId[source] = queryId;
+        visitedDirections[source] = Direction.FORWARD.getBooleanValue();
+        visitedLevels[source] = 1;
         backwardQueue.enqueue(target);
         visitedVerticesByQueryId[target] = queryId;
         visitedDirections[target] = Direction.BACKWARD.getBooleanValue();
@@ -214,7 +221,6 @@ public class ShortestPathExecutor {
             // {@link #visitedStages} array.
             backTrackIntersection(intersectionSet, Direction.BACKWARD, forwardLevelNumber, results);
             backTrackIntersection(intersectionSet, Direction.FORWARD, backwardLevelNumber, results);
-            outputSink.append(getStringOutput(results));
         }
         // Set the results from the backtracking or an empty result set to the
         // {@link ShortestPathOutputSink}.
@@ -303,5 +309,19 @@ public class ShortestPathExecutor {
      */
     public static ShortestPathExecutor getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Checks whether the given vertexID is stored in the graph and throws an error if it is not
+     * present.
+     *
+     * @param vertexId The vertexID to be checked.
+     * @throws NoSuchVertexIDException
+     */
+    private void assertVertexIDExists(int vertexId) throws  NoSuchVertexIDException {
+        if (vertexId >= graph.getVertexCount()) {
+            throw new NoSuchVertexIDException("The specified vertexID "+ vertexId + " does not " +
+                "exist.");
+        }
     }
 }

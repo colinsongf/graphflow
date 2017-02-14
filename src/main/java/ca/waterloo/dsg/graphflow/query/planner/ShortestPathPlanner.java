@@ -16,7 +16,7 @@ public class ShortestPathPlanner extends AbstractQueryPlanner {
     }
 
     @Override
-    QueryPlan plan() {
+    public QueryPlan plan() {
         QueryRelation shortestPathEdge = structuredQuery.getQueryRelations().get(0);
         return new ShortestPathPlan(Integer.parseInt(shortestPathEdge.getFromQueryVariable()
             .getVariableId()), Integer.parseInt(shortestPathEdge.getToQueryVariable()

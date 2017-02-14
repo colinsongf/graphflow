@@ -14,11 +14,13 @@ import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.DeleteQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
+import ca.waterloo.dsg.graphflow.query.planner.ShortestPathPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.DeleteQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.ShortestPathPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.server.GraphflowServer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
@@ -65,6 +67,8 @@ public class QueryProcessor {
                 return handleMatchQuery(structuredQuery);
             case CONTINUOUS_MATCH:
                 return handleContinuousMatchQuery(structuredQuery);
+            case SHORTEST_PATH:
+                return handleShortestPathQuery(structuredQuery);
             default:
                 return "ERROR: the operation '" + structuredQuery.getQueryOperation() +
                     "' is not defined.";
@@ -121,5 +125,11 @@ public class QueryProcessor {
             return "ERROR: The CONTINUOUS MATCH query could not be registered. " + e.getMessage();
         }
         return "The CONTINUOUS MATCH query has been added to the list of continuous queries.";
+    }
+
+    private String handleShortestPathQuery(StructuredQuery structuredQuery) {
+        OutputSink outputSink = new InMemoryOutputSink();
+        ((ShortestPathPlan) new ShortestPathPlanner(structuredQuery).plan()).execute(outputSink);
+        return outputSink.toString();
     }
 }

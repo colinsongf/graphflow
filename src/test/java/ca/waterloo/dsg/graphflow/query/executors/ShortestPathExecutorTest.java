@@ -1,6 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
+import ca.waterloo.dsg.graphflow.exceptions.NoSuchVertexIDException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
@@ -52,7 +53,6 @@ public class ShortestPathExecutorTest {
         expectedResults.put(7, new HashSet<>(Arrays.asList(new Integer[]{9})));
         InMemoryOutputSink expectedInMemoryOutputSink = new InMemoryOutputSink();
         expectedInMemoryOutputSink.append(ShortestPathExecutor.getStringOutput(expectedResults));
-        expectedInMemoryOutputSink.append(ShortestPathExecutor.getStringOutput(expectedResults));
 
         Assert.assertTrue(InMemoryOutputSink.isSameAs(actualInMemoryOutputSink,
             expectedInMemoryOutputSink));
@@ -80,5 +80,17 @@ public class ShortestPathExecutorTest {
         expectedResults.put(5, new HashSet<>(Arrays.asList(new Integer[]{7})));
 
         Assert.assertTrue(expectedResults.equals(actualResults));
+    }
+
+    @Test
+    public void testEvaluateQueryWithNonExistentSource() throws Exception {
+        int source = 100;
+        int target = 0;
+        try {
+            executor.execute(source, target, new InMemoryOutputSink());
+            Assert.fail("The specified vertexID " + source + " does not exist.");
+        } catch (NoSuchVertexIDException e) {
+            // Expected exception caught.
+        }
     }
 }

@@ -49,7 +49,7 @@ In IntelliJ:
 * Either "Import project", or "File -> New -> Project from existing sources..."
 * In the file browser, go the Graphflow source directory, and select the
 'build.gradle' file. (This selection of the build.gradle file instead of just
-the diretory is important because it informs IntelliJ that this is a Gradle
+the directory is important because it informs IntelliJ that this is a Gradle
 project). In the 'Import Project from Gradle' dialog box, select 'use gradle
 wrapper task configuration', and press 'OK'
 

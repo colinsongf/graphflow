@@ -71,6 +71,8 @@ compileJava {
     targetCompatibility = '1.8'
     // Enable additional compile time warnings.
     options.compilerArgs << "-Xlint:all" << "-Xlint:-processing" << "-Xlint:-cast" << "-Xlint:-serial"
+    // Enable incremental builds. Disable if giving errors.
+    options.incremental = true
 }
 
 apply plugin: 'application'

@@ -34,7 +34,7 @@ generateGrammarSource {
     ]
 }
 
-// gRPC configuration.
+// gRPC and protobuf configuration.
 buildscript {
     repositories {
         mavenCentral()
@@ -66,8 +66,10 @@ sourceSets.main.java.srcDirs += "$buildDir/generated-src/antlr/main"
 sourceSets.main.java.srcDirs += "$buildDir/generated-src/proto/main/grpc"
 sourceSets.main.java.srcDirs += "$buildDir/generated-src/proto/main/java"
 
-// Enable additional compile time warnings.
 compileJava {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+    // Enable additional compile time warnings.
     options.compilerArgs << "-Xlint:all" << "-Xlint:-processing" << "-Xlint:-cast" << "-Xlint:-serial"
 }
 

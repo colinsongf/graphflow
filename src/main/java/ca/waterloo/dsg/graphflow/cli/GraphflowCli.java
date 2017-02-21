@@ -10,7 +10,6 @@ import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
-import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 
 import java.io.FileNotFoundException;
@@ -24,6 +23,8 @@ import java.util.logging.Logger;
  */
 public class GraphflowCli {
 
+    private static final String PRIMARY_PROMPT = "graphflow> ";
+    private static final String SECONDARY_PROMPT = "... ";
     /**
      * Stores the gRPC channel to the server.
      */
@@ -43,21 +44,22 @@ public class GraphflowCli {
         Logger.getLogger("io.grpc.internal").setLevel(Level.OFF);
         channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build();
         blockingStub = GraphflowServerQueryGrpc.newBlockingStub(channel);
-        Terminal terminal = TerminalBuilder.builder().build();
-        lineReader = LineReaderBuilder.builder().terminal(terminal).build();
+        lineReader = LineReaderBuilder.builder().terminal(TerminalBuilder.builder().build()).
+            build();
     }
 
     /**
      * Start the CLI interface.
      */
     public void startCLI() throws FileNotFoundException {
-        String prompt = "graphflow> ";
+        String prompt = PRIMARY_PROMPT;
         String singleLineQuery;
         String fullQuery = "";
         while (true) {
             try {
                 singleLineQuery = lineReader.readLine(prompt);
             } catch (UserInterruptException e) {
+                prompt = PRIMARY_PROMPT; // Reset prompt.
                 continue;
             } catch (EndOfFileException e) {
                 break;
@@ -72,7 +74,7 @@ public class GraphflowCli {
                 prompt = "... ";
                 continue;
             }
-            prompt = "graphflow> ";
+            prompt = PRIMARY_PROMPT; // Reset prompt.
             if (fullQuery.equals("exit;")) {
                 break;
             }

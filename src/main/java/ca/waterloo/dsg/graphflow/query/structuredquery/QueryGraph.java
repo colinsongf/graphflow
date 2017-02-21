@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import ca.waterloo.dsg.graphflow.exceptions.MalformedMatchQueryException;
+
 /**
  * Represents a user query as a graph for fast lookup of variables and relations.
  */
@@ -16,6 +18,7 @@ public class QueryGraph {
     // Represents a map from fromVariable to toVariable and the list of {@code QueryRelation}s
     // between fromVariable and toVariable.
     private Map<String, Map<String, List<QueryRelation>>> queryGraph = new HashMap<>();
+    private Map<String, QueryRelation> relationNameRelationMap = new HashMap<>();
 
     /**
      * Adds a relation to the {@link QueryGraph}. The relation is stored both in forward and
@@ -27,12 +30,19 @@ public class QueryGraph {
      */
     public void addRelation(QueryRelation queryRelation) {
         // Get the vertex IDs.
-        String fromVariable = queryRelation.getFromQueryVariable().getVariableId();
-        String toVariable = queryRelation.getToQueryVariable().getVariableId();
+        String fromVariable = queryRelation.getFromQueryVariable().getVariableName();
+        String toVariable = queryRelation.getToQueryVariable().getVariableName();
         // Add the forward relation {@code fromVariable} -> {@code toVariable} to the queryGraph.
         addRelationToQueryGraph(fromVariable, toVariable, queryRelation);
         // Add the reverse relation {@code toVariable} <- {@code fromVariable} to the queryGraph.
         addRelationToQueryGraph(toVariable, fromVariable, queryRelation);
+        if (null != queryRelation.getRelationName()) {
+            if (relationNameRelationMap.containsKey(queryRelation.getRelationName())) {
+                throw new MalformedMatchQueryException("Duplicate edge variable: "
+                    + queryRelation.getRelationName() + " is defined in the query.");
+            }
+            relationNameRelationMap.put(queryRelation.getRelationName(), queryRelation);
+        }
     }
 
     /**
@@ -58,6 +68,20 @@ public class QueryGraph {
      */
     public Set<String> getAllVariables() {
         return queryGraph.keySet();
+    }
+
+    /**
+     * @return All the relation names present in the query.
+     */
+    public Set<String> getAllRelationNames() {
+        return relationNameRelationMap.keySet();
+    }
+
+    /**
+     * @return The {@link QueryRelation} with the given variable name.
+     */
+    public QueryRelation getRelationFromRelationName(String relationName) {
+        return relationNameRelationMap.get(relationName);
     }
 
     /**

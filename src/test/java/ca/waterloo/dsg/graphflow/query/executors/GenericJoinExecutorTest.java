@@ -3,18 +3,26 @@ package ca.waterloo.dsg.graphflow.query.executors;
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
+import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
+
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Tests {@code GenericJoinExecutor}.
  */
 public class GenericJoinExecutorTest {
+
+    @Before
+    public void setUp() throws Exception {
+        Graph.getInstance().reset();
+    }
 
     /**
      * Tests the execution of a triangle MATCH query with no types.
@@ -24,14 +32,10 @@ public class GenericJoinExecutorTest {
         // Create a one time MATCH query plan for a simple triangle query with no types.
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)->(b),(b)->(c),(c)->(a)");
-        OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan)
-            new OneTimeMatchQueryPlanner(triangleStructuredQuery).plan();
-
         int[][] expectedMotifsAfterAdditions = {{0, 1, 3}, {1, 3, 0}, {1, 3, 4}, {3, 0, 1},
             {3, 4, 1}, {4, 1, 3}};
         int[][] expectedMotifsAfterDeletion = {{0, 1, 3}, {1, 3, 0}, {3, 0, 1}};
-
-        assertSimpleMatchQueryOutput(actualOneTimeMatchQueryPlan, expectedMotifsAfterAdditions,
+        assertSimpleMatchQueryOutput(triangleStructuredQuery, expectedMotifsAfterAdditions,
             expectedMotifsAfterDeletion);
     }
 
@@ -48,13 +52,9 @@ public class GenericJoinExecutorTest {
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)-[:FOLLOWS]->(b),(a)-[:LIKES]->(b),(b)-[:LIKES]->(a),(b)->(c),(c)->(b)," +
             "(c)-[:FOLLOWS]->(a)");
-        OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan)
-            new OneTimeMatchQueryPlanner(triangleStructuredQuery).plan();
-
         int[][] expectedMotifsAfterAdditions = {{1, 0, 3}, {1, 4, 3}};
         int[][] expectedMotifsAfterDeletion = {{1, 4, 3}};
-
-        assertComplexMatchQueryOutput(actualOneTimeMatchQueryPlan, expectedMotifsAfterAdditions,
+        assertComplexMatchQueryOutput(triangleStructuredQuery, expectedMotifsAfterAdditions,
             expectedMotifsAfterDeletion);
     }
 
@@ -64,35 +64,30 @@ public class GenericJoinExecutorTest {
     @Test
     public void testProcessSquareQuery() throws Exception {
         // Create a one time MATCH query plan for a simple square query with no types.
-        StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
+        StructuredQuery squareStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)->(b),(b)->(c),(c)->(d),(d)->(a)");
-        OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan)
-            new OneTimeMatchQueryPlanner(triangleStructuredQuery).plan();
-
         int[][] expectedMotifsAfterAdditions = {{0, 1, 2, 3}, {1, 2, 3, 0}, {1, 2, 3, 4},
             {2, 3, 0, 1}, {2, 3, 4, 1}, {3, 0, 1, 2}, {3, 4, 1, 2}, {4, 1, 2, 3}};
         int[][] expectedMotifsAfterDeletion = {{0, 1, 2, 3}, {1, 2, 3, 0}, {2, 3, 0, 1},
             {3, 0, 1, 2}};
-
-        assertSimpleMatchQueryOutput(actualOneTimeMatchQueryPlan, expectedMotifsAfterAdditions,
-            expectedMotifsAfterDeletion);
+        assertSimpleMatchQueryOutput(squareStructuredQuery, expectedMotifsAfterAdditions, expectedMotifsAfterDeletion);
     }
 
-    private void assertSimpleMatchQueryOutput(OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan,
+    private void assertSimpleMatchQueryOutput(StructuredQuery structuredQuery,
         int[][] expectedMotifsAfterAdditions, int[][] expectedMotifsAfterDeletion) {
 
-        InMemoryOutputSink outputSink;
-
         // Initialize a graph.
-        Graph graph = new Graph();
+        Graph graph = Graph.getInstance();
         TestUtils.createEdgesPermanently(graph, "CREATE (0:Person)-[:FOLLOWS]->" +
             "(1:Person),(1:Person)-[:FOLLOWS]->(2:Person), (1:Person)-[:FOLLOWS]->(3:Person)," +
             "(2:Person)-[:FOLLOWS]->(3:Person), (3:Person)-[:FOLLOWS]->(4:Person)," +
             "(3:Person)-[:FOLLOWS]->(0:Person), (4:Person)-[:FOLLOWS]->(1:Person);");
 
         // Execute the query and test.
-        outputSink = new InMemoryOutputSink();
-        actualOneTimeMatchQueryPlan.execute(graph, outputSink);
+        InMemoryOutputSink outputSink = new InMemoryOutputSink();
+        OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
+            structuredQuery, outputSink).plan();
+        actualOneTimeMatchQueryPlan.execute(graph);
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
             expectedMotifsAfterAdditions)));
 
@@ -101,17 +96,16 @@ public class GenericJoinExecutorTest {
 
         // Execute the query again and test.
         outputSink = new InMemoryOutputSink();
-        actualOneTimeMatchQueryPlan.execute(graph, outputSink);
+        actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink)
+            .plan();
+        actualOneTimeMatchQueryPlan.execute(graph);
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
             expectedMotifsAfterDeletion)));
     }
 
-    private void assertComplexMatchQueryOutput(OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan,
+    private void assertComplexMatchQueryOutput(StructuredQuery structuredQuery,
         int[][] expectedMotifsAfterAdditions, int[][] expectedMotifsAfterDeletion) {
-
-        InMemoryOutputSink outputSink;
-
-        Graph graph = new Graph();
+        Graph graph = Graph.getInstance();
         TestUtils.createEdgesPermanently(graph, "CREATE (0:Person)-[:FOLLOWS]->" +
             "(1:Person),(0:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->(0:Person)," +
             "(1:Person)-[:TAGGED]->(3:Person),(3:Person)-[:LIKES]->(1:Person)," +
@@ -120,8 +114,11 @@ public class GenericJoinExecutorTest {
             "(3:Person)-[:FOLLOWS]->(4:Person);");
 
         // Execute the query and test.
-        outputSink = new InMemoryOutputSink();
-        actualOneTimeMatchQueryPlan.execute(graph, outputSink);
+
+        InMemoryOutputSink outputSink = new InMemoryOutputSink();
+        OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
+            structuredQuery, outputSink).plan();
+        actualOneTimeMatchQueryPlan.execute(graph);
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
             expectedMotifsAfterAdditions)));
 
@@ -130,7 +127,9 @@ public class GenericJoinExecutorTest {
 
         // Execute the query again and test.
         outputSink = new InMemoryOutputSink();
-        actualOneTimeMatchQueryPlan.execute(graph, outputSink);
+        actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink)
+            .plan();
+        actualOneTimeMatchQueryPlan.execute(graph);
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
             expectedMotifsAfterDeletion)));
     }
@@ -138,8 +137,7 @@ public class GenericJoinExecutorTest {
     private InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs) {
         InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
         for (int[] motif : motifs) {
-            inMemoryOutputSink.append(GenericJoinExecutor.getStringOutput(motif,
-                MatchQueryResultType.MATCHED));
+            inMemoryOutputSink.append(QueryOutputUtils.getStringMatchQueryOutput(motif, MatchQueryResultType.MATCHED));
         }
         return inMemoryOutputSink;
     }

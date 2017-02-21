@@ -4,7 +4,7 @@ import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
-import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
+import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.Arrays;
@@ -19,11 +19,11 @@ import java.util.StringJoiner;
 public class SortedAdjacencyList {
 
     private static final int INITIAL_CAPACITY = 2;
-    @PackagePrivateForTesting
+    @VisibleForTesting
     int[] neighbourIds;
-    @PackagePrivateForTesting
+    @VisibleForTesting
     short[] edgeTypes;
-    @PackagePrivateForTesting
+    @VisibleForTesting
     long[] edgeIds;
     private int size;
 

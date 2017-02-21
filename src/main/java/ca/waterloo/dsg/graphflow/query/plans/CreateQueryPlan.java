@@ -3,8 +3,8 @@ package ca.waterloo.dsg.graphflow.query.plans;
 import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.util.DataType;
@@ -27,12 +27,12 @@ public class CreateQueryPlan implements QueryPlan {
      * Executes the {@link CreateQueryPlan}.
      *
      * @param graph the {@link Graph} instance to use during the plan execution.
-     * @param outputSink the {@link OutputSink} to which the execution output is written.
+     * @param outputSink the {@link AbstractDBOperator} to which the execution output is written.
      * @throws IncorrectDataTypeException if there are two new properties in the query with the same
      * key but different {@link DataType} or if the {@link DataType} of a property key K is not
      * the same as the {@link DataType} that has been stored previously for K.
      */
-    public void execute(Graph graph, OutputSink outputSink) {
+    public void execute(Graph graph, AbstractDBOperator outputSink) {
         try {
             TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
             for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
@@ -58,8 +58,9 @@ public class CreateQueryPlan implements QueryPlan {
                     stringEdgeProperties);
 
                 int fromVertex = Integer.parseInt(queryRelation.getFromQueryVariable().
-                    getVariableId());
-                int toVertex = Integer.parseInt(queryRelation.getToQueryVariable().getVariableId());
+                    getVariableName());
+                int toVertex = Integer.parseInt(queryRelation.getToQueryVariable().
+                    getVariableName());
 
                 short fromVertexType = typeAndPropertyKeyStore.mapStringTypeToShortOrInsert(
                     queryRelation.getFromQueryVariable().getVariableType());

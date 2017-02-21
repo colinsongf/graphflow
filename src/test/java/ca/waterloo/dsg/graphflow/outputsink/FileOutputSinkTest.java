@@ -1,6 +1,10 @@
 package ca.waterloo.dsg.graphflow.outputsink;
 
 import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
+import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
+import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
+import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,12 +40,14 @@ public class FileOutputSinkTest {
      */
     @Test
     public void testAppend() throws Exception {
-        String output = Arrays.toString(new int[]{1, 2, 3, 4, 5, 6}) + ", " +
-            MatchQueryResultType.MATCHED;
+        MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
+        matchQueryOutput.vertexIds = new int[]{1, 2, 3, 4, 5, 6};
+        matchQueryOutput.matchQueryResultType = MatchQueryResultType.MATCHED;
         // Write the output.
-        outputSink.append(output);
+        outputSink.append(matchQueryOutput);
         // Read the output from the file and test the output.
         BufferedReader br = new BufferedReader(new FileReader(location));
-        Assert.assertTrue(br.readLine().equals(output));
+        Assert.assertTrue(br.readLine().equals(QueryOutputUtils.getStringMatchQueryOutput(
+            matchQueryOutput.vertexIds, matchQueryOutput.matchQueryResultType)));
     }
 }

@@ -4,11 +4,11 @@ import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.outputsink.FileOutputSink;
-import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
-import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.query.executors.ShortestPathExecutor;
+import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
@@ -38,7 +38,7 @@ public class QueryProcessor {
     private static final Logger logger = LogManager.getLogger(QueryProcessor.class);
 
     private static String TMP_DIRECTORY = "/tmp/";
-    private Graph graph = new Graph();
+    private Graph graph = Graph.getInstance();
 
     public QueryProcessor() {
         ShortestPathExecutor.getInstance().init(graph);
@@ -76,7 +76,7 @@ public class QueryProcessor {
     }
 
     private String handleCreateQuery(StructuredQuery structuredQuery) {
-        OutputSink outputSink = new InMemoryOutputSink();
+        AbstractDBOperator outputSink = new InMemoryOutputSink();
         try {
             ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(graph,
                 outputSink);
@@ -89,17 +89,17 @@ public class QueryProcessor {
     }
 
     private String handleDeleteQuery(StructuredQuery structuredQuery) {
-        OutputSink outputSink = new InMemoryOutputSink();
+        AbstractDBOperator outputSink = new InMemoryOutputSink();
         ((DeleteQueryPlan) new DeleteQueryPlanner(structuredQuery).plan()).execute(graph,
             outputSink);
         return outputSink.toString();
     }
 
     private String handleMatchQuery(StructuredQuery structuredQuery) {
-        OutputSink outputSink = new InMemoryOutputSink();
+        AbstractDBOperator outputSink = new InMemoryOutputSink();
         try {
-            ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery).plan()).execute(
-                graph, outputSink);
+            ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink)
+                .plan()).execute(graph);
         } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
             logger.debug(e.getMessage());
             outputSink.append("ERROR: " + e.getMessage());
@@ -110,7 +110,7 @@ public class QueryProcessor {
     private String handleContinuousMatchQuery(StructuredQuery structuredQuery) {
         String fileName = "continuous_match_query_" + structuredQuery
             .getContinuousMatchOutputLocation();
-        OutputSink outputSink;
+        AbstractDBOperator outputSink;
         try {
             outputSink = new FileOutputSink(new File(TMP_DIRECTORY + fileName));
         } catch (IOException e) {
@@ -128,7 +128,7 @@ public class QueryProcessor {
     }
 
     private String handleShortestPathQuery(StructuredQuery structuredQuery) {
-        OutputSink outputSink = new InMemoryOutputSink();
+        AbstractDBOperator outputSink = new InMemoryOutputSink();
         ((ShortestPathPlan) new ShortestPathPlanner(structuredQuery).plan()).execute(outputSink);
         return outputSink.toString();
     }

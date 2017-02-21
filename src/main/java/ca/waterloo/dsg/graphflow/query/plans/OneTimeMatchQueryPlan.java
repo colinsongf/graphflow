@@ -1,9 +1,9 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinExecutor;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 
 import java.util.ArrayList;
@@ -12,7 +12,17 @@ import java.util.List;
 /**
  * Class representing plan for a MATCH operation.
  */
-public class OneTimeMatchQueryPlan implements QueryPlan {
+public class OneTimeMatchQueryPlan extends AbstractDBOperator implements QueryPlan {
+
+    /**
+     * Constructs a new {@link OneTimeMatchQueryPlan} with null next operator.
+     * 
+     * TODO: This should go away once we converge on the best class structure for operators
+     * and plans. 
+     */
+    public OneTimeMatchQueryPlan() {
+        super(null);
+    }
 
     private List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
 
@@ -24,10 +34,9 @@ public class OneTimeMatchQueryPlan implements QueryPlan {
      * Executes the {@link OneTimeMatchQueryPlan}.
      *
      * @param graph the {@link Graph} instance to use during the plan execution.
-     * @param outputSink the {@link OutputSink} to which the execution output is written.
      */
-    public void execute(Graph graph, OutputSink outputSink) {
-        new GenericJoinExecutor(stages, outputSink, graph).execute();
+    public void execute(Graph graph) {
+        new GenericJoinExecutor(stages, nextOperator, graph).execute();
     }
 
     /**
@@ -62,5 +71,18 @@ public class OneTimeMatchQueryPlan implements QueryPlan {
             }
         }
         return true;
+    }
+
+    @Override
+    protected String getHumanReadableOperator() {
+        StringBuilder stringBuilder = new StringBuilder("OneTimeMatchQueryPlan: \n");
+        for (int i = 0; i < stages.size(); ++i) {
+            List<GenericJoinIntersectionRule> stage = stages.get(i);
+            stringBuilder.append("\tStage " + i + "\n");
+            for (GenericJoinIntersectionRule intersectionRule : stage) {
+                stringBuilder.append("\t\t" + intersectionRule.toString() + "\n");
+            }
+        }
+        return stringBuilder.toString();
     }
 }

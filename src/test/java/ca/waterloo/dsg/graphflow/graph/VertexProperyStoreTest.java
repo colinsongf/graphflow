@@ -14,7 +14,7 @@ public class VertexProperyStoreTest {
 
     @Test
     public void testSetMethod() {
-        VertexPropertyStore vertexPropertyStore = new VertexPropertyStore();
+        VertexPropertyStore vertexPropertyStore = VertexPropertyStore.getInstance();
 
         HashMap<Short, Pair<DataType, String>> keyToDataTypeValuePairMap = new HashMap<>();
         keyToDataTypeValuePairMap.put((short) 2, new Pair<>(DataType.STRING, "Barca"));

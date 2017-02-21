@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.outputsink;
+package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 
@@ -10,9 +10,13 @@ import java.util.StringJoiner;
 /**
  * Stores the output as an in memory data structure in the form of a list of {@code Strings}s.
  */
-public class InMemoryOutputSink implements OutputSink {
+public class InMemoryOutputSink extends AbstractDBOperator {
 
     private List<String> results = new ArrayList<>();
+
+    public InMemoryOutputSink() {
+        super(null /* no output operator */);
+    }
 
     /**
      * Adds {@code result} to the list of in-memory outputs.
@@ -51,5 +55,10 @@ public class InMemoryOutputSink implements OutputSink {
             return false;
         }
         return Objects.equals(a.results, b.results);
+    }
+
+    @Override
+    public String getHumanReadableOperator() {
+        return "InMemoryOutputSink:\n";
     }
 }

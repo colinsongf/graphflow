@@ -11,7 +11,7 @@ import java.util.Objects;
  */
 public class QueryVariable implements AbstractStructuredQuery {
 
-    private String variableId;
+    private String variableName;
     private String variableType;
     // The Strings below refer to: Map<key, Pair<dataType, value>>
     private Map<String, Pair<String, String>> variableProperties;
@@ -19,14 +19,14 @@ public class QueryVariable implements AbstractStructuredQuery {
     /**
      * Constructs a {@code QueryVariable} with the variable type and properties set to {@code null}.
      *
-     * @param variableId The {@code String} vertex variable.
+     * @param variableName The {@code String} vertex variable.
      */
-    public QueryVariable(String variableId) {
-        this.variableId = variableId;
+    public QueryVariable(String variableName) {
+        this.variableName = variableName;
     }
 
-    public String getVariableId() {
-        return variableId;
+    public String getVariableName() {
+        return variableName;
     }
 
     public String getVariableType() {
@@ -62,7 +62,7 @@ public class QueryVariable implements AbstractStructuredQuery {
         if (null == a || null == b) {
             return false;
         }
-        if (!Objects.equals(a.variableId, b.variableId) ||
+        if (!Objects.equals(a.variableName, b.variableName) ||
             !Objects.equals(a.variableType, b.variableType)) {
             return false;
         }

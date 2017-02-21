@@ -4,7 +4,7 @@ import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
-import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
+import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import org.antlr.v4.runtime.misc.Pair;
@@ -20,13 +20,13 @@ public class TypeAndPropertyKeyStore {
 
     public static final short ANY = -1;
     private static final TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
-    @PackagePrivateForTesting
+    @VisibleForTesting
     StringToShortKeyStore typeKeyStore = new StringToShortKeyStore();
     // TypeAndPropertyKeyStore has the invariant that if a property key has a short key,
     // then the property key certainly has a DataType associated with it.
-    @PackagePrivateForTesting
+    @VisibleForTesting
     StringToShortKeyStore propertyKeyStore = new StringToShortKeyStore();
-    @PackagePrivateForTesting
+    @VisibleForTesting
     Map<Short, DataType> propertyDataTypeStore = new HashMap<>();
 
     /**
@@ -83,8 +83,7 @@ public class TypeAndPropertyKeyStore {
     public DataType getPropertyDataType(short key) {
         DataType dataType = propertyDataTypeStore.get(key);
         if (null == dataType) {
-            throw new NoSuchPropertyKeyException("Property key " + key + " is not found in " +
-                " the store.");
+            throw new NoSuchPropertyKeyException(key);
         }
         return dataType;
     }
@@ -139,6 +138,14 @@ public class TypeAndPropertyKeyStore {
             false /* do not insert if key doesn't exist */,
             false /* do not assert on key existence */);
     }
+    
+    /**
+     * @param stringKey String key to check.
+     * @return whether the given key is defined as a property in the store.
+     */
+    public boolean isPropertyDefined(String stringKey) {
+        return propertyKeyStore.mapStringKeyToShort(stringKey) != null;
+    }
 
     /**
      * Ensures for each property in properties that its associated data type is the same as that
@@ -175,7 +182,7 @@ public class TypeAndPropertyKeyStore {
         return resultProperties;
     }
 
-    @PackagePrivateForTesting
+    @VisibleForTesting
     Pair<Short, DataType> mapStringPropertyKeyValueToShortAndDataType(String stringKey,
         String stringDataType, boolean insertIfKeyDoesntExist, boolean assertKeyExist) {
         if (isNullOrEmpty(stringKey)) {
@@ -194,14 +201,17 @@ public class TypeAndPropertyKeyStore {
             key = propertyKeyStore.getKeyAsShortOrInsert(stringKey);
             propertyDataTypeStore.put(key, dataType);
         } else if (assertKeyExist) {
-            throw new NoSuchPropertyKeyException("The property key " + stringKey + " is not " +
-                "found in the store.");
+            throw new NoSuchPropertyKeyException(stringKey);
         }
         return new Pair<>(key, dataType);
     }
 
-    @UsedOnlyByTests
-    Short mapStringPropertyKeyToShort(String stringKey) {
+    /**
+     * @param stringKey String key to map.
+     * @return short mapping of the key or null if the key does not exist. 
+     * @throws IllegalArgumentException if the given String key is null or empty.
+     */
+    public Short mapStringPropertyKeyToShort(String stringKey) {
         if (isNullOrEmpty(stringKey)) {
             throw new IllegalArgumentException("property keys can't be null or the empty string.");
         }
@@ -209,7 +219,7 @@ public class TypeAndPropertyKeyStore {
     }
 
     @UsedOnlyByTests
-    void reset() {
+    public void reset() {
         typeKeyStore.reset();
         propertyKeyStore.reset();
         propertyDataTypeStore.clear();

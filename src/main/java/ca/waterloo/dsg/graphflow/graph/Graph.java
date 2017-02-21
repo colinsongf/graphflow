@@ -3,7 +3,9 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.LongArrayList;
+import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
+
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,6 +25,7 @@ import java.util.StringJoiner;
  */
 public class Graph {
 
+    private static Graph INSTANCE = new Graph();
     // Used to represent different versions of the graph.
     public enum GraphVersion {
         // Graph formed after making all additions and deletions permanent.
@@ -69,7 +72,7 @@ public class Graph {
     private int highestMergedVertexId = -1;
 
     private ShortArrayList vertexTypes;
-    private VertexPropertyStore vertexProperties;
+    private VertexPropertyStore vertexProperties = VertexPropertyStore.getInstance();
 
     // Adjacency lists for the permanent graph, containing both the neighbour vertex IDs and edge
     // type IDs to those neighbours.
@@ -88,24 +91,8 @@ public class Graph {
     private Map<Integer, SortedAdjacencyList> mergedForwardAdjLists;
     private Map<Integer, SortedAdjacencyList> mergedBackwardAdjLists;
 
-    public Graph() {
-        this(DEFAULT_GRAPH_SIZE);
-    }
-
-    public Graph(int vertexLength) {
-        forwardAdjLists = new SortedAdjacencyList[vertexLength];
-        backwardAdjLists = new SortedAdjacencyList[vertexLength];
-        initializeSortedAdjacencyLists(0, vertexLength);
-        diffPlusEdges = new ArrayList<>();
-        diffMinusEdges = new ArrayList<>();
-        diffPlusEdgeTypes = new ShortArrayList();
-        diffMinusEdgeTypes = new ShortArrayList();
-        diffPlusEdgeIds = new LongArrayList();
-        diffMinusEdgeIds = new LongArrayList();
-        mergedForwardAdjLists = new HashMap<>();
-        mergedBackwardAdjLists = new HashMap<>();
-        vertexTypes = new ShortArrayList();
-        vertexProperties = new VertexPropertyStore();
+    private Graph() {
+        reset();
     }
 
     /**
@@ -390,6 +377,20 @@ public class Graph {
         return permanentAdjacencyLists[fromVertexId].contains(toVertexId, typeFilter,
             propertyEqualityFilters);
     }
+    
+    /**
+     * @param srcId ID of the source vertex.
+     * @param destinationId ID of the destination vertex.
+     * @param type type of the edge between srcId and destinationId.
+     * @return the ID of the edge between fromVertexId and toVertexId with the given type in the
+     * {@link GraphVersion#PERMANENT} graph.
+     */
+    public long getEdgeIdFromPermanentGraph(int srcId, int destinationId, short type) {
+        if (srcId > highestPermanentVertexId || destinationId > highestPermanentVertexId) {
+            return -1;
+        }
+        return forwardAdjLists[srcId].getEdgeId(destinationId, type);
+    }
 
     /**
      * Returns the {@link SortedAdjacencyList} for the given {@code vertexId}, {@code direction}
@@ -526,5 +527,37 @@ public class Graph {
             stringJoiner.add(Arrays.toString(edge));
         }
         return "[" + stringJoiner.toString() + "]";
+    }
+
+    @VisibleForTesting
+    public void reset() {
+        int vertexLength = DEFAULT_GRAPH_SIZE;
+        highestPermanentVertexId = -1;
+        highestMergedVertexId = -1;
+        VertexPropertyStore.getInstance();
+        forwardAdjLists = new SortedAdjacencyList[vertexLength];
+        backwardAdjLists = new SortedAdjacencyList[vertexLength];
+        initializeSortedAdjacencyLists(0, vertexLength);
+        diffPlusEdges = new ArrayList<>();
+        diffMinusEdges = new ArrayList<>();
+        diffPlusEdgeTypes = new ShortArrayList();
+        diffMinusEdgeTypes = new ShortArrayList();
+        diffPlusEdgeIds = new LongArrayList();
+        diffMinusEdgeIds = new LongArrayList();
+        mergedForwardAdjLists = new HashMap<>();
+        mergedBackwardAdjLists = new HashMap<>();
+        vertexTypes = new ShortArrayList();
+        
+        // Also reset other classes that the Graph class depends on
+        EdgeStore.getInstance().reset();
+        VertexPropertyStore.getInstance().reset();
+        TypeAndPropertyKeyStore.getInstance().reset();
+    }
+
+    /**
+     * Returns the singleton instance {@link #INSTANCE} of {@link Graph}.
+     */
+    public static Graph getInstance() {
+        return INSTANCE;
     }
 }

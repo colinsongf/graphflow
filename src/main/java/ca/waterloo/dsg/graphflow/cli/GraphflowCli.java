@@ -75,7 +75,7 @@ public class GraphflowCli {
                 continue;
             }
             prompt = PRIMARY_PROMPT; // Reset prompt.
-            if (fullQuery.equals("exit;")) {
+            if (fullQuery.contains("exit") || fullQuery.contains("quit")) {
                 break;
             }
             System.out.println("Your query: " + fullQuery);

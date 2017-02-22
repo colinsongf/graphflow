@@ -17,7 +17,7 @@ public class NoSuchPropertyKeyException extends NoSuchElementException {
     public NoSuchPropertyKeyException(String stringKey) {
         super("String property key " + stringKey + " is not found in " + " the database.");
     }
-    
+
     /**
      * Constructor that takes the key not found and sets a standard error message.
      *

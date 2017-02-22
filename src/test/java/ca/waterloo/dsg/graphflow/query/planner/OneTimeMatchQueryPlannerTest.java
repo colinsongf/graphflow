@@ -130,7 +130,7 @@ public class OneTimeMatchQueryPlannerTest {
         // Stage 3 extends "bcda" to "bcdae".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeAndPropertyKeyStore.
-            ANY,     null /* no property equality filters */));
+            ANY, null /* no property equality filters */));
         stage.add(new GenericJoinIntersectionRule(3, Direction.FORWARD, TypeAndPropertyKeyStore.ANY,
             null /* no property equality filters */));
         expectedOneTimeMatchQueryPlan.addStage(stage);

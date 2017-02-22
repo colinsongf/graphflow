@@ -4,10 +4,10 @@ import ca.waterloo.dsg.graphflow.exceptions.NoSuchVertexIDException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
-import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.graph.SortedAdjacencyList;
-import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.util.IntQueue;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.StringJoiner;
 
@@ -189,8 +188,8 @@ public class ShortestPathExecutor {
                     // Check if this vertex has been visited during this query. If the value equals
                     // the current {@link #queryId} it has been visited.
                     if (visitedVerticesByQueryId[neighbourVertex] == queryId) {
-                        if (visitedDirections[neighbourVertex] == currentDirection
-                            .getBooleanValue()) {
+                        if (visitedDirections[neighbourVertex] == currentDirection.
+                            getBooleanValue()) {
                             // This vertex has been visited before while traversing in the current
                             // direction.
                             continue;
@@ -318,9 +317,9 @@ public class ShortestPathExecutor {
      * @param vertexId The vertexID to be checked.
      * @throws NoSuchVertexIDException
      */
-    private void assertVertexIDExists(int vertexId) throws  NoSuchVertexIDException {
+    private void assertVertexIDExists(int vertexId) throws NoSuchVertexIDException {
         if (vertexId >= graph.getVertexCount()) {
-            throw new NoSuchVertexIDException("The specified vertexID "+ vertexId + " does not " +
+            throw new NoSuchVertexIDException("The specified vertexID " + vertexId + " does not " +
                 "exist.");
         }
     }

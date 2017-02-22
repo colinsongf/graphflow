@@ -1,5 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.structuredquery;
 
+import ca.waterloo.dsg.graphflow.exceptions.MalformedMatchQueryException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-
-import ca.waterloo.dsg.graphflow.exceptions.MalformedMatchQueryException;
 
 /**
  * Represents a user query as a graph for fast lookup of variables and relations.
@@ -125,8 +125,8 @@ public class QueryGraph {
      * {@code variable2} in any direction, {@code false} otherwise.
      */
     public boolean containsRelation(String variable1, String variable2) {
-        return queryGraph.containsKey(variable1) && queryGraph.get(variable1)
-            .containsKey(variable2);
+        return queryGraph.containsKey(variable1) && queryGraph.get(variable1).
+            containsKey(variable2);
     }
 
     /**

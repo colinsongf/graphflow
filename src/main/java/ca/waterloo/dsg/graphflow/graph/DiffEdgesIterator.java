@@ -30,8 +30,8 @@ public class DiffEdgesIterator implements Iterator<int[]> {
      * @param diffEdgeTypes The types of the added or deleted edges.
      * @param diffEdgeIds The IDs of the added or deleted edges.
      * @param edgeTypeFilter The {@code short} filter on the type of edges that should be matched.
-     * @param edgePropertyEqualityFilters The property equality filters, as <key, <DataType, value>>
-     * pairs, that should be matched on the edges returned by this iterator.
+     * @param edgePropertyEqualityFilters The property equality filters, as <key, <DataType,
+     * value>> pairs, that should be matched on the edges returned by this iterator.
      */
     public DiffEdgesIterator(List<int[]> diffEdges, ShortArrayList diffEdgeTypes,
         LongArrayList diffEdgeIds, short edgeTypeFilter,
@@ -67,7 +67,7 @@ public class DiffEdgesIterator implements Iterator<int[]> {
             // If there is no such {@code e=(u, v)}, the {@code next} index is set to the size of
             // {@code diffEdges.size()}.
             if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
-                    diffEdgeTypes.get(next) == edgeTypeFilter) &&
+                diffEdgeTypes.get(next) == edgeTypeFilter) &&
                 (null == edgePropertyEqualityFilters || EdgeStore.getInstance().
                     checkEqualityFilters(diffEdgeIds.get(next), edgePropertyEqualityFilters))) {
                 return;

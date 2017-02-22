@@ -65,7 +65,7 @@ public class GraphTest {
                     expectedOutgoingEdgeTypes[i][j], expectedOutgoingEdgeIds[i][j]);
             }
             Assert.assertTrue("Testing FORWARD vertex id: " + i, SortedAdjacencyList.isSameAs(graph.
-                getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT),
+                    getSortedAdjacencyList(i, Direction.FORWARD, GraphVersion.PERMANENT),
                 expectedSortedAdjacencyList));
         }
         // Test incoming adjacency lists. The adjacency lists should be in sorted order.

@@ -2,8 +2,8 @@ package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
-import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
@@ -156,9 +156,10 @@ public class SortedAdjacencyList {
             filteredList.addAll(Arrays.copyOf(neighbourIds, size));
         } else {
             for (int i = 0; i < size; i++) {
-                if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter || edgeTypes[i] == edgeTypeFilter)
-                    && ((null == edgePropertyEqualityFilters) || EdgeStore.getInstance().
-                    checkEqualityFilters(edgeIds[i], edgePropertyEqualityFilters))) {
+                if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter || edgeTypes[i] ==
+                    edgeTypeFilter) &&
+                    ((null == edgePropertyEqualityFilters) || EdgeStore.getInstance().
+                        checkEqualityFilters(edgeIds[i], edgePropertyEqualityFilters))) {
                     filteredList.add(neighbourIds[i]);
                 }
             }
@@ -274,8 +275,8 @@ public class SortedAdjacencyList {
      *
      * @param neighbourId The neighbour ID to be searched.
      * @param edgeTypeFilter The type of the edge searched for.
-     * @param edgePropertyEqualityFilters The set of equality filters to match the properties of the
-     * edge being searched for.
+     * @param edgePropertyEqualityFilters The set of equality filters to match the properties of
+     * the edge being searched for.
      * @param startIndex The index to start the search from.
      * @return Index of the neighbour or -1 if the neighbour is not in the list.
      */

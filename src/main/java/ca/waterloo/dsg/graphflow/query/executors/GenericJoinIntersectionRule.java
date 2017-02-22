@@ -54,8 +54,8 @@ public class GenericJoinIntersectionRule {
      * value of {@code edgeTypeFilter} is {@link TypeAndPropertyKeyStore#ANY}, this parameter is
      * ignored.
      * @param edgePropertyEqualityFilters Filters {@code u}'s edges that do not contain these
-     * properties. If the {@code propertyEqualityFilters} is {at code null} or empty, this parameter
-     * is ignored.
+     * properties. If the {@code propertyEqualityFilters} is {at code null} or empty, this
+     * parameter is ignored.
      */
     public GenericJoinIntersectionRule(int prefixIndex, Direction direction,
         GraphVersion graphVersion, short edgeTypeFilter,
@@ -130,7 +130,7 @@ public class GenericJoinIntersectionRule {
         }
         return true;
     }
-    
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();

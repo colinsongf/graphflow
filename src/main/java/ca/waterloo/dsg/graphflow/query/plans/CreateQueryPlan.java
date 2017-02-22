@@ -28,9 +28,9 @@ public class CreateQueryPlan implements QueryPlan {
      *
      * @param graph the {@link Graph} instance to use during the plan execution.
      * @param outputSink the {@link AbstractDBOperator} to which the execution output is written.
-     * @throws IncorrectDataTypeException if there are two new properties in the query with the same
-     * key but different {@link DataType} or if the {@link DataType} of a property key K is not
-     * the same as the {@link DataType} that has been stored previously for K.
+     * @throws IncorrectDataTypeException if there are two new properties in the query with the
+     * same key but different {@link DataType} or if the {@link DataType} of a property key K is
+     * not the same as the {@link DataType} that has been stored previously for K.
      */
     public void execute(Graph graph, AbstractDBOperator outputSink) {
         try {
@@ -94,7 +94,7 @@ public class CreateQueryPlan implements QueryPlan {
         if (null == thisPropertiesCollection || null == thatPropertiesCollection) {
             return;
         }
-        for (String propertyKey: thisPropertiesCollection.keySet()) {
+        for (String propertyKey : thisPropertiesCollection.keySet()) {
             String thisDataType = thisPropertiesCollection.get(propertyKey).a.toUpperCase();
             String thatDataType = null;
             if (null != thatPropertiesCollection.get(propertyKey)) {

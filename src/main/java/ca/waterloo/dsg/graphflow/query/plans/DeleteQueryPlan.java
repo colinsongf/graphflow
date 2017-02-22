@@ -28,12 +28,13 @@ public class DeleteQueryPlan implements QueryPlan {
     public void execute(Graph graph, AbstractDBOperator outputSink) {
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
             try {
-                TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(queryRelation.
-                    getRelationType());
-                graph.deleteEdgeTemporarily(Integer.parseInt(queryRelation.getFromQueryVariable()
-                    .getVariableName()), Integer.parseInt(queryRelation.getToQueryVariable()
-                    .getVariableName()), TypeAndPropertyKeyStore.getInstance()
-                    .mapStringTypeToShort(queryRelation.getRelationType()));
+                TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(
+                    queryRelation.getRelationType());
+                graph.deleteEdgeTemporarily(
+                    Integer.parseInt(queryRelation.getFromQueryVariable().getVariableName()),
+                    Integer.parseInt(queryRelation.getToQueryVariable().getVariableName()),
+                    TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
+                        queryRelation.getRelationType()));
             } catch (NoSuchTypeException e) {
                 outputSink.append("ERROR: " + e.getMessage());
             }

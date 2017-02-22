@@ -33,7 +33,7 @@ for the list of supported queries.
 
 You can also start the Graphflow server with a custom log4j2 config file:
   ```
-  $ export GRAPHFLOW_SERVER_OPTS="-Dlog4j.configurationFile=file:/path/to/log4j2.properties"
+  $ export GRAPHFLOW_SERVER_OPTS="-Dlog4j.configurationFile=file:/path/to/log4j2.properties"  
   $ ./build/install/graphflow/bin/graphflow-server
   ```
 
@@ -48,9 +48,10 @@ In IntelliJ:
 
 * Either "Import project", or "File -> New -> Project from existing sources..."
 * In the file browser, go the Graphflow source directory, and select the
-'build.gradle' file. This selection is important because it informs IntelliJ that
-this is a Gradle project). In the 'Import Project from Gradle' dialog box, select
-'use gradle wrapper task configuration', and press 'OK'
+'build.gradle' file. (This selection of the build.gradle file instead of just
+the directory is important because it informs IntelliJ that this is a Gradle
+project). In the 'Import Project from Gradle' dialog box, select 'use gradle
+wrapper task configuration', and press 'OK'
 
 This completes the basic setup of the project. You can browse the code. Follow
 any IntelliJ prompts.

@@ -22,19 +22,16 @@ public class EdgeStore extends PropertyStore {
     private static final int INITIAL_CAPACITY = 2;
     public final int MAX_EDGES_PER_BUCKET = 8;
     public final int MAX_BUCKETS_PER_PARTITION = 1000000;
-
-    private long nextIDNeverYetAssigned = 0;
-    private byte nextBucketOffset = 0;
-    private int nextBucketId = 0;
-    private int nextPartitionId = 0;
-
-    private long[] recycledIds = new long[INITIAL_CAPACITY];
-    private int recycledIdsSize = 0;
-
     @VisibleForTesting
     byte[][][] data = new byte[INITIAL_CAPACITY][][];
     @VisibleForTesting
     int[][][] dataOffsets = new int[INITIAL_CAPACITY][][];
+    private long nextIDNeverYetAssigned = 0;
+    private byte nextBucketOffset = 0;
+    private int nextBucketId = 0;
+    private int nextPartitionId = 0;
+    private long[] recycledIds = new long[INITIAL_CAPACITY];
+    private int recycledIdsSize = 0;
 
     /**
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
@@ -59,11 +56,11 @@ public class EdgeStore extends PropertyStore {
      * previously assigned to an edge that was deleted, the last added ID to the recycled IDs array
      * is returned. Otherwise, the 8 byte {@code long} ID is assigned as follows:
      * <ul>
-     *     <li>The 3 most significant bytes are the partition ID. There are up to {@link
-     *     EdgeStore#MAX_BUCKETS_PER_PARTITION} buckets in each partition.</li>
-     *     <li> The next 4 bytes are the bucket ID. There are up to
-     *     {@link EdgeStore#MAX_EDGES_PER_BUCKET} edges in each bucket.</li>
-     *     <li> The last byte is the index of the edge in the bucket.</li>
+     * <li>The 3 most significant bytes are the partition ID. There are up to {@link
+     * EdgeStore#MAX_BUCKETS_PER_PARTITION} buckets in each partition.</li>
+     * <li> The next 4 bytes are the bucket ID. There are up to
+     * {@link EdgeStore#MAX_EDGES_PER_BUCKET} edges in each bucket.</li>
+     * <li> The last byte is the index of the edge in the bucket.</li>
      * </ul>
      */
     @VisibleForTesting
@@ -121,7 +118,7 @@ public class EdgeStore extends PropertyStore {
      * Given an edge ID, and a property key, returns the value of the property that is on the edge
      * with the given edge ID and that has the given key. If the edge does not contain a property
      * with the given key, returns null.
-     * 
+     *
      * @param edgeId ID of an edge.
      * @param key key of a property.
      * @return the given edge's property with the given key or null if no such property exists.
@@ -199,7 +196,7 @@ public class EdgeStore extends PropertyStore {
         }
 
         Map<Short, Object> edgeProperties = getProperties(edgeId);
-        for(Short key: propertyEqualityFilters.keySet()) {
+        for (Short key : propertyEqualityFilters.keySet()) {
             if (!DataType.equals(propertyEqualityFilters.get(key).a, edgeProperties.get(key),
                 propertyEqualityFilters.get(key).b)) {
                 return false;

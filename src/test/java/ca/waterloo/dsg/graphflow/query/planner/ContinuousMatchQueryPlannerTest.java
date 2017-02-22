@@ -4,8 +4,8 @@ import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
@@ -46,7 +46,7 @@ public class ContinuousMatchQueryPlannerTest {
         // Extend "a" to "b".
         stage = new ArrayList<>();
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, GraphVersion.DIFF_PLUS,
-             TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
+            TypeAndPropertyKeyStore.ANY, null /* no edge property equality filters */));
         query.addStage(stage);
         // Extend "ab" to "c".
         stage = new ArrayList<>();
@@ -150,8 +150,10 @@ public class ContinuousMatchQueryPlannerTest {
         AbstractDBOperator outputSink = new InMemoryOutputSink();
 
         // Initialize the {@code TypeStore} with types used in the MATCH query.
-        short FOLLOWS_TYPE_ID = TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("FOLLOWS");
-        short LIKES_TYPE_ID = TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("LIKES");
+        short FOLLOWS_TYPE_ID = TypeAndPropertyKeyStore.getInstance().
+            mapStringTypeToShortOrInsert("FOLLOWS");
+        short LIKES_TYPE_ID = TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert(
+            "LIKES");
         // Create a continuous MATCH query plan for a complex triangle query with multiple
         // relations between variable having different edge types.
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +

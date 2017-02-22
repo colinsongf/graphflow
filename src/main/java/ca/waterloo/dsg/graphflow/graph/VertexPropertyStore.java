@@ -42,12 +42,12 @@ public class VertexPropertyStore extends PropertyStore {
         }
         vertexProperties[vertexId] = serializeProperties(properties);
     }
-    
+
     /**
      * Given a vertex ID, and key, returns the property of the vertex with the given vertex ID
      * that has the given key. If the vertex does not contain a property with the given key, returns
      * null.
-     * 
+     *
      * @param vertexId ID of a vertex.
      * @param key key of a property.
      * @return the given vertex's property with the given key or null if no such property exists.
@@ -56,7 +56,7 @@ public class VertexPropertyStore extends PropertyStore {
         if (vertexId >= vertexProperties.length) {
             // Since we cannot tell whether the vertex does not exist in the graph or does not have
             // a property yet (in both cases vertexId would be >= vertexProperties.length), we
-            // return null. 
+            // return null.
             return null;
         }
         byte[] data = vertexProperties[vertexId];
@@ -70,7 +70,7 @@ public class VertexPropertyStore extends PropertyStore {
     public static VertexPropertyStore getInstance() {
         return INSTANCE;
     }
-    
+
     @VisibleForTesting
     public void reset() {
         vertexProperties = new byte[INITIAL_CAPACITY][];

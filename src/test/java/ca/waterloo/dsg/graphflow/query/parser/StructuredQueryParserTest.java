@@ -59,19 +59,19 @@ public class StructuredQueryParserTest {
 
         QueryVariable queryVariable1 = new QueryVariable("1");
         queryVariable1.setVariableType("Person");
-        Map <String, Pair<String, String>> properties1 = new HashMap<>();
+        Map<String, Pair<String, String>> properties1 = new HashMap<>();
         properties1.put("name", new Pair<>("string", "Olivier"));
         queryVariable1.setVariableProperties(properties1);
 
         QueryVariable queryVariable2 = new QueryVariable("2");
         queryVariable2.setVariableType("Person");
-        Map <String, Pair<String, String>> properties2 = new HashMap<>();
+        Map<String, Pair<String, String>> properties2 = new HashMap<>();
         properties2.put("name", new Pair<>("string", "Mohannad"));
         queryVariable2.setVariableProperties(properties2);
 
         QueryVariable queryVariable3 = new QueryVariable("3");
         queryVariable3.setVariableType("Person");
-        Map <String, Pair<String, String>> properties3 = new HashMap<>();
+        Map<String, Pair<String, String>> properties3 = new HashMap<>();
         properties3.put("name", new Pair<>("string", "Sid"));
         queryVariable3.setVariableProperties(properties3);
 

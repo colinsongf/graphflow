@@ -29,6 +29,11 @@ public class InMemoryOutputSink extends AbstractDBOperator {
     }
 
     @Override
+    public String getHumanReadableOperator() {
+        return "InMemoryOutputSink:\n";
+    }
+
+    @Override
     public String toString() {
         StringJoiner stringJoiner = new StringJoiner(System.lineSeparator());
         for (String result : results) {
@@ -55,10 +60,5 @@ public class InMemoryOutputSink extends AbstractDBOperator {
             return false;
         }
         return Objects.equals(a.results, b.results);
-    }
-
-    @Override
-    public String getHumanReadableOperator() {
-        return "InMemoryOutputSink:\n";
     }
 }

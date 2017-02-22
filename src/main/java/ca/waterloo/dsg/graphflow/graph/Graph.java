@@ -3,9 +3,8 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.LongArrayList;
-import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
-
+import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,7 +24,6 @@ import java.util.StringJoiner;
  */
 public class Graph {
 
-    private static Graph INSTANCE = new Graph();
     // Used to represent different versions of the graph.
     public enum GraphVersion {
         // Graph formed after making all additions and deletions permanent.
@@ -62,7 +60,7 @@ public class Graph {
 
     private static final Logger logger = LogManager.getLogger(Graph.class);
     private static final int DEFAULT_GRAPH_SIZE = 2;
-
+    private static Graph INSTANCE = new Graph();
     // Stores the highest vertex ID of the permanent graph.
     private int highestPermanentVertexId = -1;
     // Stores the highest vertex ID present among all vertices in the permanent graph and the
@@ -119,7 +117,6 @@ public class Graph {
      * Warning: This method makes the types and properties permanent.
      * If a vertex u has type T, callers should always call this method with type T for u to keep
      * u's type.
-     *
      *
      * @param fromVertex The source vertex ID for the edge.
      * @param toVertex The destination vertex ID for the edge.
@@ -377,7 +374,7 @@ public class Graph {
         return permanentAdjacencyLists[fromVertexId].contains(toVertexId, typeFilter,
             propertyEqualityFilters);
     }
-    
+
     /**
      * @param srcId ID of the source vertex.
      * @param destinationId ID of the destination vertex.
@@ -440,7 +437,7 @@ public class Graph {
         int oldCapacity = forwardAdjLists.length;
         forwardAdjLists = (SortedAdjacencyList[]) ArrayUtils.resizeIfNecessary(forwardAdjLists,
             minCapacity);
-        backwardAdjLists =(SortedAdjacencyList[]) ArrayUtils.resizeIfNecessary(backwardAdjLists,
+        backwardAdjLists = (SortedAdjacencyList[]) ArrayUtils.resizeIfNecessary(backwardAdjLists,
             minCapacity);
         initializeSortedAdjacencyLists(oldCapacity, forwardAdjLists.length);
     }
@@ -468,14 +465,14 @@ public class Graph {
             convertPermanentAdjListsToString(forwardAdjLists);
         graph += "Backward Adjacency Lists:" + System.lineSeparator() +
             convertPermanentAdjListsToString(backwardAdjLists);
-        graph += "Temporarily added edges: " + convertDiffEdgesToString(diffPlusEdges) + System
-            .lineSeparator();
+        graph += "Temporarily added edges: " + convertDiffEdgesToString(diffPlusEdges) + System.
+            lineSeparator();
         graph += "Temporarily deleted edges: " + convertDiffEdgesToString(diffMinusEdges) +
             System.lineSeparator();
-        graph += "Merged Forward Adjacency Lists: " + convertMergedAdjListsToString
-            (mergedForwardAdjLists);
-        graph += "Merged Backward Adjacency Lists: " + convertMergedAdjListsToString
-            (mergedBackwardAdjLists);
+        graph += "Merged Forward Adjacency Lists: " + convertMergedAdjListsToString(
+            mergedForwardAdjLists);
+        graph += "Merged Backward Adjacency Lists: " + convertMergedAdjListsToString(
+            mergedBackwardAdjLists);
         graph += "highestPermanentVertexId = " + highestPermanentVertexId + System.lineSeparator();
         graph += "highestMergedVertexId = " + highestMergedVertexId + System.lineSeparator();
         return graph;
@@ -547,7 +544,7 @@ public class Graph {
         mergedForwardAdjLists = new HashMap<>();
         mergedBackwardAdjLists = new HashMap<>();
         vertexTypes = new ShortArrayList();
-        
+
         // Also reset other classes that the Graph class depends on
         EdgeStore.getInstance().reset();
         VertexPropertyStore.getInstance().reset();

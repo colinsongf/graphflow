@@ -1,7 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.structuredquery;
 
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
-
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.ArrayList;
@@ -48,25 +47,25 @@ public class StructuredQuery implements AbstractStructuredQuery {
     public QueryOperation getQueryOperation() {
         return queryOperation;
     }
-    
-    public void addReturnVariable(String variable) {
-      returnVariables.add(variable);
-    }
-
-    public List<String> getReturnVariables() {
-      return returnVariables;
-    }
-    
-    public void addReturnVariablePropertyPair(Pair<String, String> variableAndProperty) {
-      returnVariablePropertyPairs.add(variableAndProperty);
-    }
-    
-    public List<Pair<String, String>> getReturnVariablePropertyPairs() {
-      return returnVariablePropertyPairs;
-    }
 
     public void setQueryOperation(QueryOperation queryOperation) {
         this.queryOperation = queryOperation;
+    }
+
+    public void addReturnVariable(String variable) {
+        returnVariables.add(variable);
+    }
+
+    public List<String> getReturnVariables() {
+        return returnVariables;
+    }
+
+    public void addReturnVariablePropertyPair(Pair<String, String> variableAndProperty) {
+        returnVariablePropertyPairs.add(variableAndProperty);
+    }
+
+    public List<Pair<String, String>> getReturnVariablePropertyPairs() {
+        return returnVariablePropertyPairs;
     }
 
     public void setContinuousMatchAction(String continuousMatchAction) {
@@ -111,23 +110,22 @@ public class StructuredQuery implements AbstractStructuredQuery {
                 return false;
             }
         }
-        
         if (a.returnVariables.size() != b.returnVariables.size()) {
-          return false;
+            return false;
         }
         for (int i = 0; i < a.returnVariables.size(); ++i) {
-          if (!a.returnVariables.get(i).equals(b.returnVariables.get(i))) {
-            return false;
-          }
+            if (!a.returnVariables.get(i).equals(b.returnVariables.get(i))) {
+                return false;
+            }
         }
-        
         if (a.returnVariablePropertyPairs.size() != b.returnVariablePropertyPairs.size()) {
-          return false;
+            return false;
         }
         for (int i = 0; i < a.returnVariablePropertyPairs.size(); ++i) {
-          if (!a.returnVariablePropertyPairs.get(i).equals(b.returnVariablePropertyPairs.get(i))) {
-            return false;
-          }
+            if (!a.returnVariablePropertyPairs.get(i).equals(b.returnVariablePropertyPairs.
+                get(i))) {
+                return false;
+            }
         }
         return true;
     }

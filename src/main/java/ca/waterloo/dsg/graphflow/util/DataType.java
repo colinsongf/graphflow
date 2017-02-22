@@ -7,21 +7,25 @@ import java.util.Arrays;
  * Represents the possible data types of property values.
  */
 public enum DataType {
-    INT, DOUBLE, BOOLEAN, STRING;
+    INT,
+    DOUBLE,
+    BOOLEAN,
+    STRING;
 
     /**
      * Converts the {@code String} dataType to the actual {@link DataType} enum.
      *
      * @param stringDataType The {@code String} dataType.
      * @return The {@link DataType} enum obtained from the {@code String} stringDataType.
-     * @throws IllegalArgumentException if {@code stringDataType} is not one of the {@link DataType}
+     * @throws IllegalArgumentException if {@code stringDataType} is not one of the {@link
+     * DataType}
      * enum values.
      */
     public static DataType mapStringToDataType(String stringDataType) {
         stringDataType = stringDataType.toUpperCase();
         if (INT.name().matches(stringDataType)) {
             return INT;
-        }  else if (DOUBLE.name().matches(stringDataType)) {
+        } else if (DOUBLE.name().matches(stringDataType)) {
             return DOUBLE;
         } else if (BOOLEAN.name().matches(stringDataType)) {
             return BOOLEAN;
@@ -54,8 +58,7 @@ public enum DataType {
             } else if (DOUBLE == dataType) {
                 Double.parseDouble(stringValue);
             }
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             throw new IllegalArgumentException("The string value " + stringValue + " can not be " +
                 "parsed as " + stringDataType.toUpperCase() + ".");
         }
@@ -173,7 +176,7 @@ public enum DataType {
                 ((int) data[startIndex + 1]) << 8 | (int) data[startIndex];
         } else if (DOUBLE == dataType) {
             long value = 0;
-            for(int i = 0; i < 8; i++) {
+            for (int i = 0; i < 8; i++) {
                 value |= ((long) data[startIndex + i]) << ((7 - i) * 8);
             }
             return Double.longBitsToDouble(value);
@@ -198,8 +201,8 @@ public enum DataType {
 
     private static void serializeDouble(byte[] serializedBytes, String value) {
         long longValue = Double.doubleToLongBits(Double.parseDouble(value));
-        for(int i = 0; i < 8; i++) {
-            serializedBytes[i + 2] = (byte)((longValue >> ((7 - i) * 8)) & 0xff);
+        for (int i = 0; i < 8; i++) {
+            serializedBytes[i + 2] = (byte) ((longValue >> ((7 - i) * 8)) & 0xff);
         }
     }
 

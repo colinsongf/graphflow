@@ -59,11 +59,12 @@ abstract class PropertyStore {
         private byte[] data;
         private int endIndex;
         private int currentIndex;
+
         protected PropertyIterator() {}
 
         /**
          * Resets the iterator.
-         * 
+         *
          * @param data byte array containing the properties.
          * @param startIndex start index of properties in {@link #data}.
          * @param endIndex end index of properties in {@link #data}.
@@ -76,7 +77,7 @@ abstract class PropertyStore {
 
         @Override
         public boolean hasNext() {
-             return currentIndex < endIndex;
+            return currentIndex < endIndex;
         }
 
         @Override

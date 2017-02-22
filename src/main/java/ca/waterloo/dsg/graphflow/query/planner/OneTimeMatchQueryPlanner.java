@@ -1,23 +1,22 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
-import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.exceptions.MalformedMatchQueryException;
 import ca.waterloo.dsg.graphflow.exceptions.MalformedReturnClauseException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
+import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver;
+import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver.SourceDestinationIndexAndType;
 import ca.waterloo.dsg.graphflow.query.operator.Projection;
 import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver;
-import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver.SourceDestinationIndexAndType;
 import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver.EdgeOrVertexPropertyIndices;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryGraph;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,9 +36,9 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
     private static final String UNDEFINED_VARIABLE_ERROR_MESSAGE = "Return statement contains "
         + "variables that are not defined in the MATCH clause.";
     private static final Logger logger = LogManager.getLogger(OneTimeMatchQueryPlanner.class);
-    private TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
     protected QueryGraph queryGraph = new QueryGraph();
     protected AbstractDBOperator outputSink;
+    private TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
 
     /**
      * @param structuredQuery query to plan.
@@ -72,10 +71,10 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
 
     private void checkReturnVariablesAndPropertiesAreWellFormed() {
         for (String variable : structuredQuery.getReturnVariables()) {
-           if (!queryGraph.getAllVariables().contains(variable) &&
-               !queryGraph.getAllRelationNames().contains(variable)) {
-               throw new MalformedReturnClauseException(UNDEFINED_VARIABLE_ERROR_MESSAGE);
-           }
+            if (!queryGraph.getAllVariables().contains(variable) &&
+                !queryGraph.getAllRelationNames().contains(variable)) {
+                throw new MalformedReturnClauseException(UNDEFINED_VARIABLE_ERROR_MESSAGE);
+            }
         }
 
         String variable, propertyKey;
@@ -90,7 +89,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             if (!typeAndPropertyKeyStore.isPropertyDefined(propertyKey)) {
                 throw new NoSuchPropertyKeyException(propertyKey);
             }
-         }
+        }
     }
 
     /**
@@ -195,10 +194,10 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     variableForCurrentStage)) {
                     for (QueryRelation queryRelation : queryGraph.getAdjacentRelations(
                         variableFromPreviousStage, variableForCurrentStage)) {
-                        Direction direction = queryRelation.getFromQueryVariable()
-                            .getVariableName().equals(variableFromPreviousStage) ?
-                                Direction.FORWARD : Direction.BACKWARD;
-                        stage.add(new GenericJoinIntersectionRule(j, direction,                            
+                        Direction direction = queryRelation.getFromQueryVariable().
+                            getVariableName().equals(variableFromPreviousStage) ?
+                            Direction.FORWARD : Direction.BACKWARD;
+                        stage.add(new GenericJoinIntersectionRule(j, direction,
                             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
                                 queryRelation.getRelationType()), TypeAndPropertyKeyStore.
                             getInstance().mapStringPropertiesToShortAndDataType(queryRelation.
@@ -219,9 +218,10 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
      * Adds to {@link OneTimeMatchQueryPlan} the next plan which can be one of the following. The
      * op1->op2 below indicates that operator op1 appends results to operator op2.
      * <ul>
-     *   <li> {@link PropertyResolver}->{@link #outputSink}. (when no RETURN statement is specified).
-     *   <li> {@link Projection}->{@link PropertyResolver}->{@link #outputSink}.
-     *   <li> {@link EdgeIdResolver}->{@link Projection}->{@link PropertyResolver}->{@link #outputSink}.
+     * <li> {@link PropertyResolver}->{@link #outputSink}. (when no RETURN statement is specified).
+     * <li> {@link Projection}->{@link PropertyResolver}->{@link #outputSink}.
+     * <li> {@link EdgeIdResolver}->{@link Projection}->{@link PropertyResolver}->
+     * {@link #outputSink}.
      * </ul>
      */
     private AbstractDBOperator getNextOperator(
@@ -235,7 +235,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             // Otherwise we first project onto the set of attributes mentioned in the RETURN
             // clause. And then resolve the variables in the RETURN clause with properties
             // (if any).
-            
+
             // First compute the set of variables that will be in the output after the projection.
             // Note: We do order the variables to return implicitly below. Specifically, below we
             // disregard the order in which the user listed the variables and variableProperties
@@ -260,10 +260,10 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     returnVariable));
             }
             Projection projection = new Projection(propertyResolver, vertexIndicesToProject);
-            
+
             // Finally construct the EdgeIdResolver if needed.
             if (orderedEdgeVariables.isEmpty()) {
-               return projection;
+                return projection;
             } else {
                 return constructEdgeIdResolver(orderedEdgeVariables,
                     orderedVariableIndexMapBeforeProjection, projection);
@@ -275,22 +275,22 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         Map<String, Integer> orderedVariableIndexMapBeforeProjection, Projection projection) {
         List<SourceDestinationIndexAndType> srcDstVertexIndicesAndTypes = new ArrayList<>();
         for (int i = 0; i < orderedEdgeVariables.size(); ++i) {
-           String orderedEdgeVariable = orderedEdgeVariables.get(i);
-           QueryRelation queryRelation = queryGraph.getRelationFromRelationName(
-               orderedEdgeVariable);
-           if (null == queryRelation) {
-               logger.warn("QueryRelation with given edgeVariableToResolve is null: "
-                   + orderedEdgeVariable + ". This should never happen. Sanity checks"
-                   + " should have caught this.");
-               continue;
-           }
-           int sourceIndex = orderedVariableIndexMapBeforeProjection.get(
-               queryRelation.getFromQueryVariable().getVariableName());
-           int destinationIndex = orderedVariableIndexMapBeforeProjection.get(
-               queryRelation.getToQueryVariable().getVariableName());
-           srcDstVertexIndicesAndTypes.add(new SourceDestinationIndexAndType(sourceIndex,
-               destinationIndex,
-               typeAndPropertyKeyStore.mapStringTypeToShort(queryRelation.getRelationType())));
+            String orderedEdgeVariable = orderedEdgeVariables.get(i);
+            QueryRelation queryRelation = queryGraph.getRelationFromRelationName(
+                orderedEdgeVariable);
+            if (null == queryRelation) {
+                logger.warn("QueryRelation with given edgeVariableToResolve is null: "
+                    + orderedEdgeVariable + ". This should never happen. Sanity checks"
+                    + " should have caught this.");
+                continue;
+            }
+            int sourceIndex = orderedVariableIndexMapBeforeProjection.get(
+                queryRelation.getFromQueryVariable().getVariableName());
+            int destinationIndex = orderedVariableIndexMapBeforeProjection.get(
+                queryRelation.getToQueryVariable().getVariableName());
+            srcDstVertexIndicesAndTypes.add(new SourceDestinationIndexAndType(sourceIndex,
+                destinationIndex, typeAndPropertyKeyStore.mapStringTypeToShort(queryRelation.
+                getRelationType())));
         }
         return new EdgeIdResolver(projection, srcDstVertexIndicesAndTypes);
     }
@@ -337,7 +337,6 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     edgeVariableOrderIndexMap.get(returnVariable),
                     typeAndPropertyKeyStore.mapStringPropertyKeyToShort(
                         returnVariablePropertyPair.b)));
-                
             } else {
                 logger.warn("ERROR: The return variable in variablePropertyPair always has to "
                     + "exist either in vertexVariableOrderIndexMapAfterProjection or "
@@ -348,7 +347,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
     }
 
     private Pair<List<String>, List<String>>
-        getOrderedVertexVariablesAfterProjectionAndOrderedEdgeVariables() {
+    getOrderedVertexVariablesAfterProjectionAndOrderedEdgeVariables() {
         List<String> returnVariables = structuredQuery.getReturnVariables();
         List<Pair<String, String>> returnVariablePropertyPairs =
             structuredQuery.getReturnVariablePropertyPairs();

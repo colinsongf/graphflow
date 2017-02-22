@@ -5,7 +5,6 @@ import ca.waterloo.dsg.graphflow.exceptions.NoSuchVertexIDException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

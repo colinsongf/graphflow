@@ -46,8 +46,8 @@ public class ContinuousMatchQueryExecutorTest {
             " FILE results;";
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(
             continuousTriangleQuery);
-        String fileName = "continuous_match_query_" + structuredQuery
-            .getContinuousMatchOutputLocation();
+        String fileName = "continuous_match_query_" + structuredQuery.
+            getContinuousMatchOutputLocation();
         File location = temporaryFolder.newFile(fileName);
         AbstractDBOperator outputSink = new FileOutputSink(location);
         ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(

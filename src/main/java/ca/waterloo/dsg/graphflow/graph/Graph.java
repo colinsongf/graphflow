@@ -57,6 +57,7 @@ public class Graph {
             return isForward;
         }
     }
+
     private static final Logger logger = LogManager.getLogger(Graph.class);
     private static final int DEFAULT_GRAPH_SIZE = 2;
     private static Graph INSTANCE = new Graph();
@@ -464,14 +465,14 @@ public class Graph {
             convertPermanentAdjListsToString(forwardAdjLists);
         graph += "Backward Adjacency Lists:" + System.lineSeparator() +
             convertPermanentAdjListsToString(backwardAdjLists);
-        graph += "Temporarily added edges: " + convertDiffEdgesToString(diffPlusEdges) + System
-            .lineSeparator();
+        graph += "Temporarily added edges: " + convertDiffEdgesToString(diffPlusEdges) + System.
+            lineSeparator();
         graph += "Temporarily deleted edges: " + convertDiffEdgesToString(diffMinusEdges) +
             System.lineSeparator();
-        graph += "Merged Forward Adjacency Lists: " + convertMergedAdjListsToString
-            (mergedForwardAdjLists);
-        graph += "Merged Backward Adjacency Lists: " + convertMergedAdjListsToString
-            (mergedBackwardAdjLists);
+        graph += "Merged Forward Adjacency Lists: " + convertMergedAdjListsToString(
+            mergedForwardAdjLists);
+        graph += "Merged Backward Adjacency Lists: " + convertMergedAdjListsToString(
+            mergedBackwardAdjLists);
         graph += "highestPermanentVertexId = " + highestPermanentVertexId + System.lineSeparator();
         graph += "highestMergedVertexId = " + highestMergedVertexId + System.lineSeparator();
         return graph;

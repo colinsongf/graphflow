@@ -188,8 +188,8 @@ public class ShortestPathExecutor {
                     // Check if this vertex has been visited during this query. If the value equals
                     // the current {@link #queryId} it has been visited.
                     if (visitedVerticesByQueryId[neighbourVertex] == queryId) {
-                        if (visitedDirections[neighbourVertex] == currentDirection
-                            .getBooleanValue()) {
+                        if (visitedDirections[neighbourVertex] == currentDirection.
+                            getBooleanValue()) {
                             // This vertex has been visited before while traversing in the current
                             // direction.
                             continue;

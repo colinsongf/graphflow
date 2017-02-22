@@ -96,8 +96,8 @@ public class QueryProcessor {
     private String handleMatchQuery(StructuredQuery structuredQuery) {
         AbstractDBOperator outputSink = new InMemoryOutputSink();
         try {
-            ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink)
-                .plan()).execute(graph);
+            ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink).
+                plan()).execute(graph);
         } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
             logger.debug(e.getMessage());
             outputSink.append("ERROR: " + e.getMessage());
@@ -106,8 +106,8 @@ public class QueryProcessor {
     }
 
     private String handleContinuousMatchQuery(StructuredQuery structuredQuery) {
-        String fileName = "continuous_match_query_" + structuredQuery
-            .getContinuousMatchOutputLocation();
+        String fileName = "continuous_match_query_" + structuredQuery.
+            getContinuousMatchOutputLocation();
         AbstractDBOperator outputSink;
         try {
             outputSink = new FileOutputSink(new File(TMP_DIRECTORY + fileName));

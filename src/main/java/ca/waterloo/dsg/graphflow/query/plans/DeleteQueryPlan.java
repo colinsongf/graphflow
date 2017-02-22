@@ -30,10 +30,11 @@ public class DeleteQueryPlan implements QueryPlan {
             try {
                 TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(
                     queryRelation.getRelationType());
-                graph.deleteEdgeTemporarily(Integer.parseInt(queryRelation.getFromQueryVariable()
-                    .getVariableName()), Integer.parseInt(queryRelation.getToQueryVariable()
-                    .getVariableName()), TypeAndPropertyKeyStore.getInstance()
-                    .mapStringTypeToShort(queryRelation.getRelationType()));
+                graph.deleteEdgeTemporarily(
+                    Integer.parseInt(queryRelation.getFromQueryVariable().getVariableName()),
+                    Integer.parseInt(queryRelation.getToQueryVariable().getVariableName()),
+                    TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
+                        queryRelation.getRelationType()));
             } catch (NoSuchTypeException e) {
                 outputSink.append("ERROR: " + e.getMessage());
             }

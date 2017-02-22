@@ -54,8 +54,8 @@ public class PropertyResolver extends AbstractDBOperator {
                 matchQueryOutput.edgeIds[index];
             key = edgeOrVertexPropertyIndex.key;
             if (key >= 0) {
-                property = isVertexOrVertexProperty ? VertexPropertyStore.getInstance()
-                    .getProperty((int) id, key) : EdgeStore.getInstance().getProperty(id, key);
+                property = isVertexOrVertexProperty ? VertexPropertyStore.getInstance().
+                    getProperty((int) id, key) : EdgeStore.getInstance().getProperty(id, key);
                 stringBuilder.append(" " + property);
             } else {
                 stringBuilder.append(" " + id);

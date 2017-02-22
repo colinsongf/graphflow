@@ -70,8 +70,8 @@ public class TestUtils {
     public static void createEdgesTemporarily(Graph graph, String createQuery) {
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(createQuery);
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
-            int fromVertex = Integer.parseInt(queryRelation.getFromQueryVariable()
-                .getVariableName());
+            int fromVertex = Integer.parseInt(queryRelation.getFromQueryVariable().
+                getVariableName());
             int toVertex = Integer.parseInt(queryRelation.getToQueryVariable().getVariableName());
             // Insert the types into the {@code TypeStore} if they do not already exist, and
             // get their {@code short} IDs. An exception in the above {@code parseInt()} calls

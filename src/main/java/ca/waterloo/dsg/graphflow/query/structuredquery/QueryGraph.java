@@ -125,8 +125,8 @@ public class QueryGraph {
      * {@code variable2} in any direction, {@code false} otherwise.
      */
     public boolean containsRelation(String variable1, String variable2) {
-        return queryGraph.containsKey(variable1) && queryGraph.get(variable1)
-            .containsKey(variable2);
+        return queryGraph.containsKey(variable1) && queryGraph.get(variable1).
+            containsKey(variable2);
     }
 
     /**

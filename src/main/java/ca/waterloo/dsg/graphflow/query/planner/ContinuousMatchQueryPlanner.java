@@ -3,8 +3,8 @@ package ca.waterloo.dsg.graphflow.query.planner;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
@@ -22,11 +22,9 @@ import java.util.Set;
  */
 public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
 
-    private OutputSink outputSink;
-
-    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery, OutputSink outputSink) {
-        super(structuredQuery);
-        this.outputSink = outputSink;
+    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery,
+        AbstractDBOperator outputSink) {
+        super(structuredQuery, outputSink);
     }
 
     /**
@@ -52,8 +50,8 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             // delta relation.
             permanentRelations.remove(diffRelation);
             List<String> orderedVariables = new ArrayList<>();
-            orderedVariables.add(diffRelation.getFromQueryVariable().getVariableId());
-            orderedVariables.add(diffRelation.getToQueryVariable().getVariableId());
+            orderedVariables.add(diffRelation.getFromQueryVariable().getVariableName());
+            orderedVariables.add(diffRelation.getToQueryVariable().getVariableName());
             super.orderRemainingVariables(orderedVariables);
             // Create the query plan using the ordering determined above.
             continuousMatchQueryPlan.addOneTimeMatchQueryPlan(addSingleQueryPlan(
@@ -106,7 +104,7 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             addGenericJoinIntersectionRule(0,
                 // The {@code Direction} of the rule is {@code FORWARD} if {@code queryRelation} is
                 // an edge from {@code fromVariable} to {@code toVariable}, else {@code BACKWARD}.
-                queryRelation.getFromQueryVariable().getVariableId().equals(fromVariable) ?
+                queryRelation.getFromQueryVariable().getVariableName().equals(fromVariable) ?
                     Direction.FORWARD : Direction.BACKWARD,
                 queryRelation, stage, permanentRelations, mergedRelations);
         }
@@ -130,7 +128,7 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
                             // The {@code Direction} of the rule is {@code FORWARD} if
                             // {@code queryRelation} is an edge from {@code coveredVariable} to
                             // {@code nextVariable}, else {@code BACKWARD}.
-                            queryRelation.getFromQueryVariable().getVariableId().equals(
+                            queryRelation.getFromQueryVariable().getVariableName().equals(
                                 coveredVariable) ? Direction.FORWARD : Direction.BACKWARD,
                             queryRelation, stage, permanentRelations, mergedRelations);
                     }

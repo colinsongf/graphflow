@@ -2,14 +2,18 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.outputsink.FileOutputSink;
-import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
-import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
+import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
+import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
+
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -17,6 +21,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Arrays;
 import java.util.StringJoiner;
 
 /**
@@ -28,6 +33,11 @@ public class ContinuousMatchQueryExecutorTest {
     // {@code public} visibility.
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Before
+    public void setUp() {
+        Graph.getInstance().reset();
+    }
 
     /**
      * Tests the execution of a triangle CONTINUOUS MATCH query.
@@ -42,13 +52,13 @@ public class ContinuousMatchQueryExecutorTest {
         String fileName = "continuous_match_query_" + structuredQuery
             .getContinuousMatchOutputLocation();
         File location = temporaryFolder.newFile(fileName);
-        OutputSink outputSink = new FileOutputSink(location);
+        AbstractDBOperator outputSink = new FileOutputSink(location);
         ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
             (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
                 outputSink).plan());
 
         // Initialize a graph.
-        Graph graph = new Graph();
+        Graph graph = Graph.getInstance();
         TestUtils.createEdgesPermanently(graph, "CREATE (0:Person)-[:FOLLOWS]->" +
             "(1:Person),(1:Person)-[:FOLLOWS]->(2:Person), (1:Person)-[:FOLLOWS]->(3:Person)," +
             "(2:Person)-[:FOLLOWS]->(3:Person), (3:Person)-[:FOLLOWS]->(4:Person)," +
@@ -82,7 +92,7 @@ public class ContinuousMatchQueryExecutorTest {
         MatchQueryResultType[] matchQueryResultTypes) {
         InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
         for (int i = 0; i < motifs.length; i++) {
-            inMemoryOutputSink.append(GenericJoinExecutor.getStringOutput(motifs[i],
+            inMemoryOutputSink.append(QueryOutputUtils.getStringMatchQueryOutput(motifs[i],
                 matchQueryResultTypes[i]));
         }
         return inMemoryOutputSink;

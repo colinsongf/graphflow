@@ -2,9 +2,12 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
-import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
-import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
+import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,29 +16,32 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Executes the Generic Join algorithm encapsulated in {@code stages} on {@code graph} and writes
- * output to the {@code outputSink}. Processing is done in batches using recursion.
+ * Executes the Generic Join algorithm encapsulated in {@code stages} on {@code graph} and appends
+ * outputs to the {@code nextOperator}. Processing is done in batches using recursion.
  */
 public class GenericJoinExecutor {
 
     private static final int BATCH_SIZE = 2;
     private static final Logger logger = LogManager.getLogger(GenericJoinExecutor.class);
+    // matchQueryOutput is reused to append prefixes to the next operator.
+    private MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
+
     /**
      * Stages represents a Generic Join query plan for a query consisting of particular set of
      * relations between variables. Each stage is used to expand the result tuples to an additional
      * vertex.
      */
     private List<List<GenericJoinIntersectionRule>> stages;
-    private OutputSink outputSink;
     private Graph graph;
+    private AbstractDBOperator nextOperator;
 
     public GenericJoinExecutor(List<List<GenericJoinIntersectionRule>> stages,
-        OutputSink outputSink, Graph graph) {
+        AbstractDBOperator nextOperator, Graph graph) {
+        this.nextOperator = nextOperator;
         if (0 == stages.size() || 0 == stages.get(0).size()) {
             throw new RuntimeException("Incomplete stages.");
         }
         this.stages = stages;
-        this.outputSink = outputSink;
         this.graph = graph;
     }
 
@@ -51,16 +57,15 @@ public class GenericJoinExecutor {
             // Obtained empty set of edges, nothing to execute.
             return;
         }
-        MatchQueryResultType matchQueryResultType;
-        // Select the {@code MatchQueryResultType} depending on the {@code GraphVersion} of the
-        // {@code firstGJIntersectionRule}.
+
         if (GraphVersion.DIFF_PLUS == firstGJIntersectionRule.getGraphVersion()) {
-            matchQueryResultType = MatchQueryResultType.EMERGED;
+            matchQueryOutput.matchQueryResultType = MatchQueryResultType.EMERGED;
         } else if (GraphVersion.DIFF_MINUS == firstGJIntersectionRule.getGraphVersion()) {
-            matchQueryResultType = MatchQueryResultType.DELETED;
+            matchQueryOutput.matchQueryResultType = MatchQueryResultType.DELETED;
         } else {
-            matchQueryResultType = MatchQueryResultType.MATCHED;
+            matchQueryOutput.matchQueryResultType = MatchQueryResultType.MATCHED;
         }
+
         int[][] initialPrefixes = new int[BATCH_SIZE][];
         int index = 0;
         // The set of initial prefixes obtained by applying the first rule of the first stage needs
@@ -92,13 +97,13 @@ public class GenericJoinExecutor {
             initialPrefixes[index++] = prefix;
             if (index == BATCH_SIZE) {
                 // Extend the initial prefixes in batches of size BATCH_SIZE.
-                extend(initialPrefixes, 1, matchQueryResultType);
+                extend(initialPrefixes, 1);
                 index = 0;
             }
         }
         if (index > 0) {
             // Handle the last batch of initial prefixes which did not reach size of BATCH_SIZE.
-            extend(Arrays.copyOf(initialPrefixes, index), 1, matchQueryResultType);
+            extend(Arrays.copyOf(initialPrefixes, index), 1);
         }
     }
 
@@ -110,12 +115,12 @@ public class GenericJoinExecutor {
      * @param stageIndex Stage index to track progress of the execution.
      * @param matchQueryResultType The category to under which the output prefixes are stored.
      */
-    private void extend(int[][] prefixes, int stageIndex, MatchQueryResultType
-        matchQueryResultType) {
+    private void extend(int[][] prefixes, int stageIndex) {
         if (stageIndex >= stages.size()) {
             // Write to output sink because this is the last stage.
             for (int[] result : prefixes) {
-                outputSink.append(getStringOutput(result, matchQueryResultType));
+                matchQueryOutput.vertexIds = result;
+                nextOperator.append(matchQueryOutput);
             }
             return;
         }
@@ -164,7 +169,7 @@ public class GenericJoinExecutor {
                 // they are recursively executed till final results are obtained before
                 // proceeding with the extending process in this stage.
                 if (newPrefixCount >= BATCH_SIZE) {
-                    this.extend(newPrefixes, stageIndex + 1, matchQueryResultType);
+                    this.extend(newPrefixes, stageIndex + 1);
                     newPrefixCount = 0;
                 }
             }
@@ -172,8 +177,7 @@ public class GenericJoinExecutor {
 
         if (newPrefixCount > 0) {
             // Handle the last batch of extended prefixes which did not reach size of BATCH_SIZE.
-            this.extend(Arrays.copyOf(newPrefixes, newPrefixCount), stageIndex + 1,
-                matchQueryResultType);
+            this.extend(Arrays.copyOf(newPrefixes, newPrefixCount), stageIndex + 1);
         }
     }
 
@@ -200,8 +204,37 @@ public class GenericJoinExecutor {
         return minGenericJoinIntersectionRule;
     }
 
-    @PackagePrivateForTesting
-    static String getStringOutput(int[] result, MatchQueryResultType matchQueryResultType) {
-        return Arrays.toString(result) + ", " + matchQueryResultType;
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if the {@code a} object values are the same as the
+     * {@code b} object values, {@code false} otherwise.
+     */
+    @UsedOnlyByTests
+    public static boolean hasSameStages(GenericJoinExecutor a, GenericJoinExecutor b) {
+        if (a == b) {
+            return true;
+        }
+        if (null == a || null == b) {
+            return false;
+        }
+        if (a.stages.size() != b.stages.size()) {
+            return false;
+        }
+        for (int i = 0; i < a.stages.size(); i++) {
+            if (a.stages.get(i).size() != b.stages.get(i).size()) {
+                return false;
+            }
+            for (int j = 0; j < a.stages.get(i).size(); j++) {
+                if (!GenericJoinIntersectionRule.isSameAs(a.stages.get(i).get(j),
+                    b.stages.get(i).get(j))) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }

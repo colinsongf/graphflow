@@ -13,6 +13,9 @@ public class QueryRelation implements AbstractStructuredQuery {
 
     private QueryVariable fromQueryVariable;
     private QueryVariable toQueryVariable;
+    // Variable name, e.g., e1, e2, given to edges in the query. For example:
+    // MATCH (a)-[e1:LIKES]->(b);
+    private String relationName;
     private String relationType;
     // The Strings below refer to: Map<key, Pair<dataType, value>>
     private Map<String, Pair<String, String>> relationProperties;
@@ -36,6 +39,14 @@ public class QueryRelation implements AbstractStructuredQuery {
 
     public QueryVariable getToQueryVariable() {
         return toQueryVariable;
+    }
+
+    public String getRelationName() {
+        return relationName;
+    }
+
+    public void setRelationName(String relationName) {
+        this.relationName = relationName;
     }
 
     public String getRelationType() {

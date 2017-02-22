@@ -4,6 +4,7 @@ import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -15,6 +16,11 @@ import java.util.NoSuchElementException;
  * Tests {@link Graph}.
  */
 public class GraphTest {
+
+    @Before
+    public void setUp() {
+        Graph.getInstance().reset();
+    }
 
     /**
      * Tests that the insertion of edges that are already present in the graph do not result in any
@@ -161,7 +167,7 @@ public class GraphTest {
 
     private Graph getGraphWithTemporaryChanges() {
         // Create a graph with some initial edges.
-        Graph graph = new Graph();
+        Graph graph = Graph.getInstance();
         graph.addEdgeTemporarily(0, 1, (short) 2, (short) 1, null /* no fromVertex properties */,
             null /* no toVertex properties */, (short) 1, null /* no edge properties */);
         graph.addEdgeTemporarily(11, 9, (short) 2, (short) 1, null /* no fromVertex properties */,

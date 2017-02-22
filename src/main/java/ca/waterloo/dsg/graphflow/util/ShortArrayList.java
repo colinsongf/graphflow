@@ -67,7 +67,7 @@ public class ShortArrayList {
         return size;
     }
 
-    @PackagePrivateForTesting
+    @VisibleForTesting
     short[] toArray() {
         return Arrays.copyOf(data, size);
     }

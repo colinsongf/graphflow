@@ -40,7 +40,7 @@ public class TestUtils {
      */
     public static Graph initializeGraphTemporarily(int[][] edges, short[] edgeTypes,
         short[][] vertexTypes) {
-        Graph graph = new Graph();
+        Graph graph = Graph.getInstance();
         for (int i = 0; i < edges.length; i++) {
             graph.addEdgeTemporarily(edges[i][0], edges[i][1], vertexTypes[i][0],
                 vertexTypes[i][1], null /* no fromVertex properties */, null /* no toVertex
@@ -70,8 +70,9 @@ public class TestUtils {
     public static void createEdgesTemporarily(Graph graph, String createQuery) {
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(createQuery);
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
-            int fromVertex = Integer.parseInt(queryRelation.getFromQueryVariable().getVariableId());
-            int toVertex = Integer.parseInt(queryRelation.getToQueryVariable().getVariableId());
+            int fromVertex = Integer.parseInt(queryRelation.getFromQueryVariable()
+                .getVariableName());
+            int toVertex = Integer.parseInt(queryRelation.getToQueryVariable().getVariableName());
             // Insert the types into the {@code TypeStore} if they do not already exist, and
             // get their {@code short} IDs. An exception in the above {@code parseInt()} calls
             // will prevent the insertion of any new type to the {@code TypeStore}.
@@ -112,8 +113,8 @@ public class TestUtils {
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(deleteQuery);
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
             graph.deleteEdgeTemporarily(
-                Integer.parseInt(queryRelation.getFromQueryVariable().getVariableId()),
-                Integer.parseInt(queryRelation.getToQueryVariable().getVariableId()),
+                Integer.parseInt(queryRelation.getFromQueryVariable().getVariableName()),
+                Integer.parseInt(queryRelation.getToQueryVariable().getVariableName()),
                 TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
                     queryRelation.getRelationType()));
         }

@@ -11,7 +11,7 @@ query : matchQuery
        | shortestPathQuery
        ;
 
-matchQuery : MATCH whitespace matchPattern ;
+matchQuery : MATCH whitespace matchPattern whitespace? returnClause? ;
 continuousMatchQuery : CONTINUOUS whitespace matchQuery whitespace userOperation whitespace operationLocation;
 createQuery : CREATE whitespace createPattern ;
 deleteQuery : DELETE whitespace deletePattern ;
@@ -21,6 +21,7 @@ matchPattern: variableEdge ( whitespace? ',' whitespace? variableEdge )* ;
 deletePattern : digitsEdgeWithOptionalType ( whitespace? ',' whitespace? digitsEdgeWithOptionalType )* ;
 createPattern : digitsEdgeWithTypeAndProperties ( whitespace? ',' whitespace? digitsEdgeWithTypeAndProperties )* ;
 pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
+returnClause : RETURN whitespace (variable | variableWithProperty) ( whitespace? ',' whitespace? (variable | variableWithProperty) )* ;
 
 variableEdge : variableVertex (DASH edgeOptionalTypeAndOptionalProperties)? DASH RIGHT_ARROWHEAD variableVertex ;
 digitsEdgeWithOptionalType : digitsVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD digitsVertex ;
@@ -33,18 +34,19 @@ variableVertex : '(' whitespace? variable whitespace? ')' ;
 
 edgeType : '[' whitespace? ':' type whitespace? ']' ;
 edgeTypeAndOptionalProperties : '[' whitespace? ':' type whitespace? properties? whitespace? ']' ;
-edgeOptionalTypeAndOptionalProperties : '[' whitespace? ':' type? whitespace? properties? whitespace? ']' ;
+edgeOptionalTypeAndOptionalProperties : '[' whitespace? variable? (':' type)? whitespace? properties? whitespace? ']' ;
 
 type : variable ;
 properties : '{' whitespace? ( property ( whitespace? ',' whitespace? property )* )? whitespace? '}' ;
 property : key whitespace? ':' whitespace? dataType whitespace? '=' whitespace? value ;
 key : variable ;
-value : variable ;
+value : ( Digits | Characters | UNDERSCORE | DASH | DOT )+ ;
 
 userOperation : FILE ;
 operationLocation: variable;
 
-variable : ( Digits | Characters | UNDERSCORE | DASH | DOT )+ ;
+variableWithProperty : variable DOT variable;
+variable : ( Digits | Characters | UNDERSCORE | DASH )+ ;
 dataType : ( INT | DOUBLE | BOOLEAN | STRING ) ;
 
 INT: I N T ;
@@ -66,6 +68,8 @@ DELETE : D E L E T E;
 
 SHORTEST: S H O R T E S T ;
 PATH: P A T H ;
+
+RETURN: R E T U R N ;
 
 whitespace : (WHITESPACE)+ ;
 

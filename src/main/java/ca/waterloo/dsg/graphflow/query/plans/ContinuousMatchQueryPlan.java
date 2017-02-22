@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 
 import java.util.ArrayList;
@@ -18,9 +18,9 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
      * which together produce the complete output for the Delta Generic Join query.
      */
     private List<OneTimeMatchQueryPlan> oneTimeMatchQueryPlans = new ArrayList<>();
-    private OutputSink outputSink;
+    private AbstractDBOperator outputSink;
 
-    public ContinuousMatchQueryPlan(OutputSink outputSink) {
+    public ContinuousMatchQueryPlan(AbstractDBOperator outputSink) {
         this.outputSink = outputSink;
     }
 
@@ -30,6 +30,7 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
      * @param oneTimeMatchQueryPlan the {@link OneTimeMatchQueryPlan} to be added.
      */
     public void addOneTimeMatchQueryPlan(OneTimeMatchQueryPlan oneTimeMatchQueryPlan) {
+        oneTimeMatchQueryPlan.setNextOperator(outputSink);
         oneTimeMatchQueryPlans.add(oneTimeMatchQueryPlan);
     }
 
@@ -40,7 +41,7 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
      */
     public void execute(Graph graph) {
         for (OneTimeMatchQueryPlan oneTimeMatchQueryPlan : oneTimeMatchQueryPlans) {
-            oneTimeMatchQueryPlan.execute(graph, outputSink);
+            oneTimeMatchQueryPlan.execute(graph);
         }
     }
 

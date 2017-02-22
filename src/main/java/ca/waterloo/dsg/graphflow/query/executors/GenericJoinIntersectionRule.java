@@ -9,6 +9,7 @@ import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Represents a Generic Join rule. A Generic Join rule consists of the following: (1) A {@code
@@ -128,5 +129,33 @@ public class GenericJoinIntersectionRule {
             }
         }
         return true;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("prefixIndex: " + prefixIndex);
+        stringBuilder.append(", direction: " + direction.name());
+        stringBuilder.append(", graph-version: " + graphVersion.name());
+        stringBuilder.append(", edgeTypeFilter: " + edgeTypeFilter);
+        stringBuilder.append(", edgePropertyEqualityFilters: {");
+        boolean isFirst = true;
+        if (null != edgePropertyEqualityFilters) {
+            for (Entry<Short, Pair<DataType, String>> equalityFilter
+                : edgePropertyEqualityFilters.entrySet()) {
+                if (!isFirst) {
+                    stringBuilder.append(",");
+                } else {
+                    isFirst = false;
+                }
+                Short key = equalityFilter.getKey();
+                DataType dataType = equalityFilter.getValue().a;
+                String value = equalityFilter.getValue().b;
+                stringBuilder.append("(key: " + key + ", dataType: " + (dataType == null ? "null"
+                    : dataType.name()) + ", value: " + value + ")");
+            }
+        }
+        stringBuilder.append("}");
+        return stringBuilder.toString();
     }
 }

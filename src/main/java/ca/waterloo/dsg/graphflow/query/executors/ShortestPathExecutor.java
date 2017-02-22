@@ -4,11 +4,11 @@ import ca.waterloo.dsg.graphflow.exceptions.NoSuchVertexIDException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.graph.SortedAdjacencyList;
-import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.IntQueue;
-import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
+import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -145,7 +145,7 @@ public class ShortestPathExecutor {
      * @throws NoSuchVertexIDException Throws exception if the specified {@code source} and
      * {@code target} vertex IDs don't exist.
      */
-    public void execute(int source, int target, OutputSink outputSink)
+    public void execute(int source, int target, AbstractDBOperator outputSink)
         throws NoSuchVertexIDException {
         assertVertexIDExists(source);
         assertVertexIDExists(target);
@@ -248,7 +248,7 @@ public class ShortestPathExecutor {
      * @param results The data structure for storing the set of edges in at least one (source,
      * target) shortest path.
      */
-    @PackagePrivateForTesting
+    @VisibleForTesting
     void backTrackIntersection(Set<Integer> intersectionSet, Direction directionToBacktrack,
         int startingLevel, Map<Integer, Set<Integer>> results) {
         IntQueue nextLevelVertices = new IntQueue(intersectionSet.size());
@@ -295,7 +295,7 @@ public class ShortestPathExecutor {
         }
     }
 
-    @PackagePrivateForTesting
+    @VisibleForTesting
     static String getStringOutput(Map<Integer, Set<Integer>> results) {
         StringJoiner stringJoiner = new StringJoiner(", ");
         for (Map.Entry<Integer, Set<Integer>> entry : results.entrySet()) {

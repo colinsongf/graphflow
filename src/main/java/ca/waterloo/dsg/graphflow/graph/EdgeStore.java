@@ -3,7 +3,7 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
-import ca.waterloo.dsg.graphflow.util.PackagePrivateForTesting;
+import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.HashMap;
@@ -31,9 +31,9 @@ public class EdgeStore extends PropertyStore {
     private long[] recycledIds = new long[INITIAL_CAPACITY];
     private int recycledIdsSize = 0;
 
-    @PackagePrivateForTesting
+    @VisibleForTesting
     byte[][][] data = new byte[INITIAL_CAPACITY][][];
-    @PackagePrivateForTesting
+    @VisibleForTesting
     int[][][] dataOffsets = new int[INITIAL_CAPACITY][][];
 
     /**
@@ -66,7 +66,7 @@ public class EdgeStore extends PropertyStore {
      *     <li> The last byte is the index of the edge in the bucket.</li>
      * </ul>
      */
-    @PackagePrivateForTesting
+    @VisibleForTesting
     long getNextIdToAssign() {
         long nextIDToAssign;
         if (recycledIdsSize > 0) {
@@ -89,6 +89,17 @@ public class EdgeStore extends PropertyStore {
      * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
      */
     public Map<Short, Object> getProperties(long edgeId) {
+        verifyEdgeIdAndResetPropertyIterator(edgeId);
+        Map<Short, Object> edgeProperties = new HashMap<>();
+        Pair<Short, Object> keyValue;
+        while (propertyIterator.hasNext()) {
+            keyValue = propertyIterator.next();
+            edgeProperties.put(keyValue.a, keyValue.b);
+        }
+        return edgeProperties;
+    }
+
+    private void verifyEdgeIdAndResetPropertyIterator(long edgeId) {
         if (edgeId >= nextIDNeverYetAssigned) {
             throw new NoSuchElementException("Edge with ID " + edgeId + " does not exist.");
         }
@@ -99,13 +110,25 @@ public class EdgeStore extends PropertyStore {
         int dataOffsetStart = dataOffsets[partitionId][bucketId][bucketOffset];
         int dataOffsetEnd;
         if (bucketOffset == MAX_EDGES_PER_BUCKET - 1) {
-            dataOffsetEnd = data[partitionId][bucketId].length - 1;
+            dataOffsetEnd = data[partitionId][bucketId].length;
         } else {
-            dataOffsetEnd = dataOffsets[partitionId][bucketId][bucketOffset + 1] - 1;
+            dataOffsetEnd = dataOffsets[partitionId][bucketId][bucketOffset + 1];
         }
+        propertyIterator.reset(data[partitionId][bucketId], dataOffsetStart, dataOffsetEnd);
+    }
 
-        return deserializeProperties(data[partitionId][bucketId], dataOffsetStart,
-            dataOffsetEnd - dataOffsetStart + 1);
+    /**
+     * Given an edge ID, and a property key, returns the value of the property that is on the edge
+     * with the given edge ID and that has the given key. If the edge does not contain a property
+     * with the given key, returns null.
+     * 
+     * @param edgeId ID of an edge.
+     * @param key key of a property.
+     * @return the given edge's property with the given key or null if no such property exists.
+     */
+    public Object getProperty(long edgeId, short key) {
+        verifyEdgeIdAndResetPropertyIterator(edgeId);
+        return getPropertyFromIterator(key);
     }
 
     /**
@@ -114,7 +137,7 @@ public class EdgeStore extends PropertyStore {
      * @param edgeId The ID of the edge.
      * @param properties The properties of the edge. See {@link #addEdge(Map)}.
      */
-    @PackagePrivateForTesting
+    @VisibleForTesting
     void setProperties(long edgeId, Map<Short, Pair<DataType, String>> properties) {
         int partitionId = (int) ((edgeId & 0xFFF00000) >> 40);
         int bucketId = (int) ((edgeId & 0x000FFFF0) >> 8);
@@ -239,40 +262,6 @@ public class EdgeStore extends PropertyStore {
         }
     }
 
-    @PackagePrivateForTesting
-    Map<Short, Object> deserializeProperties(byte[] properties, int startIndex,
-        int propertiesLength) {
-        Map<Short, Object> edgeProperties = new HashMap<>();
-        int nextPropertyIndex = startIndex;
-        while (nextPropertyIndex < startIndex + propertiesLength) {
-            short key = (short) ((short) (properties[nextPropertyIndex] << 8) |
-                ((short) properties[nextPropertyIndex+1]));
-            DataType dataType = TypeAndPropertyKeyStore.getInstance().getPropertyDataType(key);
-
-            int length;
-            int valueOffset;
-            if (DataType.STRING == dataType) {
-                length = (((int) properties[nextPropertyIndex + 2]) << 24) |
-                    (((int) properties[nextPropertyIndex + 3]) << 16) |
-                    (((int) properties[nextPropertyIndex + 4]) << 8) |
-                    (int) properties[nextPropertyIndex + 5];
-                // 2 bytes for short key + 4 for an int storing the length of the String.
-                valueOffset = 6;
-            } else {
-                length = DataType.getLength(dataType);
-                // 2 bytes for short key. We do not store the lengths of data types other than
-                // Strings since they are fixed.
-                valueOffset = 2;
-            }
-
-            Object value = DataType.deserialize(dataType, properties, nextPropertyIndex +
-                valueOffset, length);
-            edgeProperties.put(key, value);
-            nextPropertyIndex += (valueOffset + length);
-        }
-        return  edgeProperties;
-    }
-
     @UsedOnlyByTests
     void setNextIDNeverYetAssigned(int partitionID, int bucketID, byte bucketOffset) {
         this.nextPartitionId = partitionID;
@@ -282,7 +271,7 @@ public class EdgeStore extends PropertyStore {
     }
 
     @UsedOnlyByTests
-    void reset() {
+    public void reset() {
         nextIDNeverYetAssigned = 0;
         nextBucketOffset = 0;
         nextBucketId = 0;

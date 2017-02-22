@@ -1,6 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.parser;
 
 import ca.waterloo.dsg.graphflow.grammar.GraphflowBaseVisitor;
+import ca.waterloo.dsg.graphflow.grammar.GraphflowParser;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.ContinuousMatchQueryContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.CreatePatternContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DeletePatternContext;
@@ -11,11 +12,15 @@ import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsVertexWithTypeAnd
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.EdgeOptionalTypeAndOptionalPropertiesContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.GraphflowContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.MatchPatternContext;
+import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.MatchQueryContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.PathPatternContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.PropertiesContext;
+import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.ReturnClauseContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.ShortestPathQueryContext;
+import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableEdgeContext;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableVertexContext;
+import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableWithPropertyContext;
 import ca.waterloo.dsg.graphflow.query.structuredquery.AbstractStructuredQuery;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
@@ -56,15 +61,36 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     }
 
     @Override
-    public AbstractStructuredQuery visitMatchPattern(MatchPatternContext ctx) {
-        StructuredQuery structuredQuery = new StructuredQuery();
-        structuredQuery.setQueryOperation(QueryOperation.MATCH);
-        for (int i = 0; i < ctx.variableEdge().size(); i++) {
-            structuredQuery.addRelation((QueryRelation) visit(ctx.variableEdge(i)));
+    public AbstractStructuredQuery visitMatchQuery(MatchQueryContext ctx) {
+      StructuredQuery structuredQuery = new StructuredQuery();
+      structuredQuery.setQueryOperation(QueryOperation.MATCH);
+      MatchPatternContext matchPatternContext = ctx.matchPattern();
+      for (int i = 0; i < matchPatternContext.variableEdge().size(); i++) {
+          structuredQuery.addRelation((QueryRelation) visit(matchPatternContext.variableEdge(i)));
+      }
+      
+      ReturnClauseContext returnClauseContext = ctx.returnClause();
+      if (null != returnClauseContext) {
+          for (VariableContext variableContext : returnClauseContext.variable()) {
+              structuredQuery.addReturnVariable(variableContext.getText());
+          }
+          for (VariableWithPropertyContext variableWithPropertyContext :
+              returnClauseContext.variableWithProperty()) {
+              String[] split = variableWithPropertyContext.getText().split("\\.");
+              structuredQuery.addReturnVariablePropertyPair(
+                  new Pair<String, String>(split[0], split[1]));
         }
-        return structuredQuery;
+      }
+      return structuredQuery;
     }
 
+    @Override
+    public AbstractStructuredQuery visitReturnClause(GraphflowParser.ReturnClauseContext ctx) {
+      // TODO(semih): Fill
+      return null;
+    }
+
+    
     @Override
     public AbstractStructuredQuery visitDeletePattern(DeletePatternContext ctx) {
         StructuredQuery structuredQuery = new StructuredQuery();
@@ -126,6 +152,9 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         if (null != ctx.edgeOptionalTypeAndOptionalProperties()) {
             EdgeOptionalTypeAndOptionalPropertiesContext ctxEdge = ctx.
                 edgeOptionalTypeAndOptionalProperties();
+            if (null != ctxEdge.variable()) {
+                queryRelation.setRelationName(ctxEdge.variable().getText());
+            }
             if (null != ctxEdge.type()) {
                 queryRelation.setRelationType(ctxEdge.type().getText());
             }

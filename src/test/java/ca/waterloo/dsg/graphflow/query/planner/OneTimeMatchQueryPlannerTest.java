@@ -27,7 +27,7 @@ public class OneTimeMatchQueryPlannerTest {
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)->(b),(b)->(c),(c)->(a)");
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan)
-            new OneTimeMatchQueryPlanner(triangleStructuredQuery).plan();
+            new OneTimeMatchQueryPlanner(triangleStructuredQuery, null).plan();
 
         // Create the query plan manually. Ordering of the variables is "abc".
         OneTimeMatchQueryPlan expectedOneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
@@ -66,7 +66,7 @@ public class OneTimeMatchQueryPlannerTest {
             "(a)-[:FOLLOWS]->(b),(a)-[:LIKES]->(b),(b)-[:LIKES]->(a),(b)->(c),(c)->(b)," +
             "(c)-[:FOLLOWS]->(a)");
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan)
-            new OneTimeMatchQueryPlanner(triangleStructuredQuery).plan();
+            new OneTimeMatchQueryPlanner(triangleStructuredQuery, null).plan();
 
         // Create the query plan manually. Ordering of the variables is "bac".
         OneTimeMatchQueryPlan expectedOneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
@@ -105,7 +105,7 @@ public class OneTimeMatchQueryPlannerTest {
         StructuredQuery complexStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)->(b),(a)->(e),(c)->(b),(c)->(d),(d)->(b),(e)->(b),(f)->(c)");
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan)
-            new OneTimeMatchQueryPlanner(complexStructuredQuery).plan();
+            new OneTimeMatchQueryPlanner(complexStructuredQuery, null).plan();
 
         // Create the query plan manually. Ordering of the variables is "bcdaef".
         OneTimeMatchQueryPlan expectedOneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();

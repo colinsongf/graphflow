@@ -3,8 +3,8 @@ package ca.waterloo.dsg.graphflow.query.plans;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 
@@ -23,17 +23,17 @@ public class DeleteQueryPlan implements QueryPlan {
      * Executes the {@link DeleteQueryPlan}.
      *
      * @param graph the {@link Graph} instance to use during the plan execution.
-     * @param outputSink the {@link OutputSink} to which the execution output is written.
+     * @param outputSink the {@link AbstractDBOperator} to which the execution output is written.
      */
-    public void execute(Graph graph, OutputSink outputSink) {
+    public void execute(Graph graph, AbstractDBOperator outputSink) {
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
             try {
                 TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(queryRelation.
                     getRelationType());
-                graph.deleteEdgeTemporarily(Integer.parseInt(queryRelation.getFromQueryVariable().
-                    getVariableId()), Integer.parseInt(queryRelation.getToQueryVariable().
-                    getVariableId()), TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
-                        queryRelation.getRelationType()));
+                graph.deleteEdgeTemporarily(Integer.parseInt(queryRelation.getFromQueryVariable()
+                    .getVariableName()), Integer.parseInt(queryRelation.getToQueryVariable()
+                    .getVariableName()), TypeAndPropertyKeyStore.getInstance()
+                    .mapStringTypeToShort(queryRelation.getRelationType()));
             } catch (NoSuchTypeException e) {
                 outputSink.append("ERROR: " + e.getMessage());
             }

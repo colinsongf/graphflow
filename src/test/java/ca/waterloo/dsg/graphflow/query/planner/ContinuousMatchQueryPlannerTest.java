@@ -3,9 +3,9 @@ package ca.waterloo.dsg.graphflow.query.planner;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.outputsink.InMemoryOutputSink;
-import ca.waterloo.dsg.graphflow.outputsink.OutputSink;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
+import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
@@ -27,7 +27,7 @@ public class ContinuousMatchQueryPlannerTest {
      */
     @Test
     public void testPlanSimpleTriangleQuery() throws Exception {
-        OutputSink outputSink = new InMemoryOutputSink();
+        AbstractDBOperator outputSink = new InMemoryOutputSink();
 
         // Create a continuous MATCH query plan for a simple triangle query with no types.
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
@@ -147,7 +147,7 @@ public class ContinuousMatchQueryPlannerTest {
      */
     @Test
     public void testPlanTriangleQueryWithRelationTypes() throws Exception {
-        OutputSink outputSink = new InMemoryOutputSink();
+        AbstractDBOperator outputSink = new InMemoryOutputSink();
 
         // Initialize the {@code TypeStore} with types used in the MATCH query.
         short FOLLOWS_TYPE_ID = TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("FOLLOWS");

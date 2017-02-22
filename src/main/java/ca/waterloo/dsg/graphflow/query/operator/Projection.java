@@ -1,9 +1,9 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
+import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 
 /**
  * Projection operator for projecting MATCH query outputs onto a subset of the variables.
@@ -16,10 +16,10 @@ public class Projection extends AbstractDBOperator {
     /**
      * Default constructor that sets the vertex and indices to project and the next operator for
      * this operator.
-     * 
+     *
      * @param nextOperator next operator that the projected outputs should be appended to.
      * @param vertexIndicesToProject indices that specify which of the vertices in the vertexIds
-     *        array of {@link MatchQueryOutput}s should be in the output of the projection.
+     * array of {@link MatchQueryOutput}s should be in the output of the projection.
      */
     public Projection(AbstractDBOperator nextOperator, List<Integer> vertexIndicesToProject) {
         super(nextOperator);
@@ -30,7 +30,7 @@ public class Projection extends AbstractDBOperator {
 
     @Override
     public void append(MatchQueryOutput matchQueryOutput) {
-        for(int i = 0; i < vertexIndicesToProject.size(); ++i) {
+        for (int i = 0; i < vertexIndicesToProject.size(); ++i) {
             projectedVertexIds[i] = matchQueryOutput.vertexIds[vertexIndicesToProject.get(i)];
         }
         matchQueryOutput.vertexIds = projectedVertexIds;

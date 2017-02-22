@@ -1,7 +1,6 @@
 package ca.waterloo.dsg.graphflow.util;
 
 import java.util.Arrays;
-import java.util.StringJoiner;
 
 /**
  * A list of int primitives implemented using an array.

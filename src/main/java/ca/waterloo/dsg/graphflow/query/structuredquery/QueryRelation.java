@@ -53,12 +53,12 @@ public class QueryRelation implements AbstractStructuredQuery {
         return relationType;
     }
 
-    public Map<String, Pair<String, String>> getRelationProperties() {
-        return relationProperties;
-    }
-
     public void setRelationType(String relationType) {
         this.relationType = relationType;
+    }
+
+    public Map<String, Pair<String, String>> getRelationProperties() {
+        return relationProperties;
     }
 
     public void setRelationProperties(Map<String, Pair<String, String>> properties) {

@@ -33,12 +33,12 @@ public class QueryVariable implements AbstractStructuredQuery {
         return variableType;
     }
 
-    public Map<String, Pair<String, String>> getVariableProperties() {
-        return variableProperties;
-    }
-
     public void setVariableType(String variableType) {
         this.variableType = variableType;
+    }
+
+    public Map<String, Pair<String, String>> getVariableProperties() {
+        return variableProperties;
     }
 
     public void setVariableProperties(Map<String, Pair<String, String>> variableProperties) {

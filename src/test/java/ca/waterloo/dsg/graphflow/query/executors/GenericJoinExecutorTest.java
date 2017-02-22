@@ -9,7 +9,6 @@ import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,7 +69,8 @@ public class GenericJoinExecutorTest {
             {2, 3, 0, 1}, {2, 3, 4, 1}, {3, 0, 1, 2}, {3, 4, 1, 2}, {4, 1, 2, 3}};
         int[][] expectedMotifsAfterDeletion = {{0, 1, 2, 3}, {1, 2, 3, 0}, {2, 3, 0, 1},
             {3, 0, 1, 2}};
-        assertSimpleMatchQueryOutput(squareStructuredQuery, expectedMotifsAfterAdditions, expectedMotifsAfterDeletion);
+        assertSimpleMatchQueryOutput(squareStructuredQuery, expectedMotifsAfterAdditions,
+            expectedMotifsAfterDeletion);
     }
 
     private void assertSimpleMatchQueryOutput(StructuredQuery structuredQuery,
@@ -85,8 +85,8 @@ public class GenericJoinExecutorTest {
 
         // Execute the query and test.
         InMemoryOutputSink outputSink = new InMemoryOutputSink();
-        OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
-            structuredQuery, outputSink).plan();
+        OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new
+            OneTimeMatchQueryPlanner(structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
             expectedMotifsAfterAdditions)));
@@ -96,8 +96,8 @@ public class GenericJoinExecutorTest {
 
         // Execute the query again and test.
         outputSink = new InMemoryOutputSink();
-        actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink)
-            .plan();
+        actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
+            structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
             expectedMotifsAfterDeletion)));
@@ -116,8 +116,8 @@ public class GenericJoinExecutorTest {
         // Execute the query and test.
 
         InMemoryOutputSink outputSink = new InMemoryOutputSink();
-        OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
-            structuredQuery, outputSink).plan();
+        OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new
+            OneTimeMatchQueryPlanner(structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
             expectedMotifsAfterAdditions)));
@@ -127,8 +127,8 @@ public class GenericJoinExecutorTest {
 
         // Execute the query again and test.
         outputSink = new InMemoryOutputSink();
-        actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink)
-            .plan();
+        actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
+            structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
             expectedMotifsAfterDeletion)));
@@ -137,7 +137,8 @@ public class GenericJoinExecutorTest {
     private InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs) {
         InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
         for (int[] motif : motifs) {
-            inMemoryOutputSink.append(QueryOutputUtils.getStringMatchQueryOutput(motif, MatchQueryResultType.MATCHED));
+            inMemoryOutputSink.append(QueryOutputUtils.getStringMatchQueryOutput(motif,
+                MatchQueryResultType.MATCHED));
         }
         return inMemoryOutputSink;
     }

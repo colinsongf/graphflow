@@ -7,5 +7,6 @@ import ca.waterloo.dsg.graphflow.util.DataType;
  * given property key.
  */
 public class IncorrectDataTypeException extends IllegalArgumentException {
+
     public IncorrectDataTypeException(String message) { super(message); }
 }

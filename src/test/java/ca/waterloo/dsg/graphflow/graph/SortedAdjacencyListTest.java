@@ -165,7 +165,7 @@ public class SortedAdjacencyListTest {
     public void testIntersectionWithEdgeType() {
         int[] neighbourIds1 = {1, 32, 54, 34, 34, 34, 12, 89, 0, 14, 7};
         short[] neighbourTypes1 = {4, 3, 3, 1, 9, 3, 0, 10, 5, 3, 0};
-        long[] neighbourEdgeIds1 = {0, 1, 2, 3, 4, 5, 6, 7,  8, 9, 10};
+        long[] neighbourEdgeIds1 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
         SortedAdjacencyList adjacencyList1 = getPopulatedAdjacencyList(neighbourIds1,
             neighbourTypes1, neighbourEdgeIds1);
         int[] neighbourIds2 = {1, 9, 14, 23, 34, 54, 89};

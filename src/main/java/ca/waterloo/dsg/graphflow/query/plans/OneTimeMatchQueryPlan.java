@@ -14,17 +14,17 @@ import java.util.List;
  */
 public class OneTimeMatchQueryPlan extends AbstractDBOperator implements QueryPlan {
 
+    private List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
+
     /**
      * Constructs a new {@link OneTimeMatchQueryPlan} with null next operator.
-     * 
+     * <p>
      * TODO: This should go away once we converge on the best class structure for operators
-     * and plans. 
+     * and plans.
      */
     public OneTimeMatchQueryPlan() {
         super(null);
     }
-
-    private List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
 
     public void addStage(List<GenericJoinIntersectionRule> stage) {
         this.stages.add(stage);

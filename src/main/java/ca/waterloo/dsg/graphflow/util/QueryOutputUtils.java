@@ -6,7 +6,7 @@ import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
 /**
  * Currently only contains the {@link #getStringMatchQueryOutput(int[], MatchQueryResultType)}
  * method that is shared between {@link FileOutputSink} and some tests.
- * 
+ * <p>
  * TODO: This class is not justified and the {@link #getStringMatchQueryOutput(int[],
  * MatchQueryResultType)} method should be moved somewhere else.
  */

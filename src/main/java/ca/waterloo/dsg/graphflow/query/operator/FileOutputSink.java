@@ -1,15 +1,14 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
+import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
+import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
+import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
-import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
-import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
-import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
 
 /**
  * Outputs query results to a file.
@@ -26,13 +25,13 @@ public class FileOutputSink extends AbstractDBOperator {
     }
 
     /**
-     * Appends the {@code result} to the configured {@code File}. 
-     * 
-     * Warning: This class is currently only used by {@link ContinuousMatchQueryExecutor}. Currently these
-     * plans are primitive and only consist of GJ outputs that consist of a set of vertex IDs. This method
-     * assumes this property of {@link ContinuousMatchQueryExecutor}.
+     * Appends data from {@code matchQueryOutput} to the configured {@code File}.
+     * <p>
+     * Warning: This class is currently only used by {@link ContinuousMatchQueryExecutor}. Currently
+     * these plans are primitive and only consist of GJ outputs that consist of a set of vertex
+     * IDs. This method assumes this property of {@link ContinuousMatchQueryExecutor}.
      *
-     * @param result the output {@code String}.
+     * @param matchQueryOutput The output data.
      */
     @Override
     public void append(MatchQueryOutput matchQueryOutput) {

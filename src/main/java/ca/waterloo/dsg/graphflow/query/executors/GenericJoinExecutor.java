@@ -5,9 +5,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
-import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

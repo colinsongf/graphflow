@@ -6,9 +6,9 @@ import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.query.executors.ShortestPathExecutor;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
-import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
@@ -22,7 +22,6 @@ import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.ShortestPathPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import ca.waterloo.dsg.graphflow.server.GraphflowServer;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -80,11 +79,10 @@ public class QueryProcessor {
         try {
             ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(graph,
                 outputSink);
-        }
-        catch (IncorrectDataTypeException e) {
+        } catch (IncorrectDataTypeException e) {
             logger.debug(e.getMessage());
             outputSink.append("ERROR: " + e.getMessage());
-       }
+        }
         return outputSink.toString();
     }
 

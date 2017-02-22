@@ -42,7 +42,8 @@ public class StringToShortKeyStoreTest {
         Assert.assertEquals(new Short((short) 0), anotherKeyStore.mapStringKeyToShort("Venusaur"));
         Assert.assertEquals("Venusaur", anotherKeyStore.mapShortKeyToString((short) 0));
 
-        Assert.assertEquals(new Short((short) 1), anotherKeyStore.mapStringKeyToShort("Charmander"));
+        Assert.assertEquals(new Short((short) 1), anotherKeyStore.mapStringKeyToShort(
+            "Charmander"));
         Assert.assertEquals("Charmander", anotherKeyStore.mapShortKeyToString((short) 1));
 
         Assert.assertEquals(null, anotherKeyStore.mapStringKeyToShort("Zapdos"));

@@ -3,10 +3,10 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
+import ca.waterloo.dsg.graphflow.util.DataType;
+import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
-import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
-import ca.waterloo.dsg.graphflow.util.DataType;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.HashMap;
@@ -138,7 +138,7 @@ public class TypeAndPropertyKeyStore {
             false /* do not insert if key doesn't exist */,
             false /* do not assert on key existence */);
     }
-    
+
     /**
      * @param stringKey String key to check.
      * @return whether the given key is defined as a property in the store.
@@ -208,7 +208,7 @@ public class TypeAndPropertyKeyStore {
 
     /**
      * @param stringKey String key to map.
-     * @return short mapping of the key or null if the key does not exist. 
+     * @return short mapping of the key or null if the key does not exist.
      * @throws IllegalArgumentException if the given String key is null or empty.
      */
     public Short mapStringPropertyKeyToShort(String stringKey) {

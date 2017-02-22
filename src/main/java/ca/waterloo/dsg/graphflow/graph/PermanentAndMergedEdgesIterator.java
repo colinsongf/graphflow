@@ -69,7 +69,8 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
                     SortedAdjacencyList fromVertexMergedAdjList = mergedAdjLists.get(
                         nextFromVertexId);
                     if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
-                        fromVertexMergedAdjList.getEdgeType(nextFromVertexAdjListIndex) == edgeTypeFilter) &&
+                        fromVertexMergedAdjList.getEdgeType(nextFromVertexAdjListIndex) ==
+                            edgeTypeFilter) &&
                         (null == edgePropertyEqualityFilters || EdgeStore.getInstance().
                             checkEqualityFilters(fromVertexMergedAdjList.getEdgeId(
                                 nextFromVertexAdjListIndex), edgePropertyEqualityFilters))) {
@@ -83,7 +84,8 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
                     SortedAdjacencyList fromVertexPermanentAdjList = permanentAdjacencyLists[
                         nextFromVertexId];
                     if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
-                        fromVertexPermanentAdjList.getEdgeType(nextFromVertexAdjListIndex) == edgeTypeFilter) &&
+                        fromVertexPermanentAdjList.getEdgeType(nextFromVertexAdjListIndex) ==
+                            edgeTypeFilter) &&
                         (null == edgePropertyEqualityFilters || EdgeStore.getInstance().
                             checkEqualityFilters(fromVertexPermanentAdjList.getEdgeId(
                                 nextFromVertexAdjListIndex), edgePropertyEqualityFilters))) {

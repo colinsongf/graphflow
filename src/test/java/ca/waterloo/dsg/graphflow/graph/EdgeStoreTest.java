@@ -119,7 +119,8 @@ public class EdgeStoreTest {
 
         EdgeStore.getInstance().addEdge(propertiesOfEdgeToAdd);
 
-        Map<Short, Object> propertiesStored = EdgeStore.getInstance().getProperties(0 /* edge ID */);
+        Map<Short, Object> propertiesStored = EdgeStore.getInstance().getProperties(
+            0 /* edge ID */);
         Assert.assertEquals(values.length, propertiesStored.size());
         for (int i = 0; i < 3; ++i) {
             Assert.assertEquals(values[i], propertiesStored.get(keys[i]));

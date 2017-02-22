@@ -9,5 +9,7 @@ import java.util.NoSuchElementException;
  */
 public class NoSuchTypeException extends NoSuchElementException {
 
-    public NoSuchTypeException(String message) { super(message); }
+    public NoSuchTypeException(String message) {
+        super(message);
+    }
 }

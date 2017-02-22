@@ -5,6 +5,8 @@ package ca.waterloo.dsg.graphflow.exceptions;
  */
 public class MalformedMatchQueryException extends IllegalArgumentException {
 
-    public MalformedMatchQueryException(String message) { super(message); }
+    public MalformedMatchQueryException(String message) {
+        super(message);
+    }
 }
 

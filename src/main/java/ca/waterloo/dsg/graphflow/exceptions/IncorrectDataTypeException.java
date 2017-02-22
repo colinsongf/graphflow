@@ -8,5 +8,7 @@ import ca.waterloo.dsg.graphflow.util.DataType;
  */
 public class IncorrectDataTypeException extends IllegalArgumentException {
 
-    public IncorrectDataTypeException(String message) { super(message); }
+    public IncorrectDataTypeException(String message) {
+        super(message);
+    }
 }

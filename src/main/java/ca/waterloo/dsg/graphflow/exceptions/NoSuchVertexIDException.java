@@ -7,5 +7,7 @@ import java.util.NoSuchElementException;
  */
 public class NoSuchVertexIDException extends NoSuchElementException {
 
-    public NoSuchVertexIDException(String message) { super(message); }
+    public NoSuchVertexIDException(String message) {
+        super(message);
+    }
 }

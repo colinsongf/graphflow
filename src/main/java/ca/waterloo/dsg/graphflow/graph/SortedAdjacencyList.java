@@ -177,7 +177,7 @@ public class SortedAdjacencyList {
      */
     public void removeNeighbour(int neighbourId, short edgeTypeFilter) {
         int index = search(neighbourId, edgeTypeFilter);
-        if (index != -1) {
+        if (index > -1) {
             int numElementsToShiftLeft = size - index - 1;
             if (numElementsToShiftLeft > 0) {
                 System.arraycopy(neighbourIds, index + 1, neighbourIds, index,
@@ -209,13 +209,18 @@ public class SortedAdjacencyList {
         IntArrayList intersection = new IntArrayList();
         int index = 0;
         for (int i = 0; i < sortedListToIntersect.getSize(); i++) {
+            int currentElement = sortedListToIntersect.get(i);
             // We return only one neighbour vertex regardless of how many times neighbour vertex
             // may be present in the adjacency list, with different edge types.
-            int resultIndex = search(sortedListToIntersect.get(i), edgeTypeFilter,
-                edgePropertyEqualityFilters, index);
-            if (resultIndex != -1) {
-                intersection.add(sortedListToIntersect.get(i));
-                index = resultIndex;
+            int resultIndex = search(currentElement, edgeTypeFilter, edgePropertyEqualityFilters,
+                index);
+            if (resultIndex > -1) {
+                intersection.add(currentElement);
+            }
+            if (resultIndex == Integer.MIN_VALUE) {
+                index = 0;
+            } else {
+                index = (resultIndex) > -1 ? resultIndex : -resultIndex;
             }
         }
         return intersection;
@@ -257,7 +262,7 @@ public class SortedAdjacencyList {
     public boolean contains(int neighbourId, short edgeTypeFilter,
         Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters) {
         return search(neighbourId, edgeTypeFilter, edgePropertyEqualityFilters,
-            0 /* start index */) != -1;
+            0 /* start index */) > -1;
     }
 
     /**
@@ -265,40 +270,60 @@ public class SortedAdjacencyList {
      */
     public boolean contains(int neighbourId, short edgeTypeFilter) {
         return search(neighbourId, edgeTypeFilter, null /* no property equality filters */,
-            0 /* start index */) != -1;
+            0 /* start index */) > -1;
     }
 
     /**
-     * A linear search for the given {@code neighbourId} in {@code neighbourIds} starting from the
-     * given {@code startIndex}. Returns either the index of {@code neighbourId} or -1 if it is
-     * not found.
+     * Searches for the given ({@code neighbourId},{@code edgeTypeFilter}) pair in
+     * {@code neighbourIds} and {@code edgeTypes} starting from the given {@code startIndex} and
+     * searching to the right. Returns the index of the matching ({@code neighbourId},
+     * {@code edgeTypeFilter}) pair if it also satisfies the {@code edgePropertyEqualityFilters}.
+     * If no match is found, returns the negative of the index one before the largest pair less than
+     * ({@code neighbourId},{@code edgeTypeFilter}) or {@code Integer.MIN_VALUE} if the index is 0.
      *
      * @param neighbourId The neighbour ID to be searched.
      * @param edgeTypeFilter The type of the edge searched for.
      * @param edgePropertyEqualityFilters The set of equality filters to match the properties of
      * the edge being searched for.
      * @param startIndex The index to start the search from.
-     * @return Index of the neighbour or -1 if the neighbour is not in the list.
+     * @return Index of the neighbour if a match is found or a negative value as described above.
      */
     public int search(int neighbourId, short edgeTypeFilter,
         Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters, int startIndex) {
-        int next = startIndex;
-        while (next < size) {
-            if (neighbourIds[next] == neighbourId) {
-                if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
-                    edgeTypeFilter == edgeTypes[next]) && (null == edgePropertyEqualityFilters ||
-                    EdgeStore.getInstance().checkEqualityFilters(edgeIds[next],
-                        edgePropertyEqualityFilters))) {
-                    return next;
-                } else if (edgeTypes[next] > edgeTypeFilter) {
-                    return -1;
-                }
-            } else if (neighbourIds[next] > neighbourId) {
-                return -1;
-            }
-            next++;
+        int i = startIndex;
+        int stepSize = 1;
+        // We iteratively double {@code stepSize} to move forward in the list until ({@code
+        // neighbourId}, {@code typeId}) exceeds (u, v) at index {@code i}, where u is the
+        // neighbour ID and v is the type ID.
+        while (i < size && (neighbourIds[i] < neighbourId || (neighbourId == neighbourIds[i] &&
+            edgeTypes[i] < edgeTypeFilter))) {
+            stepSize <<= 1;
+            i += stepSize;
         }
-        return -1;
+        // We halve {@code stepSize} iteratively until {@code i} is at the index just before
+        // ({@code neighbourId},{@code edgeTypeFilter}) if they exist. If they do not exist,
+        // {@code i} will stop at the index before the largest pair which is smaller than
+        // ({@code neighbourId}, {@typeId}).
+        i -= stepSize;
+        stepSize >>= 1;
+        while (stepSize > 0) {
+            if((i + stepSize) < size && (neighbourIds[i + stepSize] < neighbourId ||
+                (neighbourIds[i + stepSize] == neighbourId && edgeTypes[i + stepSize] <
+                    edgeTypeFilter))) {
+                i += stepSize;
+            }
+            stepSize >>= 1;
+        }
+        if (((i + 1) < size) && neighbourIds[i + 1] == neighbourId && (TypeAndPropertyKeyStore.ANY
+            == edgeTypeFilter || edgeTypeFilter == edgeTypes[i + 1]) &&
+            (null == edgePropertyEqualityFilters || EdgeStore.getInstance().checkEqualityFilters(
+            edgeIds[i + 1], edgePropertyEqualityFilters))) {
+            return i + 1;
+        }
+        // If ({@code neighbourId},{@code edgeTypeFilter}) does not exist, return the negative value
+        // of the index before the largest pair which is smaller than ({@code neighbourId},
+        // {@code edgeTypeFilter}), or {@code Integer.MIN_VALUE} if index is 0.
+        return (i > 0) ? -i : Integer.MIN_VALUE;
     }
 
     /**

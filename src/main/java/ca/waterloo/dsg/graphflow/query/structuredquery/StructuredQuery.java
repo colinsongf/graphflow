@@ -31,6 +31,7 @@ public class StructuredQuery implements AbstractStructuredQuery {
     private QueryOperation queryOperation;
     private String continuousMatchAction;
     private String filePath;
+    private List<QueryPropertyPredicate> queryPropertyPredicates = new ArrayList<>();
 
     /**
      * @return A read-only list of query relations.
@@ -44,6 +45,15 @@ public class StructuredQuery implements AbstractStructuredQuery {
      */
     public List<QueryVariable> getQueryVaribles() {
         return Collections.unmodifiableList(queryVariables);
+    }
+
+    /**
+     * Returns a read-only list of {@link QueryPropertyPredicate}s.
+     *
+     * @return List of {@link QueryPropertyPredicate}.
+     */
+    public List<QueryPropertyPredicate> getQueryPropertyPredicates() {
+        return Collections.unmodifiableList(queryPropertyPredicates);
     }
 
     /**

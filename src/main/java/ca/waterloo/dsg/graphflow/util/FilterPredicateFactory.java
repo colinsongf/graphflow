@@ -12,22 +12,23 @@ import java.util.function.Predicate;
 public class FilterPredicateFactory {
 
     public static Predicate<MatchQueryOutput> getFilterPredicate(QueryPropertyPredicate
-        queryPropertyPredicate, Map<String, Integer> orderedVariableIndexMap) {
+        queryPropertyPredicate, Map<String, Integer> orderedVariableIndexMap, Map<String,
+        Integer> orderedEdgeVariableIndexMap) {
         switch (queryPropertyPredicate.getPredicateType()) {
             case TWO_VERTEX:
                 return getTwoVertexPropertyPredicate(queryPropertyPredicate,
                     orderedVariableIndexMap);
             case TWO_EDGE:
-                return getTwoEdgePropertyPredicate(queryPropertyPredicate, orderedVariableIndexMap);
+                return getTwoEdgePropertyPredicate(queryPropertyPredicate, orderedEdgeVariableIndexMap);
             case EDGE_AND_VERTEX:
                 return getVertexAndEdgePropertyPredicate(queryPropertyPredicate,
-                    orderedVariableIndexMap);
+                    orderedVariableIndexMap, orderedEdgeVariableIndexMap);
             case VERTEX_AND_CONSTANT:
                 return getVertexAndConstantPropertyPredicate(queryPropertyPredicate,
                     orderedVariableIndexMap);
             case EDGE_AND_CONSTANT:
                 return getEdgeAndConstantPropertyPredicate(queryPropertyPredicate,
-                    orderedVariableIndexMap);
+                    orderedEdgeVariableIndexMap);
             default:
                 return null;
         }
@@ -39,41 +40,42 @@ public class FilterPredicateFactory {
             orderedVariableIndexMap) {
 
         return p -> resolveOperator(VertexPropertyStore.getInstance().getProperty(p
-                .vertexIds[orderedVariableIndexMap.get(queryPropertyPredicate.getVariable1())],
-            queryPropertyPredicate.getPropertyOfVariable1()),
+                .vertexIds[orderedVariableIndexMap.get(queryPropertyPredicate.getVariable1().a)],
+            queryPropertyPredicate.getVariable1().b),
             VertexPropertyStore.getInstance().getProperty(p.vertexIds[orderedVariableIndexMap.get
-                (queryPropertyPredicate.getVariable2())], queryPropertyPredicate
-                .getPropertyOfVariable2()), queryPropertyPredicate.getComparisonOperator());
+                (queryPropertyPredicate.getVariable2().a)], queryPropertyPredicate
+                .getVariable1().b), queryPropertyPredicate.getComparisonOperator());
     }
 
     private static Predicate<MatchQueryOutput> getTwoEdgePropertyPredicate(QueryPropertyPredicate
-        queryPropertyPredicate, Map<String, Integer> orderedVariableIndexMap) {
-        return p -> resolveOperator(EdgeStore.getInstance().getProperty(p
-                .edgeIds[orderedVariableIndexMap.get(queryPropertyPredicate.getVariable1())],
-            queryPropertyPredicate.getPropertyOfVariable1()),
-            EdgeStore.getInstance().getProperty(p.edgeIds[orderedVariableIndexMap.get
-                (queryPropertyPredicate.getVariable2())], queryPropertyPredicate
-                .getPropertyOfVariable2()), queryPropertyPredicate.getComparisonOperator());
+        queryPropertyPredicate, Map<String, Integer> orderedEdgeVariableIndexMap) {
+        return p -> resolveOperator(EdgeStore.getInstance().getProperty(p.
+            edgeIds[orderedEdgeVariableIndexMap.get(queryPropertyPredicate.getVariable1().a)],
+            queryPropertyPredicate.getVariable1().b),
+            EdgeStore.getInstance().getProperty(p.edgeIds[orderedEdgeVariableIndexMap.get
+                (queryPropertyPredicate.getVariable2().a)], queryPropertyPredicate
+                .getVariable2().b), queryPropertyPredicate.getComparisonOperator());
     }
 
     private static Predicate<MatchQueryOutput> getVertexAndEdgePropertyPredicate
         (QueryPropertyPredicate
-            queryPropertyPredicate, Map<String, Integer> orderedVariableIndexMap) {
+            queryPropertyPredicate, Map<String, Integer> orderedVariableIndexMap, Map<String,
+            Integer> orderedEdgeVariableIndexMap) {
         return p -> resolveOperator(VertexPropertyStore.getInstance().getProperty(p
                 .vertexIds[orderedVariableIndexMap.get(queryPropertyPredicate.getVariable1())],
-            queryPropertyPredicate.getPropertyOfVariable1()),
-            EdgeStore.getInstance().getProperty(p.edgeIds[orderedVariableIndexMap.get
-                (queryPropertyPredicate.getVariable2())], queryPropertyPredicate
-                .getPropertyOfVariable2()), queryPropertyPredicate.getComparisonOperator());
+            queryPropertyPredicate.getVariable1().b),
+            EdgeStore.getInstance().getProperty(p.edgeIds[orderedEdgeVariableIndexMap.get
+                (queryPropertyPredicate.getVariable2().a)], queryPropertyPredicate
+                .getVariable2().b), queryPropertyPredicate.getComparisonOperator());
     }
 
     private static Predicate<MatchQueryOutput> getVertexAndConstantPropertyPredicate
         (QueryPropertyPredicate
             queryPropertyPredicate, Map<String, Integer> orderedVariableIndexMap) {
         return p -> resolveOperator(VertexPropertyStore.getInstance().getProperty(p.
-                vertexIds[orderedVariableIndexMap.get(queryPropertyPredicate.getVariable1())],
-            queryPropertyPredicate.getPropertyOfVariable1()), queryPropertyPredicate.
-            resolveConstant(queryPropertyPredicate.getVariable2()), queryPropertyPredicate.
+                vertexIds[orderedVariableIndexMap.get(queryPropertyPredicate.getVariable1().a)],
+            queryPropertyPredicate.getVariable1().b), queryPropertyPredicate.
+            resolveConstant(queryPropertyPredicate.getConstant()), queryPropertyPredicate.
             getComparisonOperator());
     }
 
@@ -81,9 +83,9 @@ public class FilterPredicateFactory {
         (QueryPropertyPredicate
             queryPropertyPredicate, Map<String, Integer> orderedVariableIndexMap) {
         return p -> resolveOperator(EdgeStore.getInstance().getProperty(p.
-                edgeIds[orderedVariableIndexMap.get(queryPropertyPredicate.getVariable1())],
-            queryPropertyPredicate.getPropertyOfVariable1()), queryPropertyPredicate.
-            resolveConstant(queryPropertyPredicate.getVariable2()), queryPropertyPredicate.
+                edgeIds[orderedVariableIndexMap.get(queryPropertyPredicate.getVariable1().a)],
+            queryPropertyPredicate.getVariable1().b), queryPropertyPredicate.
+            resolveConstant(queryPropertyPredicate.getConstant()), queryPropertyPredicate.
             getComparisonOperator());
     }
 

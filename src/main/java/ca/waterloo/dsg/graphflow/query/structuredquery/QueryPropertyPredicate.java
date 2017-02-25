@@ -1,6 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.structuredquery;
 
 import ca.waterloo.dsg.graphflow.util.PropertyComparator.ComparisonOperator;
+import org.antlr.v4.runtime.misc.Pair;
 
 /**
  * Represents a property filter.
@@ -15,28 +16,18 @@ public class QueryPropertyPredicate {
         EDGE_AND_VERTEX
     }
 
-    private String variable1;
-    private short propertyOfVariable1;
-    private String variable2;
-    private short propertyOfVariable2;
+    private Pair<String, Short> variable1;
+    private Pair<String, Short> variable2;
     private String constant;
     private ComparisonOperator comparisonOperator;
     private PredicateType predicateType;
 
-    public short getPropertyOfVariable1() {
-        return propertyOfVariable1;
-    }
-
-    public String getVariable1() {
+    public Pair<String, Short> getVariable1() {
         return variable1;
     }
 
-    public String getVariable2() {
+    public Pair<String, Short> getVariable2() {
         return variable2;
-    }
-
-    public short getPropertyOfVariable2() {
-        return propertyOfVariable2;
     }
 
     public String getConstant() {

@@ -6,6 +6,7 @@ import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import org.antlr.v4.runtime.misc.Pair;
@@ -33,8 +34,40 @@ public class CreateQueryPlan implements QueryPlan {
      * not the same as the {@link DataType} that has been stored previously for K.
      */
     public void execute(Graph graph, AbstractDBOperator outputSink) {
+        if (structuredQuery.getQueryRelations().size() > 0) {
+            createEdges(graph, outputSink);
+        } else {
+            createVertices(graph, outputSink);
+        }
+    }
+
+    private void createVertices(Graph graph, AbstractDBOperator outputSink) {
+        TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
         try {
-            TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
+            for (QueryVariable queryVariable : structuredQuery.getQueryVaribles()) {
+                Map<String, Pair<String, String>> stringvertexProperties = queryVariable.
+                    getVariableProperties();
+                typeAndPropertyKeyStore.assertExistingKeyDataTypesMatchPreviousDeclarations(
+                    stringvertexProperties);
+
+                int vertexId = Integer.parseInt(queryVariable.getVariableName());
+                short vertexType = typeAndPropertyKeyStore.mapStringTypeToShortOrInsert(
+                    queryVariable.getVariableType());
+                Map<Short, Pair<DataType, String>> vertexProperties = typeAndPropertyKeyStore.
+                    mapStringPropertiesToShortAndDataTypeOrInsert(stringvertexProperties);
+
+                graph.addVertex(vertexId, vertexType, vertexProperties);
+            }
+            // TODO(amine): bug, count the actual number of vertices created to append to sink.
+            outputSink.append(structuredQuery.getQueryVaribles().size() + " vertices created.");
+        } catch (UnsupportedOperationException e) {
+            outputSink.append("ERROR: " + e.getMessage());
+        }
+    }
+
+    private void createEdges(Graph graph, AbstractDBOperator outputSink) {
+        TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
+        try {
             for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
                 Map<String, Pair<String, String>> stringFromVertexProperties = queryRelation.
                     getFromQueryVariable().getVariableProperties();

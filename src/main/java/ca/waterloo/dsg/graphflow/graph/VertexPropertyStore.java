@@ -5,11 +5,12 @@ import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Stores the properties of each vertex in the graph in serialized bytes.
- * TODO(amine): Add methods to read the stored properties.
  */
 public class VertexPropertyStore extends PropertyStore {
 
@@ -29,11 +30,11 @@ public class VertexPropertyStore extends PropertyStore {
 
     /**
      * Overwrites all of the key-value pairs in the list at the given {@code vertexId} with the
-     * given map. It does nothing if the map provided is {@code null} or empty.
+     * given map. It does nothing if the map provided is {@code null}.
      *
      * @param vertexId The vertexID of the list at which the key-value pairs are overridden.
-     * @param properties The map containing the key to {code DataType} and value pairs to
-     * override those of the list at the given {@code vertexId}.
+     * @param properties The map containing the key to {code DataType} and value pairs to override
+     * those of the list at the given {@code vertexId}.
      */
     public void set(int vertexId, Map<Short, Pair<DataType, String>> properties) {
         vertexProperties = ArrayUtils.resizeIfNecessary(vertexProperties, vertexId + 1);
@@ -44,24 +45,59 @@ public class VertexPropertyStore extends PropertyStore {
     }
 
     /**
+     * Returns the {@code Short} key, and {@code Object} value pair properties of the vertex with
+     * the given ID.
+     * <p>
+     * Warning: If the vertex ID is less than the highest created vertex ID, the vertex with the
+     * given ID might still have never been created. The properties of a not yet created vertex
+     * less than the highest created vertex ID returns an empty map.
+     *
+     * @param vertexId The ID of the vertex.
+     * @return The properties of the edge as a Map<Short, Object> if properties are not null. If the
+     * properties are {@code null}, an empty Map is returned.
+     * @throws NoSuchElementException if the vertex with ID {@code vertexId} is larger than the
+     * highest vertex ID previously created.
+     */
+    public Map<Short, Object> getProperties(int vertexId) {
+        if (vertexId >= vertexProperties.length) {
+            throw new NoSuchElementException("Vertex with ID " + vertexId + " does not exist.");
+        }
+        Map<Short, Object> edgeProperties = new HashMap<>();
+        byte[] data = vertexProperties[vertexId];
+        propertyIterator.reset(data, 0, data.length);
+        Pair<Short, Object> keyValue;
+        while (propertyIterator.hasNext()) {
+            keyValue = propertyIterator.next();
+            edgeProperties.put(keyValue.a, keyValue.b);
+        }
+        return edgeProperties;
+    }
+
+    /**
      * Given a vertex ID, and key, returns the property of the vertex with the given vertex ID
      * that has the given key. If the vertex does not contain a property with the given key, returns
      * null.
+     * <p>
+     * Warning: If the vertex ID is less than the highest created vertex ID, the vertex with the
+     * given ID might still have never been created. The property with the given key of a not yet
+     * created vertex returns null.
      *
      * @param vertexId ID of a vertex.
      * @param key key of a property.
      * @return the given vertex's property with the given key or null if no such property exists.
+     * @throws NoSuchElementException if the vertex with ID {@code vertexId} is larger than the
+     * highest vertex ID previously created.
      */
     public Object getProperty(int vertexId, short key) {
         if (vertexId >= vertexProperties.length) {
-            // Since we cannot tell whether the vertex does not exist in the graph or does not have
-            // a property yet (in both cases vertexId would be >= vertexProperties.length), we
-            // return null.
-            return null;
+            throw new NoSuchElementException("Vertex with ID " + vertexId + " does not exist.");
         }
         byte[] data = vertexProperties[vertexId];
-        propertyIterator.reset(data, 0, data.length);
-        return getPropertyFromIterator(key);
+        if (null != data) {
+            propertyIterator.reset(data, 0, data.length);
+            return getPropertyFromIterator(key);
+        }
+        return null;
     }
 
     /**

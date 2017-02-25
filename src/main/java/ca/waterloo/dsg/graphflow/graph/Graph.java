@@ -103,6 +103,27 @@ public class Graph {
     }
 
     /**
+     * Adds a vertex to the graph.
+     * <p>
+     * Warning: Currently, as part of this call, we will overwrite the current vertex type and
+     * properties of {@code vertexId} with {@code vertexType} and {@code vertexProperties},
+     * respectively.
+     * <p>
+     * If the properties passed are {@code null}, no changes to the vertex properties occur.
+     * If a vertex u has type T, callers should always call this method with type T for u to keep
+     * u's type.
+     *
+     * @param vertexId The vertex ID.
+     * @param vertexType The type of {@code vertexId}.
+     * @param vertexProperties The properties of {@code vertexId}.
+     */
+    public void addVertex(int vertexId, short vertexType,
+        Map<Short, Pair<DataType, String>> vertexProperties) {
+        vertexTypes.set(vertexId, vertexType);
+        VertexPropertyStore.getInstance().set(vertexId, vertexProperties);
+    }
+
+    /**
      * Adds an edge temporarily to the graph. A call to {@link #finalizeChanges()} is required to
      * make the changes permanent.
      * <p>

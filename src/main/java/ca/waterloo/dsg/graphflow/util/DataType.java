@@ -103,11 +103,11 @@ public enum DataType {
      */
     public static int getLength(DataType dataType) {
         if (BOOLEAN == dataType) {
-            return 1;
+            return Byte.BYTES;
         } else if (INT == dataType) {
-            return 4;
+            return Integer.BYTES;
         } else if (DOUBLE == dataType) {
-            return 8;
+            return Double.BYTES;
         } else if (STRING == dataType) {
             throw new IllegalArgumentException("The number of bytes for String is not fixed.");
         }
@@ -155,8 +155,8 @@ public enum DataType {
             throw new IllegalArgumentException("The string value " + value + " can not be parsed" +
                 " as " + dataType.name().toUpperCase() + ".");
         }
-        serializedBytes[0] = (byte) ((key & 0xF0) >> 8);
-        serializedBytes[1] = (byte) (key & 0x0F);
+        serializedBytes[0] = (byte) ((key & 0xFF00) >> 8);
+        serializedBytes[1] = (byte) (key & 0x00FF);
         return serializedBytes;
     }
 
@@ -172,12 +172,17 @@ public enum DataType {
      */
     public static Object deserialize(DataType dataType, byte[] data, int startIndex, int length) {
         if (INT == dataType) {
-            return ((int) data[startIndex + 3]) << 24 | ((int) data[startIndex + 2]) << 16 |
-                ((int) data[startIndex + 1]) << 8 | (int) data[startIndex];
+            int value = 0;
+            for (int i = 0; i < Integer.BYTES; i++) {
+                value <<= Byte.SIZE;
+                value |= (data[startIndex + i] & 0xFF);
+            }
+            return value;
         } else if (DOUBLE == dataType) {
             long value = 0;
-            for (int i = 0; i < 8; i++) {
-                value |= ((long) data[startIndex + i]) << ((7 - i) * 8);
+            for (int i = 0; i < Double.BYTES; i++) {
+                value <<= Byte.SIZE;
+                value |= (data[startIndex + i] & 0xFF);
             }
             return Double.longBitsToDouble(value);
         } else if (BOOLEAN == dataType) {
@@ -193,16 +198,17 @@ public enum DataType {
 
     private static void serializeInt(byte[] serializedBytes, String value) {
         int integerValue = Integer.parseInt(value);
-        serializedBytes[5] = (byte) (integerValue >> 24);
-        serializedBytes[4] = (byte) (integerValue >> 16);
-        serializedBytes[3] = (byte) (integerValue >> 8);
-        serializedBytes[2] = (byte) integerValue;
+        for (int i = Integer.BYTES; i >= 0; i--) {
+            serializedBytes[i + 1] = (byte)(integerValue & 0xFF);
+            integerValue >>= Byte.SIZE;
+        }
     }
 
     private static void serializeDouble(byte[] serializedBytes, String value) {
         long longValue = Double.doubleToLongBits(Double.parseDouble(value));
-        for (int i = 0; i < 8; i++) {
-            serializedBytes[i + 2] = (byte) ((longValue >> ((7 - i) * 8)) & 0xff);
+        for (int i = Double.BYTES; i >= 0; i--) {
+            serializedBytes[i + 1] = (byte)(longValue & 0xFF);
+            longValue >>= Byte.SIZE;
         }
     }
 
@@ -216,10 +222,11 @@ public enum DataType {
 
     private static void serializeString(byte[] serializedBytes, String value) {
         byte[] valueAsBytes = value.getBytes(StandardCharsets.UTF_8);
-        serializedBytes[2] = (byte) ((valueAsBytes.length & 0xF000) >> 24);
-        serializedBytes[3] = (byte) ((valueAsBytes.length & 0x0F00) >> 16);
-        serializedBytes[4] = (byte) ((valueAsBytes.length & 0x00F0) >> 8);
-        serializedBytes[5] = (byte) (valueAsBytes.length & 0x000F);
+        int length = valueAsBytes.length;
+        for (int i = Integer.BYTES; i >= 0; i--) {
+            serializedBytes[i + 1] = (byte)(length & 0xFF);
+            length >>= Byte.SIZE;
+        }
         System.arraycopy(valueAsBytes, 0, serializedBytes, 6, valueAsBytes.length);
     }
 }

@@ -13,13 +13,14 @@ query : matchQuery
 
 matchQuery : MATCH whitespace matchPattern whitespace? returnClause? ;
 continuousMatchQuery : CONTINUOUS whitespace matchQuery whitespace userOperation whitespace operationLocation;
-createQuery : CREATE whitespace createPattern ;
+createQuery : CREATE whitespace (createEdgePattern | createVertexPattern) ;
 deleteQuery : DELETE whitespace deletePattern ;
 shortestPathQuery: SHORTEST whitespace PATH whitespace pathPattern ;
 
 matchPattern: variableEdge ( whitespace? ',' whitespace? variableEdge )* ;
 deletePattern : digitsEdgeWithOptionalType ( whitespace? ',' whitespace? digitsEdgeWithOptionalType )* ;
-createPattern : digitsEdgeWithTypeAndProperties ( whitespace? ',' whitespace? digitsEdgeWithTypeAndProperties )* ;
+createEdgePattern : digitsEdgeWithTypeAndProperties ( whitespace? ',' whitespace? digitsEdgeWithTypeAndProperties )* ;
+createVertexPattern : digitsVertexWithTypeAndProperties ( whitespace ? ',' whitespace? digitsVertexWithTypeAndProperties)* ;
 pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
 returnClause : RETURN whitespace (variable | variableWithProperty) ( whitespace? ',' whitespace? (variable | variableWithProperty) )* ;
 

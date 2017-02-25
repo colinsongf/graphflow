@@ -22,6 +22,7 @@ public class StructuredQuery implements AbstractStructuredQuery {
     }
 
     private List<QueryRelation> queryRelations = new ArrayList<>();
+    private List<QueryVariable> queryVariables = new ArrayList<>();
     private List<String> returnVariables = new ArrayList<>();
     private List<Pair<String, String>> returnVariablePropertyPairs = new ArrayList<>();
     private QueryOperation queryOperation;
@@ -36,12 +37,28 @@ public class StructuredQuery implements AbstractStructuredQuery {
     }
 
     /**
+     * @return A read-only list of query variables.
+     */
+    public List<QueryVariable> getQueryVaribles() {
+        return Collections.unmodifiableList(queryVariables);
+    }
+
+    /**
      * Adds a {@link QueryRelation} to the list of relations.
      *
      * @param queryRelation The {@link QueryRelation} to be added.
      */
     public void addRelation(QueryRelation queryRelation) {
         this.queryRelations.add(queryRelation);
+    }
+
+    /**
+     * Adds a {@link QueryVariable} to the list of variables.
+     *
+     * @param queryVariable The {@link QueryVariable} to be added.
+     */
+    public void addVariable(QueryVariable queryVariable) {
+        this.queryVariables.add(queryVariable);
     }
 
     public QueryOperation getQueryOperation() {
@@ -101,6 +118,14 @@ public class StructuredQuery implements AbstractStructuredQuery {
             Objects.equals(a.continuousMatchAction, b.continuousMatchAction) &&
             Objects.equals(a.continuousMatchOutputLocation, b.continuousMatchOutputLocation))) {
             return false;
+        }
+        if (a.queryVariables.size() != b.queryVariables.size()) {
+            return false;
+        }
+        for (int i = 0; i < a.queryVariables.size(); i++) {
+            if (!QueryVariable.isSameAs(a.queryVariables.get(i), b.queryVariables.get(i))) {
+                return false;
+            }
         }
         if (a.queryRelations.size() != b.queryRelations.size()) {
             return false;

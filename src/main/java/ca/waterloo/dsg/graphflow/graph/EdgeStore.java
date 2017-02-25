@@ -264,7 +264,8 @@ public class EdgeStore extends PropertyStore {
         this.nextPartitionId = partitionID;
         this.nextBucketId = bucketID;
         this.nextBucketOffset = bucketOffset;
-        addEdge(null); /* add an edge with the current Id */
+        this.nextIDNeverYetAssigned = (((long) partitionID) & 0xFFFF) << 40 |
+            (((long) bucketID) & 0xFFFF) << 8 | (long) bucketOffset;
     }
 
     @UsedOnlyByTests

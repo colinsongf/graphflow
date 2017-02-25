@@ -2,26 +2,7 @@ package ca.waterloo.dsg.graphflow.query.parser;
 
 import ca.waterloo.dsg.graphflow.grammar.GraphflowBaseVisitor;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.ContinuousMatchQueryContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.CreatePatternContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DeletePatternContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsEdgeWithOptionalTypeContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsEdgeWithTypeAndPropertiesContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsVertexContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.DigitsVertexWithTypeAndPropertiesContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser
-    .EdgeOptionalTypeAndOptionalPropertiesContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.GraphflowContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.MatchPatternContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.MatchQueryContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.PathPatternContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.PropertiesContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.ReturnClauseContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.ShortestPathQueryContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableEdgeContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableVertexContext;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.VariableWithPropertyContext;
+import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.*;
 import ca.waterloo.dsg.graphflow.query.structuredquery.AbstractStructuredQuery;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
@@ -61,8 +42,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
             for (VariableWithPropertyContext variableWithPropertyContext :
                 returnClauseContext.variableWithProperty()) {
                 String[] split = variableWithPropertyContext.getText().split("\\.");
-                structuredQuery.addReturnVariablePropertyPair(
-                    new Pair<String, String>(split[0], split[1]));
+                structuredQuery.addReturnVariablePropertyPair(new Pair<>(split[0], split[1]));
             }
         }
         return structuredQuery;
@@ -96,11 +76,22 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     }
 
     @Override
-    public AbstractStructuredQuery visitCreatePattern(CreatePatternContext ctx) {
+    public AbstractStructuredQuery visitCreateEdgePattern(CreateEdgePatternContext ctx) {
         StructuredQuery structuredQuery = new StructuredQuery();
         structuredQuery.setQueryOperation(QueryOperation.CREATE);
         for (int i = 0; i < ctx.digitsEdgeWithTypeAndProperties().size(); i++) {
             structuredQuery.addRelation((QueryRelation) visit(ctx.digitsEdgeWithTypeAndProperties(
+                i)));
+        }
+        return structuredQuery;
+    }
+
+    @Override
+    public AbstractStructuredQuery visitCreateVertexPattern(CreateVertexPatternContext ctx) {
+        StructuredQuery structuredQuery = new StructuredQuery();
+        structuredQuery.setQueryOperation(QueryOperation.CREATE);
+        for (int i = 0; i < ctx.digitsVertexWithTypeAndProperties().size(); i++) {
+            structuredQuery.addVariable((QueryVariable) visit(ctx.digitsVertexWithTypeAndProperties(
                 i)));
         }
         return structuredQuery;

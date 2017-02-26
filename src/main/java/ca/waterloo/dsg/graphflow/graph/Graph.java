@@ -4,11 +4,13 @@ import ca.waterloo.dsg.graphflow.graph.serde.GraphParallelSerDeUtils;
 import ca.waterloo.dsg.graphflow.graph.serde.GraphflowSerializable;
 import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDeHelper;
 import ca.waterloo.dsg.graphflow.graph.serde.ParallelArraySerDeUtils;
+import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.LongArrayList;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
+import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -609,8 +611,14 @@ public class Graph implements GraphflowSerializable {
     /**
      * Resets the {@link Graph} state by creating a new {@code INSTANCE}.
      */
+    @VisibleForTesting
     static void reset() {
         INSTANCE = new Graph();
+        // Also reset other classes that the Graph class depends on
+        EdgeStore.getInstance().reset();
+        VertexPropertyStore.getInstance().reset();
+        TypeAndPropertyKeyStore.getInstance().reset();
+        ContinuousMatchQueryExecutor.getInstance().reset();
     }
 
     /**

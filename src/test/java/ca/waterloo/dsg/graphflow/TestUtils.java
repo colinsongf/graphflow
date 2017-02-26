@@ -9,9 +9,12 @@ import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.PredicateType;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.util.DataType;
+import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.Map;
@@ -136,5 +139,17 @@ public class TestUtils {
         AbstractDBOperator outputSink = new InMemoryOutputSink();
         ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(Graph
             .getInstance(), outputSink);
+    }
+
+    public static QueryPropertyPredicate initializeQueryPropertyPredicate(Pair<String, Short>
+        variable1, Pair<String, Short> variable2, String constant, ComparisonOperator
+        comparisonOperator, PredicateType predicateType) {
+        QueryPropertyPredicate queryPropertyPredicate = new QueryPropertyPredicate();
+        queryPropertyPredicate.setVariable1(variable1);
+        queryPropertyPredicate.setVariable2(variable2);
+        queryPropertyPredicate.setConstant(constant);
+        queryPropertyPredicate.setComparisonOperator(comparisonOperator);
+        queryPropertyPredicate.setPredicateType(predicateType);
+        return queryPropertyPredicate;
     }
 }

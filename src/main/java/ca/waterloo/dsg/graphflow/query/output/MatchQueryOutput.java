@@ -15,5 +15,7 @@ public class MatchQueryOutput {
     public int[] vertexIds;
     public long[] edgeIds;
     public MatchQueryResultType matchQueryResultType;
+    public Object[] results;
+    public int resultLength;
 
 }

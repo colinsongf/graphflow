@@ -56,6 +56,11 @@ public class StructuredQuery implements AbstractStructuredQuery {
         return Collections.unmodifiableList(queryPropertyPredicates);
     }
 
+    @UsedOnlyByTests
+    public void setQueryPropertyPredicates(List<QueryPropertyPredicate> queryPropertyPredicates) {
+        this.queryPropertyPredicates = queryPropertyPredicates;
+    }
+
     /**
      * Adds a {@link QueryRelation} to the list of relations.
      *

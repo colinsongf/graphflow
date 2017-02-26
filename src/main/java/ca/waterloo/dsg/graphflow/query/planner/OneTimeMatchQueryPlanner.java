@@ -35,7 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -278,7 +278,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             orderedVertexVariablesAfterProjection = orderedVertexAndEdgeVariables.a;
             orderedEdgeVariablesAfterProjection = orderedVertexAndEdgeVariables.b;
 
-            // First construct the PropertyResolver or GroupByAndAggregate which will be the 
+            // First construct the PropertyResolver or GroupByAndAggregate which will be the
             // operator following Projection
             AbstractDBOperator projectionsNextOperator = null;
             Map<String, Integer> vertexVariableOrderIndexMapAfterProjection =
@@ -327,7 +327,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         orderedEdgesFromProjection) {
         Set<String> resolvedEdges = new HashSet<>();
         List<String> orderedEdgeVariablesInFiltersAndProjections = new ArrayList<>();
-        Collections.copy(orderedEdgeVariablesInFiltersAndProjections, orderedEdgesFromProjection);
+        orderedEdgeVariablesInFiltersAndProjections.addAll(orderedEdgesFromProjection);
         resolvedEdges.addAll(orderedEdgesFromProjection);
         for (QueryPropertyPredicate queryPropertyPredicate : structuredQuery.
             getQueryPropertyPredicates()) {
@@ -335,19 +335,19 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             if (!queryGraph.getAllVariableNames().contains(operandVariable1)
                 && !resolvedEdges.contains(operandVariable1)) {
                 resolvedEdges.add(operandVariable1);
-                orderedEdgesFromProjection.add(operandVariable1);
+                orderedEdgeVariablesInFiltersAndProjections.add(operandVariable1);
             }
             String operandVariable2 = queryPropertyPredicate.getVariable2() != null ?
                 queryPropertyPredicate.getVariable2().a: null;
             if (operandVariable2 != null && !queryGraph.getAllVariableNames()
                 .contains(operandVariable2) && !resolvedEdges.contains(operandVariable2)) {
-                orderedEdgesFromProjection.add(operandVariable2);
+                orderedEdgeVariablesInFiltersAndProjections.add(operandVariable2);
                 resolvedEdges.add(operandVariable2);
             }
         }
         return orderedEdgeVariablesInFiltersAndProjections;
     }
-    
+
     private Predicate<MatchQueryOutput> getFilterPredicates(Map<String, Integer>
         orderedVariableIndexMap, Map<String, Integer> orderedEdgeVariableIndexMap) {
         Predicate p = null;
@@ -390,7 +390,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             case SUM:
                 aggregator = new Sum();
                 break;
-            default: 
+            default:
                 logger.warn("Unknown aggregation function:"
                    + queryAggregation.getAggregationFunction() + ". This should have been caught"
                    + " and handled when parsing the query.");
@@ -413,11 +413,11 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     vertexVariableOrderIndexMapAfterProjection, edgeVariableOrderIndexMap,
                     variablePropertyPair.a, typeAndPropertyKeyStore.mapStringPropertyKeyToShort(
                         variablePropertyPair.b));
-                
+
             }
             valueAggregatorPairs.add(new Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator>(
                 descriptor, aggregator));
-        }        
+        }
         return new GroupByAndAggregate(outputSink, valuesToGroupBy, valueAggregatorPairs);
     }
 

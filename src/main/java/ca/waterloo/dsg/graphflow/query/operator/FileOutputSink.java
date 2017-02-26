@@ -35,8 +35,10 @@ public class FileOutputSink extends AbstractDBOperator {
      */
     @Override
     public void append(MatchQueryOutput matchQueryOutput) {
-        writer.println(QueryOutputUtils.getStringMatchQueryOutput(matchQueryOutput.vertexIds,
-            matchQueryOutput.matchQueryResultType));
+        System.out.println(QueryOutputUtils.getStringMatchQueryOutput(matchQueryOutput.results,
+            matchQueryOutput.resultLength, matchQueryOutput.matchQueryResultType));
+        writer.println(QueryOutputUtils.getStringMatchQueryOutput(matchQueryOutput.results,
+            matchQueryOutput.resultLength, matchQueryOutput.matchQueryResultType));
         writer.flush();
     }
 

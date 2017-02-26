@@ -6,6 +6,7 @@ import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
@@ -79,7 +80,7 @@ public class ContinuousMatchQueryExecutorTest {
         // Execute the registered CONTINUOUS MATCH query.
         ContinuousMatchQueryExecutor.getInstance().execute(graph);
 
-        int[][] expectedMotifs = {{2, 0, 1}, {3, 4, 1}, {3, 4, 1}, {3, 4, 1}, {1, 2, 0}};
+        Object[][] expectedMotifs = {{2, 0, 1}, {3, 4, 1}, {3, 4, 1}, {3, 4, 1}, {1, 2, 0}};
         MatchQueryResultType[] expectedMatchQueryResultTypes = {MatchQueryResultType.EMERGED,
             MatchQueryResultType.DELETED, MatchQueryResultType.DELETED,
             MatchQueryResultType.DELETED, MatchQueryResultType.DELETED};
@@ -95,12 +96,15 @@ public class ContinuousMatchQueryExecutorTest {
             expectedMatchQueryResultTypes).toString());
     }
 
-    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs,
+    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(Object[][] motifs,
         MatchQueryResultType[] matchQueryResultTypes) {
         InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
+        MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
         for (int i = 0; i < motifs.length; i++) {
-            inMemoryOutputSink.append(QueryOutputUtils.getStringMatchQueryOutput(motifs[i],
-                matchQueryResultTypes[i]));
+            matchQueryOutput.results = motifs[i];
+            matchQueryOutput.resultLength = motifs[i].length;
+            matchQueryOutput.matchQueryResultType = matchQueryResultTypes[i];
+            inMemoryOutputSink.append(matchQueryOutput);
         }
         return inMemoryOutputSink;
     }

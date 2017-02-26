@@ -1,5 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
+import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
+import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 
 import java.util.ArrayList;
@@ -16,6 +18,20 @@ public class InMemoryOutputSink extends AbstractDBOperator {
 
     public InMemoryOutputSink() {
         super(null /* no output operator */);
+    }
+
+    /**
+     * Adds {@code result} to the list of in-memory outputs.
+     *
+     * @param matchQueryOutput the output {@link MatchQueryOutput}.
+     */
+    @Override
+    public void append(MatchQueryOutput matchQueryOutput) {
+        if (matchQueryOutput.resultLength == 0) {
+            return;
+        }
+        results.add(QueryOutputUtils.getStringMatchQueryOutput(matchQueryOutput.results,
+            matchQueryOutput.resultLength, matchQueryOutput.matchQueryResultType));
     }
 
     /**

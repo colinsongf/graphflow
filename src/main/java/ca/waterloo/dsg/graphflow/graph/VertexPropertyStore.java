@@ -44,11 +44,14 @@ public class VertexPropertyStore extends PropertyStore {
      * those of the list at the given {@code vertexId}.
      */
     public void set(int vertexId, Map<Short, Pair<DataType, String>> properties) {
+
         vertexProperties = ArrayUtils.resizeIfNecessary(vertexProperties, vertexId + 1);
         if (null == properties) {
             return;
         }
+        System.out.println("Setting: "+ vertexId+ " ");
         vertexProperties[vertexId] = serializeProperties(properties);
+        System.out.println("array length"+vertexProperties[vertexId].length);
     }
 
     /**

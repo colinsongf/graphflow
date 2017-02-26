@@ -1,5 +1,8 @@
 package ca.waterloo.dsg.graphflow.util;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 
 /**
@@ -76,5 +79,21 @@ public class ShortArrayList {
      */
     public void clear() {
         size = 0;
+    }
+
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+        objectOutputStream.writeInt(size);
+        for (int i = 0; i < size; i++) {
+            objectOutputStream.writeShort(data[i]);
+        }
+    }
+
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        size = objectInputStream.readInt();
+        data = new short[size];
+        for (int i = 0; i < size; i++) {
+            data[i] = objectInputStream.readShort();
+        }
     }
 }

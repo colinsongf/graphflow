@@ -9,6 +9,9 @@ import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -218,6 +221,20 @@ public class TypeAndPropertyKeyStore {
         return propertyKeyStore.mapStringKeyToShort(stringKey);
     }
 
+    /**
+     * See {@link StringToShortKeyStore#mapStringKeyToShort(String)}
+     */
+    public String getTypeStringFromShort(short typeId) {
+        return typeKeyStore.mapShortKeyToString(typeId);
+    }
+
+    /**
+     * See {@link StringToShortKeyStore#mapStringKeyToShort(String)}
+     */
+    public String getPropertyStringFromShort(short typeId) {
+        return propertyKeyStore.mapShortKeyToString(typeId);
+    }
+
     @UsedOnlyByTests
     public void reset() {
         typeKeyStore.reset();
@@ -234,5 +251,19 @@ public class TypeAndPropertyKeyStore {
 
     private boolean isNullOrEmpty(String key) {
         return null == key || "".equals(key);
+    }
+
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+        typeKeyStore.serialize(objectOutputStream);
+        propertyKeyStore.serialize(objectOutputStream);
+        objectOutputStream.writeObject(propertyDataTypeStore);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        typeKeyStore.deserialize(objectInputStream);
+        propertyKeyStore.deserialize(objectInputStream);
+        propertyDataTypeStore = (HashMap<Short, DataType>) objectInputStream.readObject();
     }
 }

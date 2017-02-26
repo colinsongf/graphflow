@@ -7,6 +7,9 @@ import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -307,7 +310,7 @@ public class SortedAdjacencyList {
         i -= stepSize;
         stepSize >>= 1;
         while (stepSize > 0) {
-            if((i + stepSize) < size && (neighbourIds[i + stepSize] < neighbourId ||
+            if ((i + stepSize) < size && (neighbourIds[i + stepSize] < neighbourId ||
                 (neighbourIds[i + stepSize] == neighbourId && edgeTypes[i + stepSize] <
                     edgeTypeFilter))) {
                 i += stepSize;
@@ -317,7 +320,7 @@ public class SortedAdjacencyList {
         if (((i + 1) < size) && neighbourIds[i + 1] == neighbourId && (TypeAndPropertyKeyStore.ANY
             == edgeTypeFilter || edgeTypeFilter == edgeTypes[i + 1]) &&
             (null == edgePropertyEqualityFilters || EdgeStore.getInstance().checkEqualityFilters(
-            edgeIds[i + 1], edgePropertyEqualityFilters))) {
+                edgeIds[i + 1], edgePropertyEqualityFilters))) {
             return i + 1;
         }
         // If ({@code neighbourId},{@code edgeTypeFilter}) does not exist, return the negative value
@@ -362,6 +365,36 @@ public class SortedAdjacencyList {
         edgeTypes = ArrayUtils.resizeIfNecessary(edgeTypes, minCapacity);
         edgeIds = ArrayUtils.resizeIfNecessary(edgeIds, minCapacity,
             -1 /* default value to fill new cells if resizing */);
+    }
+
+    public void serialize(ObjectOutputStream objectOutputStream) throws
+        IOException {
+        objectOutputStream.writeInt(size);
+        for (int i = 0; i < size; i++) {
+            objectOutputStream.writeInt(neighbourIds[i]);
+            objectOutputStream.writeShort(edgeTypes[i]);
+            objectOutputStream.writeLong(edgeIds[i]);
+        }
+    }
+
+    public void deserialize(ObjectInputStream objectInputStream) throws
+        IOException,
+        ClassNotFoundException {
+        size = objectInputStream.readInt();
+        if (size > 0) {
+            neighbourIds = new int[size];
+            edgeTypes = new short[size];
+            edgeIds = new long[size];
+            for (int i = 0; i < size; i++) {
+                neighbourIds[i] = objectInputStream.readInt();
+                edgeTypes[i] = objectInputStream.readShort();
+                edgeIds[i] = objectInputStream.readLong();
+            }
+        } else {
+            neighbourIds = new int[INITIAL_CAPACITY];
+            edgeTypes = new short[INITIAL_CAPACITY];
+            edgeIds = new long[INITIAL_CAPACITY];
+        }
     }
 
     /**

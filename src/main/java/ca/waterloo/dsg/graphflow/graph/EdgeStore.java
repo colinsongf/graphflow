@@ -6,6 +6,9 @@ import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -281,6 +284,33 @@ public class EdgeStore extends PropertyStore {
 
         data = new byte[INITIAL_CAPACITY][][];
         dataOffsets = new int[INITIAL_CAPACITY][][];
+    }
+
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+        objectOutputStream.writeObject(data);
+        objectOutputStream.writeObject(dataOffsets);
+        objectOutputStream.writeLong(nextIDNeverYetAssigned);
+        objectOutputStream.writeByte(nextBucketOffset);
+        objectOutputStream.writeInt(nextBucketId);
+        objectOutputStream.writeInt(nextPartitionId);
+        objectOutputStream.writeInt(recycledIdsSize);
+        for (int i = 0; i < recycledIdsSize; i++) {
+            objectOutputStream.writeLong(recycledIds[i]);
+        }
+    }
+
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        data = (byte[][][]) objectInputStream.readObject();
+        dataOffsets = (int[][][]) objectInputStream.readObject();
+        nextIDNeverYetAssigned = objectInputStream.readLong();
+        nextBucketOffset = objectInputStream.readByte();
+        nextBucketId = objectInputStream.readInt();
+        nextPartitionId = objectInputStream.readInt();
+        recycledIdsSize = objectInputStream.readInt();
+        for (int i = 0; i < recycledIdsSize; i++) {
+            recycledIds[i] = objectInputStream.readLong();
+        }
     }
 
     /**

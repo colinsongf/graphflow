@@ -4,11 +4,15 @@ import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.LongArrayList;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -100,6 +104,11 @@ public class Graph {
      */
     public int getVertexCount() {
         return highestPermanentVertexId + 1;
+    }
+
+    @UsedOnlyByTests
+    ShortArrayList getVertexTypes() {
+        return vertexTypes;
     }
 
     /**
@@ -555,13 +564,11 @@ public class Graph {
 
     @VisibleForTesting
     public void reset() {
-        int vertexLength = DEFAULT_GRAPH_SIZE;
         highestPermanentVertexId = -1;
         highestMergedVertexId = -1;
-        VertexPropertyStore.getInstance();
-        forwardAdjLists = new SortedAdjacencyList[vertexLength];
-        backwardAdjLists = new SortedAdjacencyList[vertexLength];
-        initializeSortedAdjacencyLists(0, vertexLength);
+        forwardAdjLists = new SortedAdjacencyList[DEFAULT_GRAPH_SIZE];
+        backwardAdjLists = new SortedAdjacencyList[DEFAULT_GRAPH_SIZE];
+        initializeSortedAdjacencyLists(0, DEFAULT_GRAPH_SIZE);
         diffPlusEdges = new ArrayList<>();
         diffMinusEdges = new ArrayList<>();
         diffPlusEdgeTypes = new ShortArrayList();
@@ -572,10 +579,38 @@ public class Graph {
         mergedBackwardAdjLists = new HashMap<>();
         vertexTypes = new ShortArrayList();
 
-        // Also reset other classes that the Graph class depends on
+        // Also reset the other classes that the Graph class depends on.
         EdgeStore.getInstance().reset();
         VertexPropertyStore.getInstance().reset();
         TypeAndPropertyKeyStore.getInstance().reset();
+    }
+
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+        finalizeChanges();
+        objectOutputStream.writeInt(highestPermanentVertexId);
+        for (int i = 0; i <= highestPermanentVertexId; i++) {
+            forwardAdjLists[i].serialize(objectOutputStream);
+            backwardAdjLists[i].serialize(objectOutputStream);
+        }
+        vertexTypes.serialize(objectOutputStream);
+        EdgeStore.getInstance().serialize(objectOutputStream);
+        VertexPropertyStore.getInstance().serialize(objectOutputStream);
+        TypeAndPropertyKeyStore.getInstance().serialize(objectOutputStream);
+    }
+
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        highestPermanentVertexId = objectInputStream.readInt();
+        highestMergedVertexId = highestPermanentVertexId;
+        ensureCapacity(highestPermanentVertexId + 1);
+        for (int i = 0; i <= highestPermanentVertexId; i++) {
+            forwardAdjLists[i].deserialize(objectInputStream);
+            backwardAdjLists[i].deserialize(objectInputStream);
+        }
+        vertexTypes.deserialize(objectInputStream);
+        EdgeStore.getInstance().deserialize(objectInputStream);
+        VertexPropertyStore.getInstance().deserialize(objectInputStream);
+        TypeAndPropertyKeyStore.getInstance().deserialize(objectInputStream);
     }
 
     /**

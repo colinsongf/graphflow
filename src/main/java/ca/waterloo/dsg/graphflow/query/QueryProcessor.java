@@ -27,8 +27,14 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 /**
  * Class to accept incoming queries from the gRPC server, process them and return the results.
@@ -39,10 +45,6 @@ public class QueryProcessor {
 
     private static String TMP_DIRECTORY = "/tmp/";
     private Graph graph = Graph.getInstance();
-
-    public QueryProcessor() {
-        ShortestPathExecutor.getInstance().init(graph);
-    }
 
     /**
      * Executes a string query by converting it into a {@link StructuredQuery}, creating the
@@ -69,9 +71,44 @@ public class QueryProcessor {
                 return handleContinuousMatchQuery(structuredQuery);
             case SHORTEST_PATH:
                 return handleShortestPathQuery(structuredQuery);
+            case LOAD_GRAPH:
+                return handleLoadGraphQuery(structuredQuery);
+            case SAVE_GRAPH:
+                return handleSaveGraphQuery(structuredQuery);
             default:
                 return "ERROR: the operation '" + structuredQuery.getQueryOperation() +
                     "' is not defined.";
+        }
+    }
+
+    private String handleSaveGraphQuery(StructuredQuery structuredQuery) {
+        try {
+            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(
+                new FileOutputStream(structuredQuery.getFilePath()));
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(bufferedOutputStream);
+            graph.serialize(objectOutputStream);
+            objectOutputStream.close();
+            bufferedOutputStream.close();
+            return String.format("Graph saved to file '%s'", structuredQuery.getFilePath());
+        } catch (IOException e) {
+            return String.format("IOError for file '%s': %s", structuredQuery.getFilePath(), e);
+        }
+    }
+
+    private String handleLoadGraphQuery(StructuredQuery structuredQuery) {
+        try {
+            BufferedInputStream bufferedInputStream = new BufferedInputStream(
+                new FileInputStream(structuredQuery.getFilePath()));
+            ObjectInputStream objectInputStream = new ObjectInputStream(bufferedInputStream);
+            graph.deserialize(objectInputStream);
+            objectInputStream.close();
+            bufferedInputStream.close();
+            return String.format("Graph loaded from file '%s'", structuredQuery.getFilePath());
+        } catch (IOException e) {
+            return String.format("IOError for file '%s': %s", structuredQuery.getFilePath(), e);
+        } catch (ClassNotFoundException e) {
+            return String.format("ERROR: incorrect format of file '%s'", structuredQuery.
+                getFilePath());
         }
     }
 
@@ -108,7 +145,7 @@ public class QueryProcessor {
 
     private String handleContinuousMatchQuery(StructuredQuery structuredQuery) {
         String fileName = "continuous_match_query_" + structuredQuery.
-            getContinuousMatchOutputLocation();
+            getFilePath();
         AbstractDBOperator outputSink;
         try {
             outputSink = new FileOutputSink(new File(TMP_DIRECTORY + fileName));
@@ -127,6 +164,9 @@ public class QueryProcessor {
     }
 
     private String handleShortestPathQuery(StructuredQuery structuredQuery) {
+        if (!ShortestPathExecutor.getInstance().isInitialized()) {
+            ShortestPathExecutor.getInstance().init(graph);
+        }
         AbstractDBOperator outputSink = new InMemoryOutputSink();
         ((ShortestPathPlan) new ShortestPathPlanner(structuredQuery).plan()).execute(outputSink);
         return outputSink.toString();

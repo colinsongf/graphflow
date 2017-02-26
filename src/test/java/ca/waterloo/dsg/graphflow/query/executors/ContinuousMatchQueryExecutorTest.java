@@ -10,6 +10,7 @@ import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,6 +37,11 @@ public class ContinuousMatchQueryExecutorTest {
         Graph.getInstance().reset();
     }
 
+    @AfterClass
+    public static void clearContinuousMatchQueries() {
+        ContinuousMatchQueryExecutor.getInstance().clear();
+    }
+
     /**
      * Tests the execution of a triangle CONTINUOUS MATCH query.
      */
@@ -43,11 +49,11 @@ public class ContinuousMatchQueryExecutorTest {
     public void testProcessTriangles() throws Exception {
         // Register a triangle CONTINUOUS MATCH query.
         String continuousTriangleQuery = "CONTINUOUS MATCH (a)->(b),(b)->(c),(c)->(a)" +
-            " FILE results;";
+            " FILE 'results';";
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(
             continuousTriangleQuery);
         String fileName = "continuous_match_query_" + structuredQuery.
-            getContinuousMatchOutputLocation();
+            getFilePath();
         File location = temporaryFolder.newFile(fileName);
         AbstractDBOperator outputSink = new FileOutputSink(location);
         ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(

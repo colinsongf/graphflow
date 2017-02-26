@@ -1,11 +1,14 @@
 package ca.waterloo.dsg.graphflow.util;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.NoSuchElementException;
 
 /**
  * Stores a mapping of {@code String} keys to {@code short} keys and vice versa. Each new
  * {@code String} key inserted gets a consecutively increasing short key starting from 0.
- * 
+ * <p>
  * Warning: This class internally uses {@link StringToIntKeyMap} and stores the {@code short} keys
  * as integers and converts them to {@code short}s. If the callers insert more than
  * {@link Short#MAX_VALUE} keys this class will overflow its short values.
@@ -14,14 +17,33 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
 
     private static final int DEFAULT_CAPACITY = 2;
     private String[] shortToStringMap = new String[DEFAULT_CAPACITY];
-    
+
     /**
      * @see StringToIntKeyMap#adjustOtherDataStructures(String, int).
      */
     protected void adjustOtherDataStructures(String newStringKey, int newShortKey) {
         shortToStringMap = (String[]) ArrayUtils.resizeIfNecessary(shortToStringMap,
-             nextKeyAsInt + 1);
+            nextKeyAsInt + 1);
         shortToStringMap[nextKeyAsInt] = newStringKey;
+    }
+
+    /**
+     * Resets the store.
+     */
+    public void reset() {
+        super.reset();
+        shortToStringMap = new String[DEFAULT_CAPACITY];
+    }
+
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+        super.serialize(objectOutputStream);
+        objectOutputStream.writeObject(shortToStringMap);
+    }
+
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        super.deserialize(objectInputStream);
+        shortToStringMap = (String[]) objectInputStream.readObject();
     }
 
     /**
@@ -30,9 +52,9 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
      * @throws IllegalArgumentException if {@code stringKey} passed is {@code null}.
      */
     public short getKeyAsShortOrInsert(String stringKey) {
-        return (short) getKeyAsIntOrInsert(stringKey);        
+        return (short) getKeyAsIntOrInsert(stringKey);
     }
-    
+
     /**
      * @param key The {@code String} key.
      * @return The {@code Short} mapping of the given {@code String} key or {@code null} if the
@@ -58,13 +80,5 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
                 "key store.");
         }
         return shortToStringMap[shortKey];
-    }
-
-    /**
-     * Resets the store.
-     */
-    public void reset() {
-        super.reset();
-        shortToStringMap = new String[DEFAULT_CAPACITY];
     }
 }

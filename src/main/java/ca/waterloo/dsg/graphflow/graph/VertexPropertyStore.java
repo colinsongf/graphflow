@@ -5,6 +5,9 @@ import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -62,15 +65,18 @@ public class VertexPropertyStore extends PropertyStore {
         if (vertexId >= vertexProperties.length) {
             throw new NoSuchElementException("Vertex with ID " + vertexId + " does not exist.");
         }
-        Map<Short, Object> edgeProperties = new HashMap<>();
+        Map<Short, Object> properties = new HashMap<>();
         byte[] data = vertexProperties[vertexId];
+        if (null == data) {
+            return properties;
+        }
         propertyIterator.reset(data, 0, data.length);
         Pair<Short, Object> keyValue;
         while (propertyIterator.hasNext()) {
             keyValue = propertyIterator.next();
-            edgeProperties.put(keyValue.a, keyValue.b);
+            properties.put(keyValue.a, keyValue.b);
         }
-        return edgeProperties;
+        return properties;
     }
 
     /**
@@ -100,15 +106,24 @@ public class VertexPropertyStore extends PropertyStore {
         return null;
     }
 
+    @VisibleForTesting
+    public void reset() {
+        vertexProperties = new byte[INITIAL_CAPACITY][];
+    }
+
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+        objectOutputStream.writeObject(vertexProperties);
+    }
+
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        vertexProperties = (byte[][]) objectInputStream.readObject();
+    }
+
     /**
      * Returns the singleton instance {@link #INSTANCE}.
      */
     public static VertexPropertyStore getInstance() {
         return INSTANCE;
-    }
-
-    @VisibleForTesting
-    public void reset() {
-        vertexProperties = new byte[INITIAL_CAPACITY][];
     }
 }

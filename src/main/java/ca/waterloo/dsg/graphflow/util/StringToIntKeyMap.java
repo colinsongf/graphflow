@@ -1,5 +1,8 @@
 package ca.waterloo.dsg.graphflow.util;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,7 +29,7 @@ public class StringToIntKeyMap {
         }
         return stringToIntMap.get(key);
     }
-    
+
     /**
      * @param stringKey The {@code String} key.
      * @return The {@code int} mapping of the given {@code String} key.
@@ -48,8 +51,9 @@ public class StringToIntKeyMap {
     /**
      * Adjusts other data structures that classes extending {@link StringToIntKeyMap} might have.
      * This is called when a new key is being inserted to the map.
-     * 
+     * <p>
      * Note: Should be implemented by classes extending {@link StringToIntKeyMap}.
+     *
      * @param newStringKey new String key being inserted.
      * @param newIntKey the new integer key that corresponds to the newStringKey.
      */
@@ -73,5 +77,24 @@ public class StringToIntKeyMap {
     public void reset() {
         stringToIntMap = new HashMap<>();
         nextKeyAsInt = 0;
+    }
+
+    /**
+     * Writes the class
+     *
+     * @param objectOutputStream The output stream to write to.
+     */
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+        objectOutputStream.writeObject(stringToIntMap);
+    }
+
+    /**
+     * Reads back the
+     *
+     * @param objectInputStream The input stream to read from.
+     */
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        stringToIntMap = (HashMap<String, Integer>) objectInputStream.readObject();
     }
 }

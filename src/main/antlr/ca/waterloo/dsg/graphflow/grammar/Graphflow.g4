@@ -9,13 +9,15 @@ query : matchQuery
        | createQuery
        | deleteQuery
        | shortestPathQuery
+       | durabilityQuery
        ;
 
 matchQuery : MATCH whitespace matchPattern whitespace? returnClause? ;
-continuousMatchQuery : CONTINUOUS whitespace matchQuery whitespace userOperation whitespace operationLocation;
+continuousMatchQuery : CONTINUOUS whitespace matchQuery whitespace FILE whitespace SINGLE_QUOTE filePath SINGLE_QUOTE ;
 createQuery : CREATE whitespace (createEdgePattern | createVertexPattern) ;
 deleteQuery : DELETE whitespace deletePattern ;
 shortestPathQuery: SHORTEST whitespace PATH whitespace pathPattern ;
+durabilityQuery: ( LOAD | SAVE ) whitespace GRAPH whitespace SINGLE_QUOTE filePath SINGLE_QUOTE ;
 
 matchPattern: variableEdge ( whitespace? ',' whitespace? variableEdge )* ;
 deletePattern : digitsEdgeWithOptionalType ( whitespace? ',' whitespace? digitsEdgeWithOptionalType )* ;
@@ -47,8 +49,8 @@ property : key whitespace? ':' whitespace? dataType whitespace? '=' whitespace? 
 key : variable ;
 value : ( Digits | Characters | UNDERSCORE | DASH | DOT )+ ;
 
-userOperation : FILE ;
-operationLocation: variable;
+// Supports only *nix filepaths
+filePath: ( Digits | Characters | UNDERSCORE | DASH | DOT | SLASH | SPACE )+ ;
 
 variableWithProperty : variable DOT variable;
 variable : ( Digits | Characters | UNDERSCORE | DASH )+ ;
@@ -86,6 +88,10 @@ MIN : M I N ;
 
 SUM : S U M ;
 
+LOAD: L O A D;
+SAVE: S A V E;
+GRAPH: G R A P H;
+
 whitespace : (WHITESPACE)+ ;
 
 Characters : ( [a-z] | [A-Z] )+ ;
@@ -104,20 +110,18 @@ Comment : ( '/*' ( Comment_0 | ( '*' Comment_1 ) )* '*/' )
         ;
 
 RIGHT_ARROWHEAD : '>' ;
-
 DASH : '-' ;
-
 UNDERSCORE : '_' ;
-
 DOT : '.' ;
+SPACE : [ ] ;
+SLASH : '/' ;
+SINGLE_QUOTE: '\'' ;
 
 fragment Comment_1 : [\u0000-.0-\uFFFF] ;
 
 fragment Comment_0 : [\u0000-)+-\uFFFF] ;
 
 fragment Comment_2 : [\u0000-\t\u000B-\f\u000E-\uFFFF] ;
-
-fragment SPACE : [ ] ;
 
 fragment TAB : [\t] ;
 

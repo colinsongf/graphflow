@@ -1,10 +1,21 @@
 package ca.waterloo.dsg.graphflow;
 
+import ca.waterloo.dsg.graphflow.graph.EdgeStore;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
+import ca.waterloo.dsg.graphflow.graph.VertexPropertyStore;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
+import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
+import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
+import ca.waterloo.dsg.graphflow.util.DataType;
+import org.antlr.v4.runtime.misc.Pair;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Provides utility functions for tests.
@@ -12,13 +23,13 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 public class TestUtils {
 
     /**
-     * Creates and returns a graph initialized with the given {@code edges}, {@code edgeTypes}
-     * and {@code vertexTypes}.
+     * Creates and returns a graph initialized with the given {@code edges}, {@code edgeTypes} and
+     * {@code vertexTypes}.
      *
      * @param edges The edges {e=(u,v)} of the graph.
      * @param edgeTypes The type of each edge e.
-     * @param vertexTypes The types {@code (t1, t2)} where t1 is the type of source vertex u and
-     * t2 is the type of destination vertex v.
+     * @param vertexTypes The types {@code (t1, t2)} where t1 is the type of source vertex u and t2
+     * is the type of destination vertex v.
      * @return Graph The initialized graph.
      */
     public static Graph initializeGraphPermanently(int[][] edges, short[] edgeTypes,
@@ -29,13 +40,13 @@ public class TestUtils {
     }
 
     /**
-     * Creates and returns a graph with with the given {@code edges}, {@code edgeTypes}
-     * and {@code vertexTypes} added temporarily.
+     * Creates and returns a graph with with the given {@code edges}, {@code edgeTypes} and {@code
+     * vertexTypes} added temporarily.
      *
      * @param edges The edges {e=(u,v)} of the graph.
      * @param edgeTypes The type of each edge e.
-     * @param vertexTypes The types {@code (t1, t2)} where t1 is the type of source vertex u and
-     * t2 is the type of destination vertex v.
+     * @param vertexTypes The types {@code (t1, t2)} where t1 is the type of source vertex u and t2
+     * is the type of destination vertex v.
      * @return Graph The graph initialized with temporary edges.
      */
     public static Graph initializeGraphTemporarily(int[][] edges, short[] edgeTypes,
@@ -61,8 +72,8 @@ public class TestUtils {
     }
 
     /**
-     * Adds a set of edges to the given {@code graph} temporarily by executing the given
-     * {@code createQuery}.
+     * Adds a set of edges to the given {@code graph} temporarily by executing the given {@code
+     * createQuery}.
      *
      * @param graph The {@link Graph} instance to which the edges should be added.
      * @param createQuery The {@code String} create query to be executed.
@@ -91,8 +102,8 @@ public class TestUtils {
     }
 
     /**
-     * Deletes a set of edges from the given {@code graph} permanently by executing the given
-     * {@code deleteQuery}.
+     * Deletes a set of edges from the given {@code graph} permanently by executing the given {@code
+     * deleteQuery}.
      *
      * @param graph The {@link Graph} instance from which the edges should be deleted.
      * @param deleteQuery The {@code String} delete query to be executed.
@@ -103,8 +114,8 @@ public class TestUtils {
     }
 
     /**
-     * Deletes a set of edges from the given {@code graph} temporarily by executing the given
-     * {@code deleteQuery}.
+     * Deletes a set of edges from the given {@code graph} temporarily by executing the given {@code
+     * deleteQuery}.
      *
      * @param graph The {@link Graph} instance from which the edges should be deleted.
      * @param deleteQuery The {@code String} delete query to be executed.
@@ -118,5 +129,12 @@ public class TestUtils {
                 TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
                     queryRelation.getRelationType()));
         }
+    }
+
+    public static void initializeGraphPermanentlyWithProperties(String createQuery) {
+        StructuredQuery structuredQuery = new StructuredQueryParser().parse(createQuery);
+        AbstractDBOperator outputSink = new InMemoryOutputSink();
+        ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(Graph
+            .getInstance(), outputSink);
     }
 }

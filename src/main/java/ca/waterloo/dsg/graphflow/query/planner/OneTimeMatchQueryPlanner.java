@@ -29,7 +29,7 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.QueryGraph;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import ca.waterloo.dsg.graphflow.util.FilterPredicateFactory;
+import ca.waterloo.dsg.graphflow.query.operator.util.FilterPredicateFactory;
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

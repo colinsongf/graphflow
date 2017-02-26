@@ -47,6 +47,10 @@ public enum DataType {
      */
     public static void assertValueCanBeCastToDataType(String stringDataType, String stringValue) {
         DataType dataType = mapStringToDataType(stringDataType);
+        assertValueCanBeCastToDataType(dataType, stringValue);
+    }
+
+    public static void assertValueCanBeCastToDataType(DataType dataType, String stringValue) {
         if (BOOLEAN == dataType && !stringValue.toUpperCase().equals("TRUE") &&
             !stringValue.toUpperCase().equals("FALSE")) {
             throw new IllegalArgumentException("The string value " + stringValue + " can not be " +
@@ -60,7 +64,7 @@ public enum DataType {
             }
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("The string value " + stringValue + " can not be " +
-                "parsed as " + stringDataType.toUpperCase() + ".");
+                "parsed as " + dataType.name() + ".");
         }
     }
 
@@ -192,6 +196,21 @@ public enum DataType {
                 StandardCharsets.UTF_8);
         }
 
+        throw new IllegalArgumentException("The data type " + dataType + " is null or not " +
+            "supported.");
+    }
+
+    public static Object parseDataType(DataType dataType, String value) {
+        assertValueCanBeCastToDataType(dataType, value);
+        if (INT == dataType) {
+            return Integer.parseInt(value);
+        } else if (DOUBLE == dataType) {
+            return Double.parseDouble(value);
+        } else if (BOOLEAN == dataType) {
+            return Boolean.parseBoolean(value);
+        } else if (STRING == dataType) {
+            return value;
+        }
         throw new IllegalArgumentException("The data type " + dataType + " is null or not " +
             "supported.");
     }

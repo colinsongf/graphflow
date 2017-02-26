@@ -1,6 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.structuredquery;
 
-import ca.waterloo.dsg.graphflow.util.PropertyComparator.ComparisonOperator;
+import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
+import ca.waterloo.dsg.graphflow.util.DataType;
+import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
 import org.antlr.v4.runtime.misc.Pair;
 
 /**
@@ -43,6 +45,27 @@ public class QueryPropertyPredicate {
     }
 
     public Object resolveConstant(String constant) {
-        return null;
+        DataType dataType = TypeAndPropertyKeyStore.getInstance().getPropertyDataType(variable1.b);
+        return DataType.parseDataType(dataType, constant);
+    }
+
+    public void setVariable1(Pair<String, Short> variable1) {
+        this.variable1 = variable1;
+    }
+
+    public void setVariable2(Pair<String, Short> variable2) {
+        this.variable2 = variable2;
+    }
+
+    public void setConstant(String constant) {
+        this.constant = constant;
+    }
+
+    public void setComparisonOperator(ComparisonOperator comparisonOperator) {
+        this.comparisonOperator = comparisonOperator;
+    }
+
+    public void setPredicateType(PredicateType predicateType) {
+        this.predicateType = predicateType;
     }
 }

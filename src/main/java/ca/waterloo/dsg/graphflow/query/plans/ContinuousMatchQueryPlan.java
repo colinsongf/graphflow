@@ -30,7 +30,6 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
      * @param oneTimeMatchQueryPlan the {@link OneTimeMatchQueryPlan} to be added.
      */
     public void addOneTimeMatchQueryPlan(OneTimeMatchQueryPlan oneTimeMatchQueryPlan) {
-        oneTimeMatchQueryPlan.setNextOperator(outputSink);
         oneTimeMatchQueryPlans.add(oneTimeMatchQueryPlan);
     }
 

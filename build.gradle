@@ -103,3 +103,9 @@ scripts.each() { fileName, className ->
 task wrapper(type: Wrapper) {
     gradleVersion = '3.3'
 }
+
+test {
+    // Ensures that gradle runs every test class in a different process.
+    forkEvery = 1
+    maxParallelForks = 8
+}

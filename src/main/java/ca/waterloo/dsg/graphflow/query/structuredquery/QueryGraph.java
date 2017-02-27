@@ -66,7 +66,7 @@ public class QueryGraph {
     /**
      * @return All the variables present in the query.
      */
-    public Set<String> getAllVariables() {
+    public Set<String> getAllVariableNames() {
         return queryGraph.keySet();
     }
 

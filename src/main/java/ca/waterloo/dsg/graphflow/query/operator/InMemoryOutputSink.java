@@ -42,6 +42,11 @@ public class InMemoryOutputSink extends AbstractDBOperator {
         return stringJoiner.toString();
     }
 
+    @UsedOnlyByTests
+    public List<String> getResults() {
+        return results;
+    }
+    
     /**
      * Used during unit testing to check the equality of objects. This is used instead of
      * overriding the standard {@code equals()} and {@code hashCode()} methods.

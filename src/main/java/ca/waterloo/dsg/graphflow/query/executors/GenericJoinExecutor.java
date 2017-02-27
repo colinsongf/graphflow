@@ -103,6 +103,7 @@ public class GenericJoinExecutor {
             // Handle the last batch of initial prefixes which did not reach size of BATCH_SIZE.
             extend(Arrays.copyOf(initialPrefixes, index), 1);
         }
+        nextOperator.done();
     }
 
     /**

@@ -38,10 +38,34 @@ public class ArrayUtils {
 
     /**
      * @see #resizeIfNecessary(Object[], int)
+     * @param defaultValue default value to fill the new cells in the array when resizing.
      */
-    public static long[] resizeIfNecessary(long[] array, int minCapacity) {
-        return (minCapacity > array.length) ? Arrays.copyOf(array, ArrayUtils.getNewCapacity(
-            array.length, minCapacity)) : array;
+    public static long[] resizeIfNecessary(long[] array, int minCapacity, long defaultValue) {
+        if (minCapacity <= array.length) {
+            return array;
+        }
+        long[] newArray = Arrays.copyOf(array, ArrayUtils.getNewCapacity(
+                        array.length, minCapacity));
+        for (int i = array.length; i < newArray.length; ++i) {
+            newArray[i] = defaultValue;
+        }
+        return newArray;
+    }
+    
+    /**
+     * @see #resizeIfNecessary(Object[], int)
+     * @param defaultValue default value to fill the new cells in the array when resizing.
+     */
+    public static double[] resizeIfNecessary(double[] array, int minCapacity, double defaultValue) {
+        if (minCapacity <= array.length) {
+            return array;
+        }
+        double[] newArray = Arrays.copyOf(array, ArrayUtils.getNewCapacity(
+            array.length, minCapacity));
+        for (int i = array.length; i < newArray.length; ++i) {
+            newArray[i] = defaultValue;
+        }
+        return newArray;
     }
 
     /**

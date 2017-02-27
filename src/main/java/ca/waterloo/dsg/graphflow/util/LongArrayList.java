@@ -22,7 +22,8 @@ public class LongArrayList {
      * @param element The new long to be added.
      */
     public void add(long element) {
-        data = ArrayUtils.resizeIfNecessary(data, size + 1);
+        data = ArrayUtils.resizeIfNecessary(data, size + 1,
+            0 /* default value to fill new cells if resizing */);
         data[size++] = element;
     }
 

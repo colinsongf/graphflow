@@ -20,8 +20,14 @@ public class QueryOutputUtils {
     public static String getStringMatchQueryOutput(int[] vertexIds,
         MatchQueryResultType matchQueryResultType) {
         StringBuilder stringBuilder = new StringBuilder();
+        boolean isFirst = true;
         for (int id : vertexIds) {
-            stringBuilder.append(" " + id);
+            if (isFirst) {
+                isFirst = false;
+            } else {
+                stringBuilder.append(" ");
+            }
+            stringBuilder.append(id);
         }
         stringBuilder.append(" " + matchQueryResultType.name());
         return stringBuilder.toString();

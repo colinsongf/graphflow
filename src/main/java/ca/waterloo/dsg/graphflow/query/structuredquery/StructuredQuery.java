@@ -25,6 +25,7 @@ public class StructuredQuery implements AbstractStructuredQuery {
     private List<QueryVariable> queryVariables = new ArrayList<>();
     private List<String> returnVariables = new ArrayList<>();
     private List<Pair<String, String>> returnVariablePropertyPairs = new ArrayList<>();
+    private List<QueryAggregation> queryAggregations = new ArrayList<>();
     private QueryOperation queryOperation;
     private String continuousMatchAction;
     private String continuousMatchOutputLocation;
@@ -85,6 +86,14 @@ public class StructuredQuery implements AbstractStructuredQuery {
         return returnVariablePropertyPairs;
     }
 
+    public List<QueryAggregation> getQueryAggregations() {
+        return queryAggregations;
+    }
+
+    public void addQueryAggregation(QueryAggregation queryAggregation) {
+        queryAggregations.add(queryAggregation);
+    }
+
     public void setContinuousMatchAction(String continuousMatchAction) {
         this.continuousMatchAction = continuousMatchAction;
     }
@@ -135,20 +144,31 @@ public class StructuredQuery implements AbstractStructuredQuery {
                 return false;
             }
         }
-        if (a.returnVariables.size() != b.returnVariables.size()) {
+
+        if (!isSameLists(a.returnVariables, b.returnVariables) ||
+            !isSameLists(a.returnVariablePropertyPairs, b.returnVariablePropertyPairs)) {
             return false;
         }
-        for (int i = 0; i < a.returnVariables.size(); ++i) {
-            if (!a.returnVariables.get(i).equals(b.returnVariables.get(i))) {
+
+        if (a.queryAggregations.size() != b.queryAggregations.size()) {
+            return false;
+        }
+        for (int i = 0; i < a.queryAggregations.size(); ++i) {
+            if (!QueryAggregation.isSameAs(a.queryAggregations.get(i),
+                b.queryAggregations.get(i))) {
                 return false;
             }
         }
-        if (a.returnVariablePropertyPairs.size() != b.returnVariablePropertyPairs.size()) {
+
+        return true;
+    }
+
+    private static <T> boolean isSameLists(List<T> listA, List<T> listB) {
+        if (listA.size() != listB.size()) {
             return false;
         }
-        for (int i = 0; i < a.returnVariablePropertyPairs.size(); ++i) {
-            if (!a.returnVariablePropertyPairs.get(i).equals(b.returnVariablePropertyPairs.
-                get(i))) {
+        for (int i = 0; i < listA.size(); ++i) {
+            if (!listA.get(i).equals(listB.get(i))) {
                 return false;
             }
         }

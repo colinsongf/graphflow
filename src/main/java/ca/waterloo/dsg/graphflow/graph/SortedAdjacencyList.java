@@ -360,7 +360,8 @@ public class SortedAdjacencyList {
     private void ensureCapacity(int minCapacity) {
         neighbourIds = ArrayUtils.resizeIfNecessary(neighbourIds, minCapacity);
         edgeTypes = ArrayUtils.resizeIfNecessary(edgeTypes, minCapacity);
-        edgeIds = ArrayUtils.resizeIfNecessary(edgeIds, minCapacity);
+        edgeIds = ArrayUtils.resizeIfNecessary(edgeIds, minCapacity,
+            -1 /* default value to fill new cells if resizing */);
     }
 
     /**

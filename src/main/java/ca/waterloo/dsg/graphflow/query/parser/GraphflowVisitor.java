@@ -1,9 +1,10 @@
 package ca.waterloo.dsg.graphflow.query.parser;
 
 import ca.waterloo.dsg.graphflow.grammar.GraphflowBaseVisitor;
-import ca.waterloo.dsg.graphflow.grammar.GraphflowParser;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.*;
 import ca.waterloo.dsg.graphflow.query.structuredquery.AbstractStructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryAggregation;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryAggregation.AggregationFunction;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
@@ -29,23 +30,48 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     public AbstractStructuredQuery visitMatchQuery(MatchQueryContext ctx) {
         StructuredQuery structuredQuery = new StructuredQuery();
         structuredQuery.setQueryOperation(QueryOperation.MATCH);
-        MatchPatternContext matchPatternContext = ctx.matchPattern();
-        for (int i = 0; i < matchPatternContext.variableEdge().size(); i++) {
-            structuredQuery.addRelation((QueryRelation) visit(matchPatternContext.variableEdge(i)));
+        MatchPatternContext matchPatternCtx = ctx.matchPattern();
+        for (int i = 0; i < matchPatternCtx.variableEdge().size(); i++) {
+            structuredQuery.addRelation((QueryRelation) visit(matchPatternCtx.variableEdge(i)));
         }
 
-        ReturnClauseContext returnClauseContext = ctx.returnClause();
-        if (null != returnClauseContext) {
-            for (VariableContext variableContext : returnClauseContext.variable()) {
-                structuredQuery.addReturnVariable(variableContext.getText());
-            }
-            for (VariableWithPropertyContext variableWithPropertyContext :
-                returnClauseContext.variableWithProperty()) {
-                String[] split = variableWithPropertyContext.getText().split("\\.");
-                structuredQuery.addReturnVariablePropertyPair(new Pair<>(split[0], split[1]));
-            }
+        ReturnClauseContext returnClauseCtx = ctx.returnClause();
+        if (null != returnClauseCtx) {
+            setReturnVariablesAndAggregations(structuredQuery, returnClauseCtx);
         }
         return structuredQuery;
+    }
+    
+    private void setReturnVariablesAndAggregations(StructuredQuery structuredQuery,
+        ReturnClauseContext returnClauseCtx) {
+        for (VariableContext variableContext : returnClauseCtx.variable()) {
+            structuredQuery.addReturnVariable(variableContext.getText());
+        }
+        for (VariableWithPropertyContext variableWithPropertyCtx :
+            returnClauseCtx.variableWithProperty()) {
+            structuredQuery.addReturnVariablePropertyPair(new Pair<String, String>(
+                variableWithPropertyCtx.variable(0).getText(),
+                variableWithPropertyCtx.variable(1).getText()));
+        }
+
+        for (AggregationPatternContext aggregationCtx :
+            returnClauseCtx.aggregationPattern()) {
+            if (null != aggregationCtx.countStarPattern()) {
+                structuredQuery.addQueryAggregation(QueryAggregation.COUNT_STAR);
+                continue;
+            }
+            AggregationFunction aggregationFunction = AggregationFunction.valueOf(
+                aggregationCtx.aggregationFunction().getText().toUpperCase());
+            if (null != aggregationCtx.variable()) {
+                structuredQuery.addQueryAggregation(new QueryAggregation(aggregationFunction,
+                    aggregationCtx.variable().getText()));
+            } else {
+                structuredQuery.addQueryAggregation(new QueryAggregation(aggregationFunction,
+                    new Pair<String, String>(
+                        aggregationCtx.variableWithProperty().variable(0).getText(),
+                        aggregationCtx.variableWithProperty().variable(1).getText())));
+            }
+        }
     }
 
     @Override
@@ -101,12 +127,6 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     public AbstractStructuredQuery visitPathPattern(PathPatternContext ctx) {
         return new QueryRelation(new QueryVariable(ctx.Digits(0).getText()), new QueryVariable(ctx.
             Digits(1).getText()));
-    }
-
-    @Override
-    public AbstractStructuredQuery visitReturnClause(GraphflowParser.ReturnClauseContext ctx) {
-        // TODO(semih): Fill
-        return null;
     }
 
     @Override

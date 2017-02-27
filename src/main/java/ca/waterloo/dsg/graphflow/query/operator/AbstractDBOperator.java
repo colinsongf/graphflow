@@ -37,12 +37,32 @@ public abstract class AbstractDBOperator {
     public void setNextOperator(AbstractDBOperator nextOperator) {
         this.nextOperator = nextOperator;
     }
+    
+    /**
+     * This method is called when the operator appending outputs to this operator will not append
+     * any more outputs.
+     */
+    public void done() { 
+        if (null != nextOperator) {
+            nextOperator.done();
+        }
+    }
 
+    /**
+     * Appends a new {@link MatchQueryOutput} output to this operator.
+     * 
+     * @param matchQueryOutput a {@link MatchQueryOutput}.
+     */
     public void append(MatchQueryOutput matchQueryOutput) {
         throw new UnsupportedOperationException(this.getClass().getSimpleName() + " does not " +
             "support the append(MatchQueryOutput matchQueryOutputs) method.");
     }
 
+    /**
+     * Appends a new {@link String} output to this operator.
+     * 
+     * @param stringQueryOutput a {@link String} output.
+     */
     public void append(String stringQueryOutput) {
         throw new UnsupportedOperationException(this.getClass().getSimpleName() + " does not " +
             "support the append(String stringQueryOutput) method.");
@@ -81,8 +101,10 @@ public abstract class AbstractDBOperator {
     protected static <T> void appendListAsCommaSeparatedString(StringBuilder stringBuilder,
         List<T> objects, String prefix) {
         stringBuilder.append("\t").append(prefix).append(": {");
-        for (Object object : objects) {
-            stringBuilder.append(" ").append(object);
+        if (null != objects) {
+            for (Object object : objects) {
+                stringBuilder.append(" " + object);
+            }
         }
         stringBuilder.append(" }\n");
     }

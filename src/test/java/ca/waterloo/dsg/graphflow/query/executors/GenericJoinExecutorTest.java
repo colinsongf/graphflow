@@ -95,8 +95,7 @@ public class GenericJoinExecutorTest {
         TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("FOLLOWS");
         TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("LIKES");
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
-            "(a)-[:FOLLOWS]->(b),(a)-[:LIKES]->(b),(b)-[:LIKES]->(a),(b)->(c),(c)->(b)," +
-            "(c)-[:FOLLOWS]->(a) RETURN a, b;");
+            "(a)-[:FOLLOWS]->(b),(b)->(c),(c)-[:FOLLOWS]->(a) RETURN a, b;");
         Object[][] expectedMotifsAfterAdditions = {{0, 1}, {4, 1}};
         Object[][] expectedMotifsAfterDeletion = {{4, 1}};
         assertComplexMatchQueryOutput(triangleStructuredQuery, expectedMotifsAfterAdditions,
@@ -121,10 +120,10 @@ public class GenericJoinExecutorTest {
         TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert
             (nameProperty);
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
-            "(a)-[d:FOLLOWS]->(b),(a)-[e:LIKES]->(b),(b)-[f:LIKES]->(a),(b)->(c),(c)->(b)," +
-            "(c)-[:FOLLOWS]->(a) RETURN a.age, b.views, c.name, e.views;");
-        Object[][] expectedMotifsAfterAdditions = {{20, 70, "name3", 2}, {40, 70, "name3", 56}};
-        Object[][] expectedMotifsAfterDeletion = {{40, 70, "name3", 56}};
+            "(a)-[d:FOLLOWS]->(b),(b)->(c),(c)-[:FOLLOWS]->(a) " +
+            "RETURN a.age, b.views, c.name, d.views;");
+        Object[][] expectedMotifsAfterAdditions = {{20, 70, "name3", 60}, {40, 70, "name3", 4}};
+        Object[][] expectedMotifsAfterDeletion = {{40, 70, "name3", 4}};
         assertComplexMatchQueryOutput(triangleStructuredQuery, expectedMotifsAfterAdditions,
             expectedMotifsAfterDeletion);
     }
@@ -220,8 +219,8 @@ public class GenericJoinExecutorTest {
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new
             OneTimeMatchQueryPlanner(structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
-            expectedMotifsAfterAdditions)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils
+            .getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
 
         // Delete one of the edges.
         TestUtils.deleteEdgesPermanently(graph, "DELETE (4)->(1);");
@@ -231,26 +230,26 @@ public class GenericJoinExecutorTest {
         actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
             structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
-            expectedMotifsAfterDeletion)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils
+            .getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));
     }
 
     private void assertComplexMatchQueryOutput(StructuredQuery structuredQuery,
         Object[][] expectedMotifsAfterAdditions, Object[][] expectedMotifsAfterDeletion) {
         Graph graph = Graph.getInstance();
         TestUtils.initializeGraphPermanentlyWithProperties("CREATE " +
-            "(0:Person{name:string='name0', age:int=20, views:int=120})-[:FOLLOWS]->" +
-            "(1:Person{name:string='name1', age:int=25, views:int=70})," +
+            "(0:Person{name:string='name0', age:int=20, views:int=120})-[:FOLLOWS{views:int=60}]" +
+            "->(1:Person{name:string='name1', age:int=25, views:int=70})," +
             "(0:Person)-[:LIKES{views:int=2}]->(1:Person)," +
             "(1:Person)-[:LIKES{views:int=250}]->(0:Person)," +
             "(1:Person)-[:TAGGED]->(3:Person{name:string='name3', age:int=22, views:int=250})," +
             "(3:Person)-[:LIKES{views:int=44}]->(1:Person)," +
-            "(3:Person)-[:FOLLOWS]->(0:Person)," +
-            "(4:Person{name:string='name4', age:int=40, views:int=20})-[:FOLLOWS]->(1:Person)," +
-            "(4:Person)-[:LIKES{views:int=56}]->(1:Person)," +
+            "(3:Person)-[:FOLLOWS{views:int=234}]->(0:Person)," +
+            "(4:Person{name:string='name4', age:int=40, views:int=20})-[:FOLLOWS{views:int=4}]->" +
+            "(1:Person),(4:Person)-[:LIKES{views:int=56}]->(1:Person)," +
             "(1:Person)-[:LIKES{views:int=68}]->(4:Person)," +
-            "(3:Person)-[:FOLLOWS]->(4:Person)," +
-            "(4:Person)-[:LIKES]->(3:Person);");
+            "(3:Person)-[:FOLLOWS{views:int=123}]->(4:Person)," +
+            "(4:Person)-[:LIKES{views:int=2}]->(3:Person);");
 
         // Execute the query and test.
 
@@ -258,8 +257,8 @@ public class GenericJoinExecutorTest {
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new
             OneTimeMatchQueryPlanner(structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
-            expectedMotifsAfterAdditions)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
+            getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
 
         // Delete one of the edges.
         TestUtils.deleteEdgesPermanently(graph, "DELETE (0)-[:FOLLOWS]->(1);");
@@ -269,21 +268,8 @@ public class GenericJoinExecutorTest {
         actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
             structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
-            expectedMotifsAfterDeletion)));
-    }
 
-    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(Object[][] results) {
-        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
-        StringJoiner joiner;
-        for (Object[] resultRecord : results) {
-            joiner = new StringJoiner(" ");
-            for (Object element : resultRecord) {
-                joiner.add(element.toString());
-            }
-            joiner.add(MatchQueryResultType.MATCHED.name());
-            inMemoryOutputSink.append(joiner.toString());
-        }
-        return inMemoryOutputSink;
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
+            getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));
     }
 }

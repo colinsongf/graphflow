@@ -91,22 +91,7 @@ public class ContinuousMatchQueryExecutorTest {
         while ((line = br.readLine()) != null) {
             actualOutput.add(line);
         }
-        Assert.assertEquals(actualOutput.toString(), getInMemoryOutputSinkForMotifs(expectedMotifs,
-            expectedMatchQueryResultTypes).toString());
-    }
-
-    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(Object[][] results,
-        MatchQueryResultType[] matchQueryResultTypes) {
-        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
-        StringJoiner joiner;
-        for (int i = 0; i < results.length; i++) {
-            joiner = new StringJoiner(" ");
-            for (Object element : results[i]) {
-                joiner.add(element.toString());
-            }
-            joiner.add(matchQueryResultTypes[i].name());
-            inMemoryOutputSink.append(joiner.toString());
-        }
-        return inMemoryOutputSink;
+        Assert.assertEquals(actualOutput.toString(), TestUtils.getInMemoryOutputSinkForMotifs
+            (expectedMotifs, expectedMatchQueryResultTypes).toString());
     }
 }

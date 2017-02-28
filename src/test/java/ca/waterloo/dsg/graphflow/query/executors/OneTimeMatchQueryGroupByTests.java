@@ -1,21 +1,21 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
-import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.graph.GraphDBState;
-import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
-import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
-import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
-import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
-import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
-import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
-import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import ca.waterloo.dsg.graphflow.TestUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
+import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
+import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
+import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 
 import static org.junit.Assert.assertArrayEquals;
 
@@ -64,7 +64,8 @@ public class OneTimeMatchQueryGroupByTests {
             "(3:VType3{strVP:string='strVPValueO', intVP:int=3, doubleVP:double=3.0})",
             "(4:VType4{strVP:string='strVPValueE', intVP:int=4, doubleVP:double=4.0})",
             "(5:VType5{strVP:string='strVPValueO', intVP:int=5, doubleVP:double=5.0})"};
-        StructuredQuery createQuery = new StructuredQueryParser().parse("CREATE " +
+
+        String createQuery = "CREATE " +
            verticesInQuery[0] + "-[:StarEdge{strEP:string='strEPValueO', intEP:int=1, doubleEP:double=1.0}]->"  + verticesInQuery[1] +
            "," + verticesInQuery[0] + "-[:StarEdge{strEP:string='strEPValueE', intEP:int=2, doubleEP:double=2.0}]->" + verticesInQuery[2] +
            "," + verticesInQuery[0] + "-[:StarEdge{strEP:string='strEPValueO', intEP:int=3, doubleEP:double=3.0}]->" + verticesInQuery[3] +
@@ -74,11 +75,8 @@ public class OneTimeMatchQueryGroupByTests {
            "," + verticesInQuery[2] + "-[:CycleEdge{strEP:string='strEPValueO', intEP:int=5, doubleEP:double=5.0}]->" + verticesInQuery[3] +
            "," + verticesInQuery[3] + "-[:CycleEdge{strEP:string='strEPValueO', intEP:int=7, doubleEP:double=7.0}]->" + verticesInQuery[4] +
            "," + verticesInQuery[4] + "-[:CycleEdge{strEP:string='strEPValueO', intEP:int=9, doubleEP:double=9.0}]->" + verticesInQuery[5] +
-           "," + verticesInQuery[5] + "-[:CycleEdge{strEP:string='strEPValueE', intEP:int=6, doubleEP:double=6.0}]->" + verticesInQuery[1]
-           );
-
-        ((CreateQueryPlan) new CreateQueryPlanner(createQuery).plan()).execute(
-            Graph.getInstance(), new InMemoryOutputSink());
+           "," + verticesInQuery[5] + "-[:CycleEdge{strEP:string='strEPValueE', intEP:int=6, doubleEP:double=6.0}]->" + verticesInQuery[1];
+        TestUtils.initializeGraphPermanentlyWithProperties(createQuery);
     }
 
     @Test

@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
+import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
@@ -13,6 +14,9 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
 import org.antlr.v4.runtime.misc.Pair;
+
+import java.util.Arrays;
+import java.util.StringJoiner;
 
 /**
  * Provides utility functions for tests.
@@ -168,5 +172,26 @@ public class TestUtils {
         queryPropertyPredicate.setComparisonOperator(comparisonOperator);
         queryPropertyPredicate.setPredicateType(leftOperandType, rightOperandType);
         return queryPropertyPredicate;
+    }
+
+    public static InMemoryOutputSink getInMemoryOutputSinkForMotifs(Object[][] results) {
+        MatchQueryResultType[] matchQueryResultTypes = new MatchQueryResultType[results.length];
+        Arrays.fill(matchQueryResultTypes, MatchQueryResultType.MATCHED);
+        return getInMemoryOutputSinkForMotifs(results, matchQueryResultTypes);
+    }
+
+    public static InMemoryOutputSink getInMemoryOutputSinkForMotifs(Object[][] results,
+        MatchQueryResultType[] matchQueryResultTypes) {
+        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
+        StringJoiner joiner;
+        for (int i = 0; i < results.length; i++) {
+            joiner = new StringJoiner(" ");
+            for (Object element : results[i]) {
+                joiner.add(element.toString());
+            }
+            joiner.add(matchQueryResultTypes[i].name());
+            inMemoryOutputSink.append(joiner.toString());
+        }
+        return inMemoryOutputSink;
     }
 }

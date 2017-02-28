@@ -3,13 +3,6 @@ package ca.waterloo.dsg.graphflow.query.structuredquery;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
 import org.antlr.v4.runtime.misc.Pair;
 
-import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType
-    .LITERAL;
-import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType
-    .EDGE;
-import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType
-    .VERTEX;
-
 import java.util.function.Predicate;
 
 /**
@@ -93,17 +86,18 @@ public class QueryPropertyPredicate {
     }
 
     public void setPredicateType(OperandType leftOperandType, OperandType rightOperandType) {
-        if (leftOperandType == VERTEX && rightOperandType == VERTEX) {
+        if (leftOperandType == OperandType.VERTEX && rightOperandType == OperandType.VERTEX) {
             this.predicateType = PredicateType.TWO_VERTEX;
-        } else if (leftOperandType == EDGE && rightOperandType == EDGE) {
+        } else if (leftOperandType == OperandType.EDGE && rightOperandType == OperandType.EDGE) {
             this.predicateType = PredicateType.TWO_EDGE;
-        } else if (leftOperandType == VERTEX && rightOperandType == EDGE) {
+        } else if (leftOperandType == OperandType.VERTEX && rightOperandType == OperandType.EDGE) {
             this.predicateType = PredicateType.VERTEX_AND_EDGE;
-        } else if (leftOperandType == EDGE && rightOperandType == VERTEX) {
+        } else if (leftOperandType == OperandType.EDGE && rightOperandType == OperandType.VERTEX) {
             this.predicateType = PredicateType.EDGE_AND_VERTEX;
-        } else if (leftOperandType == VERTEX && rightOperandType == LITERAL) {
+        } else if (leftOperandType == OperandType.VERTEX &&
+            rightOperandType == OperandType.LITERAL) {
             this.predicateType = PredicateType.VERTEX_AND_LITERAL;
-        } else if (leftOperandType == EDGE && rightOperandType == LITERAL) {
+        } else if (leftOperandType == OperandType.EDGE && rightOperandType == OperandType.LITERAL) {
             this.predicateType = PredicateType.EDGE_AND_LITERAL;
         }
     }

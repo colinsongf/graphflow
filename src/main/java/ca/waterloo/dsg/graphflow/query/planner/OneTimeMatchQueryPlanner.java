@@ -438,7 +438,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         List<Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator>> valueAggregatorPairs =
             new ArrayList<>();
         for (QueryAggregation queryAggregation : structuredQuery.getQueryAggregations()) {
-            AbstractAggregator aggregator = null;
+            AbstractAggregator aggregator;
             switch (queryAggregation.getAggregationFunction()) {
                 case AVG:
                     aggregator = new Average();
@@ -480,8 +480,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     variablePropertyPair.a, typeAndPropertyKeyStore.mapStringPropertyKeyToShort(
                         variablePropertyPair.b));
             }
-            valueAggregatorPairs.add(new Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator>(
-                descriptor, aggregator));
+            valueAggregatorPairs.add(new Pair<>(descriptor, aggregator));
         }
         return new GroupByAndAggregate(outputSink, valuesToGroupBy, valueAggregatorPairs);
     }

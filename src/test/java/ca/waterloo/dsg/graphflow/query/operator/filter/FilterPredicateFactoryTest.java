@@ -1,4 +1,4 @@
-package ca.waterloo.dsg.graphflow.query.operator.util;
+package ca.waterloo.dsg.graphflow.query.operator.filter;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;

@@ -5,8 +5,10 @@ import org.antlr.v4.runtime.misc.Pair;
 
 import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType
     .LITERAL;
-import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType.EDGE;
-import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType.VERTEX;
+import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType
+    .EDGE;
+import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType
+    .VERTEX;
 
 import java.util.function.Predicate;
 
@@ -104,5 +106,19 @@ public class QueryPropertyPredicate {
         } else if (leftOperandType == EDGE && rightOperandType == LITERAL) {
             this.predicateType = PredicateType.EDGE_AND_LITERAL;
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("{ " + variable1.a + "." + variable1.b);
+        stringBuilder.append(" " + comparisonOperator.name() + " ");
+        stringBuilder.append(" ");
+        if (variable2 != null) {
+            stringBuilder.append(variable2.a + "." + variable2.b + "}");
+        } else {
+            stringBuilder.append(literal+ "}");
+        }
+        return stringBuilder.toString();
     }
 }

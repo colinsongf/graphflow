@@ -32,7 +32,7 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import ca.waterloo.dsg.graphflow.query.operator.util.FilterPredicateFactory;
+import ca.waterloo.dsg.graphflow.query.operator.filter.FilterPredicateFactory;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -108,7 +108,8 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         }
     }
 
-    private void checkVariableIsDefinedAndPropertyExists(Pair<String, String> variablePropertyPair) {
+    private void checkVariableIsDefinedAndPropertyExists(Pair<String, String>
+        variablePropertyPair) {
         String variable = variablePropertyPair.a;
         checkVariableIsDefined(variable);
         String propertyKey = variablePropertyPair.b;
@@ -371,7 +372,8 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                 (orderedEdgeVariablesForFiltersAndProjection);
             Predicate<MatchQueryOutput> filterPredicate = getFilterPredicates
                 (orderedVariableIndexMap, orderedEdgeIndexMap);
-            nextOperator = new Filter(nextOperator, filterPredicate);
+            nextOperator = new Filter(nextOperator, filterPredicate, structuredQuery
+                .getQueryPropertyPredicates());
         }
 
         // Finally construct the EdgeIdResolver if needed.
@@ -398,7 +400,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                 orderedEdgeVariablesInFiltersAndProjections.add(operandVariable1);
             }
             String operandVariable2 = queryPropertyPredicate.getVariable2() != null ?
-                queryPropertyPredicate.getVariable2().a: null;
+                queryPropertyPredicate.getVariable2().a : null;
             if (operandVariable2 != null && !queryGraph.getAllVariableNames()
                 .contains(operandVariable2) && !resolvedEdges.contains(operandVariable2)) {
                 orderedEdgeVariablesInFiltersAndProjections.add(operandVariable2);
@@ -410,7 +412,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
 
     private Predicate<MatchQueryOutput> getFilterPredicates(Map<String, Integer>
         orderedVariableIndexMap, Map<String, Integer> orderedEdgeVariableIndexMap) {
-        Predicate predicate = null;
+        Predicate<MatchQueryOutput> predicate = null;
         for (QueryPropertyPredicate queryPropertyPredicate : structuredQuery
             .getQueryPropertyPredicates()) {
             if (predicate == null) {
@@ -438,27 +440,28 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         for (QueryAggregation queryAggregation : structuredQuery.getQueryAggregations()) {
             AbstractAggregator aggregator = null;
             switch (queryAggregation.getAggregationFunction()) {
-            case AVG:
-                aggregator = new Average();
-                break;
-            case COUNT_STAR:
-                aggregator = new CountStar();
-                break;
-            case MAX:
-                aggregator = new Max();
-                break;
-            case MIN:
-                aggregator = new Min();
-                break;
-            case SUM:
-                aggregator = new Sum();
-                break;
-            default:
-                logger.warn("Unknown aggregation function:"
-                   + queryAggregation.getAggregationFunction() + ". This should have been caught"
-                   + " and handled when parsing the query.");
-                throw new IllegalArgumentException("Unknown aggregation function:"
-                   + queryAggregation.getAggregationFunction());
+                case AVG:
+                    aggregator = new Average();
+                    break;
+                case COUNT_STAR:
+                    aggregator = new CountStar();
+                    break;
+                case MAX:
+                    aggregator = new Max();
+                    break;
+                case MIN:
+                    aggregator = new Min();
+                    break;
+                case SUM:
+                    aggregator = new Sum();
+                    break;
+                default:
+                    logger.warn("Unknown aggregation function:"
+                        + queryAggregation.getAggregationFunction() + ". This should have been " +
+                        "caught"
+                        + " and handled when parsing the query.");
+                    throw new IllegalArgumentException("Unknown aggregation function:"
+                        + queryAggregation.getAggregationFunction());
             }
 
             // For the COUNT_STAR aggregator, that does not have variable or variablePropertyPair we
@@ -476,7 +479,6 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     vertexVariableOrderIndexMapAfterProjection, edgeVariableOrderIndexMap,
                     variablePropertyPair.a, typeAndPropertyKeyStore.mapStringPropertyKeyToShort(
                         variablePropertyPair.b));
-
             }
             valueAggregatorPairs.add(new Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator>(
                 descriptor, aggregator));
@@ -485,7 +487,8 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
     }
 
     private AbstractDBOperator constructEdgeIdResolver(List<String> orderedEdgeVariables,
-        Map<String, Integer> orderedVariableIndexMapBeforeProjection, AbstractDBOperator nextOperator) {
+        Map<String, Integer> orderedVariableIndexMapBeforeProjection, AbstractDBOperator
+        nextOperator) {
         List<SourceDestinationIndexAndType> srcDstVertexIndicesAndTypes = new ArrayList<>();
         for (int i = 0; i < orderedEdgeVariables.size(); ++i) {
             String orderedEdgeVariable = orderedEdgeVariables.get(i);

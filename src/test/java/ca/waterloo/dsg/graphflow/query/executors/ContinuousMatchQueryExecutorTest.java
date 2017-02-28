@@ -95,15 +95,17 @@ public class ContinuousMatchQueryExecutorTest {
             expectedMatchQueryResultTypes).toString());
     }
 
-    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(Object[][] motifs,
+    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(Object[][] results,
         MatchQueryResultType[] matchQueryResultTypes) {
         InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
-        MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
-        for (int i = 0; i < motifs.length; i++) {
-            matchQueryOutput.results = motifs[i];
-            matchQueryOutput.resultLength = motifs[i].length;
-            matchQueryOutput.matchQueryResultType = matchQueryResultTypes[i];
-            inMemoryOutputSink.append(matchQueryOutput);
+        StringJoiner joiner;
+        for (int i = 0; i < results.length; i++) {
+            joiner = new StringJoiner(" ");
+            for (Object element : results[i]) {
+                joiner.add(element.toString());
+            }
+            joiner.add(matchQueryResultTypes[i].name());
+            inMemoryOutputSink.append(joiner.toString());
         }
         return inMemoryOutputSink;
     }

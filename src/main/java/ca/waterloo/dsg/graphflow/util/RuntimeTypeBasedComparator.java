@@ -70,7 +70,7 @@ public class RuntimeTypeBasedComparator {
         }
     }
 
-    private static <T extends Comparable> boolean compare(T operand1, T operand2,
+    private static <T extends Comparable<T>> boolean compare(T operand1, T operand2,
         ComparisonOperator
             comparisonOperator) {
         int result = operand1.compareTo(operand2);
@@ -83,7 +83,7 @@ public class RuntimeTypeBasedComparator {
             ComparisonOperator.LESS_THAN_OR_EQUAL)) {
             return true;
         } else if (result < 0 && (comparisonOperator == ComparisonOperator.LESS_THAN ||
-            comparisonOperator == comparisonOperator.LESS_THAN_OR_EQUAL || comparisonOperator ==
+            comparisonOperator == ComparisonOperator.LESS_THAN_OR_EQUAL || comparisonOperator ==
             ComparisonOperator.NOT_EQUALS)) {
             return true;
         }

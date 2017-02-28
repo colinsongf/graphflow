@@ -13,6 +13,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.StringJoiner;
 
 /**
  * Tests the {@code FileOutputSink} class.
@@ -38,16 +39,15 @@ public class FileOutputSinkTest {
      */
     @Test
     public void testAppend() throws Exception {
-        MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
-        matchQueryOutput.results = new Object[]{1, 2, 3, 4, 5, 6};
-        matchQueryOutput.resultLength = matchQueryOutput.results.length;
-        matchQueryOutput.matchQueryResultType = MatchQueryResultType.MATCHED;
+        Object[] expectedResultArray = new Object[]{1, 2, 3, 4, 5, 6, "MATCHED"};
+        StringJoiner joiner = new StringJoiner(" ");
+        for (Object element: expectedResultArray) {
+            joiner.add(element.toString());
+        }
         // Write the output.
-        outputSink.append(matchQueryOutput);
+        outputSink.append(joiner.toString());
         // Read the output from the file and test the output.
         BufferedReader br = new BufferedReader(new FileReader(location));
-        Assert.assertTrue(br.readLine().equals(QueryOutputUtils.getStringMatchQueryOutput(
-            matchQueryOutput.results, matchQueryOutput.resultLength, matchQueryOutput
-                .matchQueryResultType)));
+        Assert.assertTrue(br.readLine().equals(joiner.toString()));
     }
 }

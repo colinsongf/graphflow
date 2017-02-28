@@ -10,7 +10,6 @@ import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.LongArrayList;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
-import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -318,8 +317,6 @@ public class Graph implements GraphflowSerializable {
      * @param graphVersion The {@code GraphVersion} for which list of edges is required.
      * @param direction The {@code Direction} of the edges.
      * @param typeFilter The type of the edges returned by the iterator.
-     * @param propertyEqualityFilters The property equality filters to apply on the edges
-     * returned by the iterator.
      * @return An iterator to the list of edges for the given {@code graphVersion} and
      * {@code direction}.
      * @throws UnsupportedOperationException Exception thrown when {@code graphVersion} is
@@ -327,18 +324,16 @@ public class Graph implements GraphflowSerializable {
      * {@link Direction#BACKWARD}.
      */
     public Iterator<int[]> getEdgesIterator(GraphVersion graphVersion, Direction direction,
-        short typeFilter, Map<Short, Pair<DataType, String>> propertyEqualityFilters) {
+        short typeFilter) {
         if ((GraphVersion.DIFF_PLUS == graphVersion || GraphVersion.DIFF_MINUS == graphVersion) &&
             Direction.BACKWARD == direction) {
             throw new UnsupportedOperationException("Getting edges for the DIFF_PLUS "
                 + "or DIFF_MINUS graph in the BACKWARD direction is not supported.");
         }
         if (GraphVersion.DIFF_PLUS == graphVersion) {
-            return new DiffEdgesIterator(diffPlusEdges, diffPlusEdgeTypes, diffPlusEdgeIds,
-                typeFilter, propertyEqualityFilters);
+            return new DiffEdgesIterator(diffPlusEdges, diffPlusEdgeTypes, typeFilter);
         } else if (GraphVersion.DIFF_MINUS == graphVersion) {
-            return new DiffEdgesIterator(diffMinusEdges, diffMinusEdgeTypes, diffMinusEdgeIds,
-                typeFilter, propertyEqualityFilters);
+            return new DiffEdgesIterator(diffMinusEdges, diffMinusEdgeTypes, typeFilter);
         } else {
             SortedAdjacencyList[] permanentAdjacencyLists;
             Map<Integer, SortedAdjacencyList> mergedAdjLists;
@@ -359,7 +354,7 @@ public class Graph implements GraphflowSerializable {
                 return Collections.<int[]>emptyList().iterator();
             }
             return new PermanentAndMergedEdgesIterator(graphVersion, permanentAdjacencyLists,
-                mergedAdjLists, typeFilter, propertyEqualityFilters, lastVertexId);
+                mergedAdjLists, typeFilter, lastVertexId);
         }
     }
 
@@ -611,8 +606,8 @@ public class Graph implements GraphflowSerializable {
     /**
      * Resets the {@link Graph} state by creating a new {@code INSTANCE}.
      */
-    @VisibleForTesting
-    static void reset() {
+    @UsedOnlyByTests
+    public static void reset() {
         INSTANCE = new Graph();
         // Also reset other classes that the Graph class depends on
         EdgeStore.getInstance().reset();

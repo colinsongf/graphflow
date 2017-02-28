@@ -49,8 +49,7 @@ public class GenericJoinExecutor {
         // Direction}, the edge type filter and the property equality filters using the {@code
         // firstGJIntersectionRule} of the first stage.
         Iterator<int[]> iterator = graph.getEdgesIterator(firstGJIntersectionRule.getGraphVersion(),
-            firstGJIntersectionRule.getDirection(), firstGJIntersectionRule.getEdgeTypeFilter(),
-            firstGJIntersectionRule.getEdgePropertyEqualityFilters());
+            firstGJIntersectionRule.getDirection(), firstGJIntersectionRule.getEdgeTypeFilter());
         if (!iterator.hasNext()) {
             // Obtained empty set of edges, nothing to execute.
             return;
@@ -112,7 +111,6 @@ public class GenericJoinExecutor {
      *
      * @param prefixes Array of prefixes to extend.
      * @param stageIndex Stage index to track progress of the execution.
-     * @param matchQueryResultType The category to under which the output prefixes are stored.
      */
     private void extend(int[][] prefixes, int stageIndex) {
         if (stageIndex >= stages.size()) {

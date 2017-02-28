@@ -1,12 +1,10 @@
-package ca.waterloo.dsg.graphflow.util;
+package ca.waterloo.dsg.graphflow.query.operator.util;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.query.operator.util.FilterPredicateFactory;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
-import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.PredicateType;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
 import org.antlr.v4.runtime.misc.Pair;
 import org.junit.Assert;
@@ -30,15 +28,12 @@ public class FilterPredicateFactoryTest {
         TestUtils.initializeGraphPermanentlyWithProperties(createQuery);
     }
 
-
-
     @Test
     public void testTwoVertexPropertyPredicate() {
-        short propertyKey = TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyToShort
-            ("age");
+        String propertyKey = "age";
         QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
             new Pair<>("a", propertyKey), new Pair<>("b", propertyKey), null,
-            ComparisonOperator.GREATER_THAN, PredicateType.TWO_VERTEX);
+            ComparisonOperator.GREATER_THAN, OperandType.VERTEX, OperandType.VERTEX);
         Map<String, Integer> orderedVertexVariableIndexMap = new HashMap<>();
         orderedVertexVariableIndexMap.put("a", 0);
         orderedVertexVariableIndexMap.put("b", 2);
@@ -53,11 +48,10 @@ public class FilterPredicateFactoryTest {
 
     @Test
     public void testTwoEdgePropertyPredicate() {
-        short propertyKey = TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyToShort
-            ("views");
+        String propertyKey = "views";
         QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
             new Pair<>("b", propertyKey), new Pair<>("a", propertyKey), null,
-            ComparisonOperator.LESS_THAN_OR_EQUAL, PredicateType.TWO_EDGE);
+            ComparisonOperator.LESS_THAN_OR_EQUAL, OperandType.EDGE, OperandType.EDGE);
         Map<String, Integer> orderedEdgeVariableIndexMap = new HashMap<>();
         orderedEdgeVariableIndexMap.put("a", 0);
         orderedEdgeVariableIndexMap.put("b", 2);
@@ -72,19 +66,18 @@ public class FilterPredicateFactoryTest {
 
     @Test
     public void testEdgeAndVertexPropertyPredicate() {
-        short propertyKey = TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyToShort
-            ("views");
+        String propertyKey = "views";
         QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
-            new Pair<>("a", propertyKey), new Pair<>("b", propertyKey), null,
-            ComparisonOperator.GREATER_THAN_EQUAL, PredicateType.EDGE_AND_VERTEX);
+            new Pair<>("a", propertyKey), new Pair<>("b", propertyKey), null /* no constant */,
+            ComparisonOperator.GREATER_THAN_OR_EQUAL, OperandType.VERTEX, OperandType.EDGE);
         Map<String, Integer> orderedVertexVariableIndexMap = new HashMap<>();
         orderedVertexVariableIndexMap.put("a", 0);
         orderedVertexVariableIndexMap.put("c", 2);
         Map<String, Integer> orderedEdgeVariableIndexMap = new HashMap<>();
         orderedEdgeVariableIndexMap.put("b", 3);
         orderedEdgeVariableIndexMap.put("d", 2);
-        Predicate<MatchQueryOutput> predicate = FilterPredicateFactory.getFilterPredicate
-            (queryPropertyPredicate, orderedVertexVariableIndexMap, orderedEdgeVariableIndexMap);
+        Predicate<MatchQueryOutput> predicate = FilterPredicateFactory.getFilterPredicate(
+            queryPropertyPredicate, orderedVertexVariableIndexMap, orderedEdgeVariableIndexMap);
         MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
         int[] outputVertexIds = {0, 2, 3};
         long[] outputEdgeIds = {4, 2, 1, 0};
@@ -95,11 +88,10 @@ public class FilterPredicateFactoryTest {
 
     @Test
     public void testEdgeAndConstantPropertyPredicate() {
-        short propertyKey = TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyToShort
-            ("views");
+        String propertyKey = "views";
         QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
-            new Pair<>("a", propertyKey), null, "74", ComparisonOperator.GREATER_THAN_EQUAL,
-            PredicateType.EDGE_AND_CONSTANT);
+            new Pair<>("a", propertyKey), null, "74", ComparisonOperator.GREATER_THAN_OR_EQUAL,
+            OperandType.EDGE, OperandType.CONSTANT);
         Map<String, Integer> orderedEdgeVariableIndexMap = new HashMap<>();
         orderedEdgeVariableIndexMap.put("a", 3);
         orderedEdgeVariableIndexMap.put("d", 2);
@@ -113,11 +105,10 @@ public class FilterPredicateFactoryTest {
 
     @Test
     public void testVertexAndConstantPropertyPredicate() {
-        short propertyKey = TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyToShort
-            ("views");
+        String propertyKey = "views";
         QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
-            new Pair<>("a", propertyKey), null, "74", ComparisonOperator.GREATER_THAN_EQUAL,
-            PredicateType.VERTEX_AND_CONSTANT);
+            new Pair<>("a", propertyKey), null, "74", ComparisonOperator.GREATER_THAN_OR_EQUAL,
+            OperandType.VERTEX, OperandType.CONSTANT);
         Map<String, Integer> orderedVertexVariableIndexMap = new HashMap<>();
         orderedVertexVariableIndexMap.put("a", 3);
         orderedVertexVariableIndexMap.put("d", 2);

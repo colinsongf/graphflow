@@ -79,6 +79,15 @@ public class StructuredQuery implements AbstractStructuredQuery {
         this.queryVariables.add(queryVariable);
     }
 
+    /**
+     * Adds a {@link QueryPropertyPredicate} to the list of query property predicates.
+     *
+     * @param queryPropertyPredicate The {@link QueryPropertyPredicate} to be added.
+     */
+    public void addQueryPropertyPredicate(QueryPropertyPredicate queryPropertyPredicate) {
+        this.queryPropertyPredicates.add(queryPropertyPredicate);
+    }
+
     public QueryOperation getQueryOperation() {
         return queryOperation;
     }

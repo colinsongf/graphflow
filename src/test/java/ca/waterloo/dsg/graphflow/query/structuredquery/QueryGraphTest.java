@@ -56,6 +56,6 @@ public class QueryGraphTest {
         QueryRelation queryRelation = new QueryRelation(queryVariable1, queryVariable2);
         queryGraph.addRelation(queryRelation);
         String[] expectedQueryVariables = {"a", "b", "c", "d", "e"};
-        Assert.assertArrayEquals(expectedQueryVariables, queryGraph.getAllVariables().toArray());
+        Assert.assertArrayEquals(expectedQueryVariables, queryGraph.getAllVariableNames().toArray());
     }
 }

@@ -31,14 +31,11 @@ public class FileOutputSink extends AbstractDBOperator {
      * these plans are primitive and only consist of GJ outputs that consist of a set of vertex
      * IDs. This method assumes this property of {@link ContinuousMatchQueryExecutor}.
      *
-     * @param matchQueryOutput The output data.
+     * @param result a {@code String} that is an output record.
      */
     @Override
-    public void append(MatchQueryOutput matchQueryOutput) {
-        System.out.println(QueryOutputUtils.getStringMatchQueryOutput(matchQueryOutput.results,
-            matchQueryOutput.resultLength, matchQueryOutput.matchQueryResultType));
-        writer.println(QueryOutputUtils.getStringMatchQueryOutput(matchQueryOutput.results,
-            matchQueryOutput.resultLength, matchQueryOutput.matchQueryResultType));
+    public void append(String result) {
+        writer.println(result);
         writer.flush();
     }
 

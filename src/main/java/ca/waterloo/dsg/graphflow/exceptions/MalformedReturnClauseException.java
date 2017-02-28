@@ -9,8 +9,4 @@ public class MalformedReturnClauseException extends IllegalArgumentException {
     public MalformedReturnClauseException(String message) {
         super(message);
     }
-
-    public MalformedReturnClauseException(Exception e) {
-        super(e);
-    }
 }

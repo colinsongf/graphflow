@@ -15,7 +15,7 @@ public class NoSuchPropertyKeyException extends NoSuchElementException {
      * @param stringKey A property key not found in the database.
      */
     public NoSuchPropertyKeyException(String stringKey) {
-        super("String property key " + stringKey + " is not found in " + " the database.");
+        super("String property key " + stringKey + " is not found in the database.");
     }
 
     /**
@@ -24,6 +24,6 @@ public class NoSuchPropertyKeyException extends NoSuchElementException {
      * @param shortKey A property key not found in the database.
      */
     public NoSuchPropertyKeyException(short shortKey) {
-        super("Short property key " + shortKey + " is not found in " + " the database.");
+        super("Short property key " + shortKey + " is not found in the database.");
     }
 }

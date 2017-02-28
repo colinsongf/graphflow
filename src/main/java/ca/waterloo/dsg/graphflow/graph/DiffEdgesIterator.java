@@ -1,13 +1,9 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.util.DataType;
-import ca.waterloo.dsg.graphflow.util.LongArrayList;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
-import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
@@ -17,9 +13,7 @@ public class DiffEdgesIterator implements Iterator<int[]> {
 
     private List<int[]> diffEdges;
     private ShortArrayList diffEdgeTypes;
-    private LongArrayList diffEdgeIds;
     private short edgeTypeFilter;
-    private Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters;
     private int next = -1;
 
     /**
@@ -28,19 +22,12 @@ public class DiffEdgesIterator implements Iterator<int[]> {
      *
      * @param diffEdges The set of edges that were added or deleted from the graph.
      * @param diffEdgeTypes The types of the added or deleted edges.
-     * @param diffEdgeIds The IDs of the added or deleted edges.
      * @param edgeTypeFilter The {@code short} filter on the type of edges that should be matched.
-     * @param edgePropertyEqualityFilters The property equality filters, as <key, <DataType,
-     * value>> pairs, that should be matched on the edges returned by this iterator.
      */
-    public DiffEdgesIterator(List<int[]> diffEdges, ShortArrayList diffEdgeTypes,
-        LongArrayList diffEdgeIds, short edgeTypeFilter,
-        Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters) {
+    public DiffEdgesIterator(List<int[]> diffEdges, ShortArrayList diffEdgeTypes, short edgeTypeFilter) {
         this.diffEdges = diffEdges;
         this.diffEdgeTypes = diffEdgeTypes;
-        this.diffEdgeIds = diffEdgeIds;
         this.edgeTypeFilter = edgeTypeFilter;
-        this.edgePropertyEqualityFilters = edgePropertyEqualityFilters;
         setIndexToNextEdge();
     }
 
@@ -67,9 +54,7 @@ public class DiffEdgesIterator implements Iterator<int[]> {
             // If there is no such {@code e=(u, v)}, the {@code next} index is set to the size of
             // {@code diffEdges.size()}.
             if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
-                diffEdgeTypes.get(next) == edgeTypeFilter) &&
-                (null == edgePropertyEqualityFilters || EdgeStore.getInstance().
-                    checkEqualityFilters(diffEdgeIds.get(next), edgePropertyEqualityFilters))) {
+                diffEdgeTypes.get(next) == edgeTypeFilter)) {
                 return;
             }
             next++;

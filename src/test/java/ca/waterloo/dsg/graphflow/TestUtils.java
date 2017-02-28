@@ -1,24 +1,18 @@
 package ca.waterloo.dsg.graphflow;
 
-import ca.waterloo.dsg.graphflow.graph.EdgeStore;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.graph.VertexPropertyStore;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
-import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.PredicateType;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
 import org.antlr.v4.runtime.misc.Pair;
-
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Provides utility functions for tests.
@@ -134,6 +128,11 @@ public class TestUtils {
         }
     }
 
+    /**
+     * Initializes the {@link Graph} with the given given {@code createQuery}.
+     * @param createQuery an {@code String} representing a CREATE query which will be parsed and
+     * used to initialize the {@link Graph}.
+     */
     public static void initializeGraphPermanentlyWithProperties(String createQuery) {
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(createQuery);
         AbstractDBOperator outputSink = new InMemoryOutputSink();
@@ -141,15 +140,33 @@ public class TestUtils {
             .getInstance(), outputSink);
     }
 
-    public static QueryPropertyPredicate initializeQueryPropertyPredicate(Pair<String, Short>
-        variable1, Pair<String, Short> variable2, String constant, ComparisonOperator
-        comparisonOperator, PredicateType predicateType) {
+    /**
+     * Creates an {@link QueryPropertyPredicate} using the given parameters.
+     *
+     * @param variable1 a {@link Pair<String, Short>} which will be left operand in the
+     * {@link QueryPropertyPredicate} to be created.
+     * @param variable2 a {@link Pair<String, Short>} which will be right operand in the
+     * {@link QueryPropertyPredicate} to be created. Mutually exclusive with {@code constant}.
+     * @param constant a {@code String} which will be right operand in the
+     * {@link QueryPropertyPredicate} to be created. Mutually exclusive with {@code variable1}.
+     * @param comparisonOperator a {@link ComparisonOperator} specifying the comparison operator
+     * of the {@link QueryPropertyPredicate} to be created.
+     * @param leftOperandType a {@link OperandType} specifying the type of the left operand the
+     * the {@link QueryPropertyPredicate}.
+     * @param rightOperandType a {@link OperandType} specifying the type of the right operand the
+     * the {@link QueryPropertyPredicate}.
+     * @return a {@link QueryPropertyPredicate} created using the given parameters.
+     */
+    public static QueryPropertyPredicate initializeQueryPropertyPredicate(
+        Pair<String, String> variable1, Pair<String, String> variable2, String constant,
+        ComparisonOperator comparisonOperator, OperandType leftOperandType,
+        OperandType rightOperandType) {
         QueryPropertyPredicate queryPropertyPredicate = new QueryPropertyPredicate();
         queryPropertyPredicate.setVariable1(variable1);
         queryPropertyPredicate.setVariable2(variable2);
         queryPropertyPredicate.setConstant(constant);
         queryPropertyPredicate.setComparisonOperator(comparisonOperator);
-        queryPropertyPredicate.setPredicateType(predicateType);
+        queryPropertyPredicate.setPredicateType(leftOperandType, rightOperandType);
         return queryPropertyPredicate;
     }
 }

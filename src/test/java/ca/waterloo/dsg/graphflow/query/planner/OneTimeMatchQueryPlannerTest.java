@@ -14,6 +14,7 @@ import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.PredicateType;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
@@ -220,18 +221,14 @@ public class OneTimeMatchQueryPlannerTest {
             "(a)-[d:FOLLOWS]->(b), (b)-[e:FOLLOWS]->(c), (c)-[f:FOLLOWS]->(a);");
         List<QueryPropertyPredicate> queryPropertyPredicates = new ArrayList<>();
         queryPropertyPredicates.add(TestUtils.initializeQueryPropertyPredicate(new Pair<>("a",
-                TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyToShort("views")),
-            new Pair<>("d", TypeAndPropertyKeyStore.getInstance().
-                mapStringPropertyKeyToShort("views")), null, ComparisonOperator.GREATER_THAN,
-            PredicateType.EDGE_AND_VERTEX));
+                "views"), new Pair<>("d", "views"), null, ComparisonOperator.GREATER_THAN,
+            OperandType.EDGE, OperandType.VERTEX));
         queryPropertyPredicates.add(TestUtils.initializeQueryPropertyPredicate(new Pair<>("d",
-                TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyToShort("views")),
-            new Pair<>("e", TypeAndPropertyKeyStore.getInstance().
-                mapStringPropertyKeyToShort("views")), null, ComparisonOperator.EQUALS,
-            PredicateType.TWO_EDGE));
+                "views"), new Pair<>("e", "views"), null, ComparisonOperator.EQUALS,
+            OperandType.EDGE, OperandType.EDGE));
         structuredQuery.setQueryPropertyPredicates(queryPropertyPredicates);
-        OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner
-            (structuredQuery, new InMemoryOutputSink());
+        OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner(
+            structuredQuery, new InMemoryOutputSink());
         String[] orderedVertexVariables = {"a", "b", "c"};
         AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList
             (orderedVertexVariables));
@@ -249,15 +246,11 @@ public class OneTimeMatchQueryPlannerTest {
             ".views, d.views, c, e;");
         List<QueryPropertyPredicate> queryPropertyPredicates = new ArrayList<>();
         queryPropertyPredicates.add(TestUtils.initializeQueryPropertyPredicate(new Pair<>("a",
-                TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyToShort("views")),
-            new Pair<>("d", TypeAndPropertyKeyStore.getInstance().
-                mapStringPropertyKeyToShort("views")), null, ComparisonOperator.GREATER_THAN,
-            PredicateType.EDGE_AND_VERTEX));
+                "views"), new Pair<>("d", "views"), null, ComparisonOperator.GREATER_THAN,
+            OperandType.EDGE, OperandType.VERTEX));
         queryPropertyPredicates.add(TestUtils.initializeQueryPropertyPredicate(new Pair<>("d",
-                TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyToShort("views")),
-            new Pair<>("e", TypeAndPropertyKeyStore.getInstance().
-                mapStringPropertyKeyToShort("views")), null, ComparisonOperator.EQUALS,
-            PredicateType.TWO_EDGE));
+                "views"), new Pair<>("e", "views"), null, ComparisonOperator.EQUALS, OperandType.
+            EDGE, OperandType.EDGE));
         structuredQuery.setQueryPropertyPredicates(queryPropertyPredicates);
         OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner
             (structuredQuery, new InMemoryOutputSink());

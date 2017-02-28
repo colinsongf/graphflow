@@ -1,9 +1,13 @@
 package ca.waterloo.dsg.graphflow.query;
 
 import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
+import ca.waterloo.dsg.graphflow.exceptions.MalformedMatchQueryException;
+import ca.waterloo.dsg.graphflow.exceptions.MalformedReturnClauseException;
+import ca.waterloo.dsg.graphflow.exceptions.MalformedWhereClauseException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.SerializationDeserializationException;
+import ca.waterloo.dsg.graphflow.exceptions.NoSuchVertexIDException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
@@ -133,7 +137,9 @@ public class QueryProcessor {
         try {
             ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink).
                 plan()).execute(Graph.getInstance());
-        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
+        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException |
+            MalformedMatchQueryException | MalformedReturnClauseException |
+            MalformedWhereClauseException | NoSuchVertexIDException e) {
             logger.debug(e.getMessage());
             outputSink.append("ERROR: " + e.getMessage());
         }
@@ -153,7 +159,9 @@ public class QueryProcessor {
             ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
                 (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
                     outputSink).plan());
-        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
+        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException |
+            MalformedMatchQueryException | MalformedWhereClauseException |
+            NoSuchVertexIDException e) {
             logger.debug(e.getMessage());
             return "ERROR: The CONTINUOUS MATCH query could not be registered. " + e.getMessage();
         }

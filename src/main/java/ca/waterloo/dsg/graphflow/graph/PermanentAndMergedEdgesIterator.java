@@ -25,7 +25,6 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
     // list of {@code nextFromVertexId}.
     private int nextFromVertexAdjListIndex = -1;
     private short edgeTypeFilter;
-    private Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters;
 
     /**
      * Constructor for {@link PermanentAndMergedEdgesIterator} with all possible vertex and edge
@@ -37,18 +36,15 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
      * @param mergedAdjLists The adjacency lists for the merged version of the graph in the {@link
      * Direction#FORWARD} or {@link Direction#BACKWARD} directions.
      * @param edgeTypeFilter The type which the iterated edges should have.
-     * @param edgePropertyEqualityFilters The properties which the iterated edges should contain.
      * @param lastVertexId The vertex with the highest ID for the given graph version.
      */
     public PermanentAndMergedEdgesIterator(GraphVersion graphVersion,
         SortedAdjacencyList[] permanentAdjacencyLists,
-        Map<Integer, SortedAdjacencyList> mergedAdjLists, short edgeTypeFilter,
-        Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters, int lastVertexId) {
+        Map<Integer, SortedAdjacencyList> mergedAdjLists, short edgeTypeFilter, int lastVertexId) {
         this.graphVersion = graphVersion;
         this.permanentAdjacencyLists = permanentAdjacencyLists;
         this.mergedAdjLists = mergedAdjLists;
         this.edgeTypeFilter = edgeTypeFilter;
-        this.edgePropertyEqualityFilters = edgePropertyEqualityFilters;
         this.lastVertexId = lastVertexId;
         setIndicesToNextEdge();
     }
@@ -70,10 +66,7 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
                         nextFromVertexId);
                     if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
                         fromVertexMergedAdjList.getEdgeType(nextFromVertexAdjListIndex) ==
-                            edgeTypeFilter) &&
-                        (null == edgePropertyEqualityFilters || EdgeStore.getInstance().
-                            checkEqualityFilters(fromVertexMergedAdjList.getEdgeId(
-                                nextFromVertexAdjListIndex), edgePropertyEqualityFilters))) {
+                            edgeTypeFilter)) {
                         return;
                     }
                     nextFromVertexAdjListIndex++;
@@ -85,10 +78,7 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
                         nextFromVertexId];
                     if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
                         fromVertexPermanentAdjList.getEdgeType(nextFromVertexAdjListIndex) ==
-                            edgeTypeFilter) &&
-                        (null == edgePropertyEqualityFilters || EdgeStore.getInstance().
-                            checkEqualityFilters(fromVertexPermanentAdjList.getEdgeId(
-                                nextFromVertexAdjListIndex), edgePropertyEqualityFilters))) {
+                            edgeTypeFilter)) {
                         return;
                     }
                     nextFromVertexAdjListIndex++;

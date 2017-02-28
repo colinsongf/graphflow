@@ -69,7 +69,7 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
     }
 
     /**
-     * Asserts that the {@code Short} type has been inserted in the store previously.
+     * Asserts the {@code String} type has been inserted in the store previously.
      *
      * @param type The {@code String} type.
      * @return The {@code short} type. If {@code stringType} is either {@code null} or an empty
@@ -85,6 +85,18 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
             return shortType;
         }
         return ANY;
+    }
+
+    /**
+     * @param key The {@code String} key to map.
+     * @return {@code Short} mapping of the key or null if the key does not exist.
+     * @throws IllegalArgumentException if the given String key is null or empty.
+     */
+    public Short mapStringPropertyKeyToShort(String key) {
+        if (isNullOrEmpty(key)) {
+            throw new IllegalArgumentException("property keys can't be null or the empty string.");
+        }
+        return propertyKeyStore.mapStringKeyToShort(key);
     }
 
     /**
@@ -159,21 +171,6 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
         return propertyKeyStore.mapStringKeyToShort(stringKey) != null;
     }
 
-    /**
-     * Ensures for each property in properties that its associated data type is the same as that
-     * in the store.
-     *
-     * @param properties The properties to check the data types of in the store.
-     * @throws NoSuchPropertyKeyException if the property key is not found in the store.
-     * @throws IncorrectDataTypeException if the dataType of any property is not the same
-     * as that in the store if it had been previously inserted.
-     */
-    public void assertAllKeyDataTypesMatchPreviousDeclarations(
-        Map<String, Pair<String, String>> properties) {
-        mapStringPropertiesToShortAndDataType(properties,
-            false /* do not insert if key doesn't exist */, true /* assert all keys exist */);
-    }
-
     private Map<Short, Pair<DataType, String>> mapStringPropertiesToShortAndDataType(
         Map<String, Pair<String, String>> stringProperties, boolean insertIfKeyDoesntExist,
         boolean assertAllKeysExist) {
@@ -216,18 +213,6 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
             throw new NoSuchPropertyKeyException(stringKey);
         }
         return new Pair<>(key, dataType);
-    }
-
-    /**
-     * @param stringKey String key to map.
-     * @return short mapping of the key or null if the key does not exist.
-     * @throws IllegalArgumentException if the given String key is null or empty.
-     */
-    public Short mapStringPropertyKeyToShort(String stringKey) {
-        if (isNullOrEmpty(stringKey)) {
-            throw new IllegalArgumentException("property keys can't be null or the empty string.");
-        }
-        return propertyKeyStore.mapStringKeyToShort(stringKey);
     }
 
     private boolean isNullOrEmpty(String key) {

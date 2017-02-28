@@ -121,6 +121,10 @@ public class Graph {
         Map<Short, Pair<DataType, String>> vertexProperties) {
         vertexTypes.set(vertexId, vertexType);
         VertexPropertyStore.getInstance().set(vertexId, vertexProperties);
+        // TODO(amine): Check these are correct.
+        highestPermanentVertexId = Integer.max(highestPermanentVertexId, vertexId);
+        highestMergedVertexId = Integer.max(highestMergedVertexId, vertexId);
+        ensureCapacity(highestMergedVertexId + 1);
     }
 
     /**

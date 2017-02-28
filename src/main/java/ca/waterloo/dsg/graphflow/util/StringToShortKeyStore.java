@@ -1,31 +1,27 @@
 package ca.waterloo.dsg.graphflow.util;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
- * Stores a mapping of {@code String} keys to {@code short} keys. Each new {@code String} key
- * inserted gets a consecutively increasing short key starting from 0.
+ * Stores a mapping of {@code String} keys to {@code short} keys and vice versa. Each new
+ * {@code String} key inserted gets a consecutively increasing short key starting from 0.
+ * 
+ * Warning: This class internally uses {@link StringToIntKeyMap} and stores the {@code short} keys
+ * as integers and converts them to {@code short}s. If the callers insert more than
+ * {@link Short#MAX_VALUE} keys this class will overflow its short values.
  */
-public class StringToShortKeyStore {
+public class StringToShortKeyStore extends StringToIntKeyMap {
 
     private static final int DEFAULT_CAPACITY = 2;
-    private Map<String, Short> stringToShortMap = new HashMap<>();
     private String[] shortToStringMap = new String[DEFAULT_CAPACITY];
-    private short nextKeyAsShort = 0;
-
+    
     /**
-     * @param key The {@code String} key.
-     * @return The {@code Short} mapping of the given {@code String} key or {@code null} if the
-     * {@code key} is not in the store.
-     * @throws IllegalArgumentException if {@code key} passed is {@code null}.
+     * @see StringToIntKeyMap#adjustOtherDataStructures(String, int).
      */
-    public Short mapStringKeyToShort(String key) {
-        if (null == key) {
-            throw new IllegalArgumentException("The key parameter passed is null.");
-        }
-        return stringToShortMap.get(key);
+    protected void adjustOtherDataStructures(String newStringKey, int newShortKey) {
+        shortToStringMap = (String[]) ArrayUtils.resizeIfNecessary(shortToStringMap,
+             nextKeyAsInt + 1);
+        shortToStringMap[nextKeyAsInt] = newStringKey;
     }
 
     /**
@@ -34,18 +30,21 @@ public class StringToShortKeyStore {
      * @throws IllegalArgumentException if {@code stringKey} passed is {@code null}.
      */
     public short getKeyAsShortOrInsert(String stringKey) {
-        if (null == stringKey) {
-            throw new IllegalArgumentException("The stringKey parameter passed is null.");
+        return (short) getKeyAsIntOrInsert(stringKey);        
+    }
+    
+    /**
+     * @param key The {@code String} key.
+     * @return The {@code Short} mapping of the given {@code String} key or {@code null} if the
+     * {@code key} is not in the map.
+     * @throws IllegalArgumentException if {@code key} passed is {@code null}.
+     */
+    public Short mapStringKeyToShort(String key) {
+        Integer intKey = mapStringKeyToInt(key);
+        if (null == intKey) {
+            return null;
         }
-        Short shortKey = stringToShortMap.get(stringKey);
-        if (null == shortKey) {
-            shortToStringMap = (String[]) ArrayUtils.resizeIfNecessary(shortToStringMap,
-                nextKeyAsShort + 1);
-            shortToStringMap[nextKeyAsShort] = stringKey;
-            stringToShortMap.put(stringKey, nextKeyAsShort);
-            return nextKeyAsShort++;
-        }
-        return shortKey;
+        return intKey.shortValue();
     }
 
     /**
@@ -54,24 +53,18 @@ public class StringToShortKeyStore {
      * @throws NoSuchElementException if {@code key} passed is not present in the key store.
      */
     public String mapShortKeyToString(short shortKey) {
-        if (shortKey < 0 || shortKey >= nextKeyAsShort) {
+        if (shortKey < 0 || shortKey >= nextKeyAsInt) {
             throw new NoSuchElementException("The short " + shortKey + " is not present in the " +
                 "key store.");
         }
         return shortToStringMap[shortKey];
     }
 
-    @UsedOnlyByTests
-    int getStringToShortMapSize() {
-        return stringToShortMap.size();
-    }
-
     /**
-     * Clears the keys in the store.
+     * Resets the store.
      */
     public void reset() {
-        stringToShortMap = new HashMap<>();
+        super.reset();
         shortToStringMap = new String[DEFAULT_CAPACITY];
-        nextKeyAsShort = 0;
     }
 }

@@ -48,7 +48,7 @@ public class StringToShortKeyStoreTest {
 
         Assert.assertEquals(null, anotherKeyStore.mapStringKeyToShort("Zapdos"));
 
-        Assert.assertEquals(2, keyStore.getStringToShortMapSize());
-        Assert.assertEquals(2, anotherKeyStore.getStringToShortMapSize());
+        Assert.assertEquals(2, keyStore.getStringToIntMapSize());
+        Assert.assertEquals(2, anotherKeyStore.getStringToIntMapSize());
     }
 }

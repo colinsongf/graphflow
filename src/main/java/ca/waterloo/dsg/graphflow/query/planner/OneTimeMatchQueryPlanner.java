@@ -9,11 +9,20 @@ import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver.SourceDestinationIndexAndType;
+import ca.waterloo.dsg.graphflow.query.operator.aggregator.AbstractAggregator;
+import ca.waterloo.dsg.graphflow.query.operator.aggregator.Average;
+import ca.waterloo.dsg.graphflow.query.operator.aggregator.CountStar;
+import ca.waterloo.dsg.graphflow.query.operator.aggregator.Max;
+import ca.waterloo.dsg.graphflow.query.operator.aggregator.Min;
+import ca.waterloo.dsg.graphflow.query.operator.aggregator.Sum;
+import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor;
+import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor.DescriptorType;
+import ca.waterloo.dsg.graphflow.query.operator.GroupByAndAggregate;
 import ca.waterloo.dsg.graphflow.query.operator.Projection;
 import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver;
-import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver.EdgeOrVertexPropertyIndices;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryAggregation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryGraph;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
@@ -60,7 +69,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
     }
 
     private void checkEdgeVariablesAreDistinctFromVertexVariables() {
-        Set<String> variableNames = queryGraph.getAllVariables();
+        Set<String> variableNames = queryGraph.getAllVariableNames();
         for (String relationName : queryGraph.getAllRelationNames()) {
             if (variableNames.contains(relationName)) {
                 throw new MalformedMatchQueryException("Edge variable: " + relationName +
@@ -71,24 +80,34 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
 
     private void checkReturnVariablesAndPropertiesAreWellFormed() {
         for (String variable : structuredQuery.getReturnVariables()) {
-            if (!queryGraph.getAllVariables().contains(variable) &&
-                !queryGraph.getAllRelationNames().contains(variable)) {
-                throw new MalformedReturnClauseException(UNDEFINED_VARIABLE_ERROR_MESSAGE);
-            }
+            checkVariableIsDefined(variable);
         }
-
-        String variable, propertyKey;
         for (Pair<String, String> variablePropertyPair :
             structuredQuery.getReturnVariablePropertyPairs()) {
-            variable = variablePropertyPair.a;
-            if (!queryGraph.getAllVariables().contains(variable) &&
-                !queryGraph.getAllRelationNames().contains(variable)) {
-                throw new MalformedReturnClauseException(UNDEFINED_VARIABLE_ERROR_MESSAGE);
+            checkVariableIsDefinedAndPropertyExists(variablePropertyPair);
+        }
+        for (QueryAggregation queryAggregation : structuredQuery.getQueryAggregations()) {
+            if (null != queryAggregation.getVariable()) {
+                checkVariableIsDefined(queryAggregation.getVariable());
+            } else if (null != queryAggregation.getVariablePropertyPair()) {
+                checkVariableIsDefinedAndPropertyExists(queryAggregation.getVariablePropertyPair());
             }
-            propertyKey = variablePropertyPair.b;
-            if (!typeAndPropertyKeyStore.isPropertyDefined(propertyKey)) {
-                throw new NoSuchPropertyKeyException(propertyKey);
-            }
+        }
+    }
+
+    private void checkVariableIsDefinedAndPropertyExists(Pair<String, String> variablePropertyPair) {
+        String variable = variablePropertyPair.a;
+        checkVariableIsDefined(variable);
+        String propertyKey = variablePropertyPair.b;
+        if (!typeAndPropertyKeyStore.isPropertyDefined(propertyKey)) {
+            throw new NoSuchPropertyKeyException(propertyKey);
+        }
+    }
+
+    private void checkVariableIsDefined(String variable) {
+        if (!queryGraph.getAllVariableNames().contains(variable) &&
+            !queryGraph.getAllRelationNames().contains(variable)) {
+            throw new MalformedReturnClauseException(UNDEFINED_VARIABLE_ERROR_MESSAGE);
         }
     }
 
@@ -166,7 +185,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
          */
         int highestDegreeCount = -1;
         String variableWithHighestDegree = "";
-        for (String variable : queryGraph.getAllVariables()) {
+        for (String variable : queryGraph.getAllVariableNames()) {
             int variableDegree = queryGraph.getNumberOfAdjacentRelations(variable);
             if (variableDegree > highestDegreeCount) {
                 // Rule (1).
@@ -219,9 +238,10 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
      * op1->op2 below indicates that operator op1 appends results to operator op2.
      * <ul>
      * <li> {@link PropertyResolver}->{@link #outputSink}. (when no RETURN statement is specified).
-     * <li> {@link Projection}->{@link PropertyResolver}->{@link #outputSink}.
-     * <li> {@link EdgeIdResolver}->{@link Projection}->{@link PropertyResolver}->
+     * <li> {@link Projection}->({@link PropertyResolver} OR {@link GroupByAndAggregate})->
      * {@link #outputSink}.
+     * <li> {@link EdgeIdResolver}->{@link Projection}->({@link PropertyResolver} OR
+     * {@link GroupByAndAggregate})->{@link #outputSink}.
      * </ul>
      */
     private AbstractDBOperator getNextOperator(
@@ -229,7 +249,8 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         // If there is no RETURN clause specified, we append a PropertyResolver->OutputSink to
         // GJExecutor. The PropertyResolver only returns the ID of each vertex matched.
         if (structuredQuery.getReturnVariables().isEmpty() &&
-            structuredQuery.getReturnVariablePropertyPairs().isEmpty()) {
+            structuredQuery.getReturnVariablePropertyPairs().isEmpty() &&
+            structuredQuery.getQueryAggregations().isEmpty()) {
             return getIdentityPropertyResolver(orderedVertexVariablesBeforeProjection);
         } else {
             // Otherwise we first project onto the set of attributes mentioned in the RETURN
@@ -246,9 +267,21 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             List<String> orderedVertexVariablesAfterProjection = orderedVertexAndEdgeVariables.a;
             List<String> orderedEdgeVariables = orderedVertexAndEdgeVariables.b;
 
-            // First construct the PropertyResolver.
-            PropertyResolver propertyResolver = constructPropertyResolver(
-                orderedVertexVariablesAfterProjection, orderedEdgeVariables);
+            // First construct the PropertyResolver or GroupByAndAggregate which will be the 
+            // operator following Projection
+            AbstractDBOperator projectionsNextOperator = null;
+            Map<String, Integer> vertexVariableOrderIndexMapAfterProjection =
+                getOrderedVariableIndexMap(orderedVertexVariablesAfterProjection);
+            Map<String, Integer> edgeVariableOrderIndexMap = getOrderedVariableIndexMap(
+                orderedEdgeVariables);
+            if (structuredQuery.getQueryAggregations().isEmpty()) {
+                projectionsNextOperator = new PropertyResolver(outputSink,
+                    constructEdgeOrVertexPropertyDescriptorList(
+                        vertexVariableOrderIndexMapAfterProjection, edgeVariableOrderIndexMap));
+            } else {
+                projectionsNextOperator = constructGroupByAndAggregate(
+                    vertexVariableOrderIndexMapAfterProjection, edgeVariableOrderIndexMap);
+            }
 
             // Then construct the Projection.
             Map<String, Integer> orderedVariableIndexMapBeforeProjection =
@@ -259,7 +292,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                 vertexIndicesToProject.add(orderedVariableIndexMapBeforeProjection.get(
                     returnVariable));
             }
-            Projection projection = new Projection(propertyResolver, vertexIndicesToProject);
+            Projection projection = new Projection(projectionsNextOperator, vertexIndicesToProject);
 
             // Finally construct the EdgeIdResolver if needed.
             if (orderedEdgeVariables.isEmpty()) {
@@ -269,6 +302,63 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     orderedVariableIndexMapBeforeProjection, projection);
             }
         }
+    }
+
+    private AbstractDBOperator constructGroupByAndAggregate(
+        Map<String, Integer> vertexVariableOrderIndexMapAfterProjection,
+        Map<String, Integer> edgeVariableOrderIndexMap) {
+        List<EdgeOrVertexPropertyDescriptor> valuesToGroupBy =
+            constructEdgeOrVertexPropertyDescriptorList(vertexVariableOrderIndexMapAfterProjection,
+                edgeVariableOrderIndexMap);
+        List<Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator>> valueAggregatorPairs =
+            new ArrayList<>();
+        for (QueryAggregation queryAggregation : structuredQuery.getQueryAggregations()) {
+            AbstractAggregator aggregator = null;
+            switch (queryAggregation.getAggregationFunction()) {
+            case AVG:
+                aggregator = new Average();
+                break;
+            case COUNT_STAR:
+                aggregator = new CountStar();
+                break;
+            case MAX:
+                aggregator = new Max();
+                break;
+            case MIN:
+                aggregator = new Min();
+                break;
+            case SUM:
+                aggregator = new Sum();
+                break;
+            default: 
+                logger.warn("Unknown aggregation function:"
+                   + queryAggregation.getAggregationFunction() + ". This should have been caught"
+                   + " and handled when parsing the query.");
+                throw new IllegalArgumentException("Unknown aggregation function:"
+                   + queryAggregation.getAggregationFunction());
+            }
+
+            // For the COUNT_STAR aggregator, that does not have variable or variablePropertyPair we
+            // give it a dummy EdgeOrVertexPropertyDescriptor.
+            EdgeOrVertexPropertyDescriptor descriptor =
+                EdgeOrVertexPropertyDescriptor.COUNTSTAR_DUMMY_DESCRIPTOR;
+            if (null != queryAggregation.getVariable()) {
+                getEdgeOrVertexPropertyDescriptor(vertexVariableOrderIndexMapAfterProjection,
+                  edgeVariableOrderIndexMap, queryAggregation.getVariable(),
+                  (short) -1 /* No property key. Use the vertex or edge ID. */);
+            } else if (null != queryAggregation.getVariablePropertyPair()) {
+                Pair<String, String> variablePropertyPair =
+                    queryAggregation.getVariablePropertyPair();
+                descriptor = getEdgeOrVertexPropertyDescriptor(
+                    vertexVariableOrderIndexMapAfterProjection, edgeVariableOrderIndexMap,
+                    variablePropertyPair.a, typeAndPropertyKeyStore.mapStringPropertyKeyToShort(
+                        variablePropertyPair.b));
+                
+            }
+            valueAggregatorPairs.add(new Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator>(
+                descriptor, aggregator));
+        }        
+        return new GroupByAndAggregate(outputSink, valuesToGroupBy, valueAggregatorPairs);
     }
 
     private AbstractDBOperator constructEdgeIdResolver(List<String> orderedEdgeVariables,
@@ -295,107 +385,105 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         return new EdgeIdResolver(projection, srcDstVertexIndicesAndTypes);
     }
 
-    private PropertyResolver constructPropertyResolver(
-        List<String> orderedVertexVariablesAfterProjection, List<String> orderedEdgeVariables) {
-        List<String> returnVariables = structuredQuery.getReturnVariables();
-        List<Pair<String, String>> returnVariablePropertyPairs =
-            structuredQuery.getReturnVariablePropertyPairs();
+    private List<EdgeOrVertexPropertyDescriptor> constructEdgeOrVertexPropertyDescriptorList(
+        Map<String, Integer> vertexVariableOrderIndexMapAfterProjection,
+        Map<String, Integer> edgeVariableOrderIndexMap) {
+        List<EdgeOrVertexPropertyDescriptor> edgeOrVertexPropertyIndices = new ArrayList<>();
+        for (String returnVariable : structuredQuery.getReturnVariables()) {
+            edgeOrVertexPropertyIndices.add(getEdgeOrVertexPropertyDescriptor(
+                vertexVariableOrderIndexMapAfterProjection, edgeVariableOrderIndexMap,
+                returnVariable, (short) -1 /* No property key. Use the vertex or edge ID. */));
+        }
+        for (Pair<String, String> returnVariablePropertyPair :
+            structuredQuery.getReturnVariablePropertyPairs()) {
+            edgeOrVertexPropertyIndices.add(getEdgeOrVertexPropertyDescriptor(
+                vertexVariableOrderIndexMapAfterProjection, edgeVariableOrderIndexMap,
+                returnVariablePropertyPair.a, typeAndPropertyKeyStore.mapStringPropertyKeyToShort(
+                    returnVariablePropertyPair.b)));
+        }
+        return edgeOrVertexPropertyIndices;
+    }
 
-        Map<String, Integer> vertexVariableOrderIndexMapAfterProjection =
-            getOrderedVariableIndexMap(orderedVertexVariablesAfterProjection);
-        Map<String, Integer> edgeVariableOrderIndexMap = getOrderedVariableIndexMap(
-            orderedEdgeVariables);
-        List<EdgeOrVertexPropertyIndices> edgeOrVertexPropertyIndices = new ArrayList<>();
-        for (String returnVariable : returnVariables) {
-            if (vertexVariableOrderIndexMapAfterProjection.containsKey(returnVariable)) {
-                edgeOrVertexPropertyIndices.add(new EdgeOrVertexPropertyIndices(
-                    true /* is vertex or vertex property */,
-                    vertexVariableOrderIndexMapAfterProjection.get(returnVariable),
-                    (short) -1 /* No type. just return the vertex ID. */));
-            } else if (edgeVariableOrderIndexMap.containsKey(returnVariable)) {
-                edgeOrVertexPropertyIndices.add(new EdgeOrVertexPropertyIndices(
-                    false /* is edge or edge property */,
-                    edgeVariableOrderIndexMap.get(returnVariable),
-                    (short) -1 /* No type. just return the vertex ID. */));
-            } else {
-                logger.warn("ERROR: The return variable always has to exist either in"
-                    + " vertexVariableOrderIndexMapAfterProjection or "
-                    + "edgeOrVertexPropertyIndices.");
-            }
+    private EdgeOrVertexPropertyDescriptor getEdgeOrVertexPropertyDescriptor(
+        Map<String, Integer> vertexVariableOrderIndexMapAfterProjection,
+        Map<String, Integer> edgeVariableOrderIndexMap, String returnVariable,
+        short shortPropertyKey) {
+        if (vertexVariableOrderIndexMapAfterProjection.containsKey(returnVariable)) {
+            return new EdgeOrVertexPropertyDescriptor(
+                shortPropertyKey >= 0 ? DescriptorType.VERTEX_PROPERTY : DescriptorType.VERTEX_ID,
+                vertexVariableOrderIndexMapAfterProjection.get(returnVariable), shortPropertyKey);
+        } else if (edgeVariableOrderIndexMap.containsKey(returnVariable)) {
+            return new EdgeOrVertexPropertyDescriptor(
+                shortPropertyKey >= 0 ? DescriptorType.EDGE_PROPERTY : DescriptorType.EDGE_ID,
+                edgeVariableOrderIndexMap.get(returnVariable), shortPropertyKey);
+        } else {
+            logger.warn("ERROR: The return variable in variablePropertyPair always has to "
+                + "exist either in vertexVariableOrderIndexMapAfterProjection or "
+                + "edgeOrVertexPropertyIndices.");
+            return null;
         }
-        for (Pair<String, String> returnVariablePropertyPair : returnVariablePropertyPairs) {
-            String returnVariable = returnVariablePropertyPair.a;
-            if (vertexVariableOrderIndexMapAfterProjection.containsKey(returnVariable)) {
-                edgeOrVertexPropertyIndices.add(new EdgeOrVertexPropertyIndices(
-                    true /* is vertex or vertex property */,
-                    vertexVariableOrderIndexMapAfterProjection.get(returnVariable),
-                    typeAndPropertyKeyStore.mapStringPropertyKeyToShort(
-                        returnVariablePropertyPair.b)));
-            } else if (edgeVariableOrderIndexMap.containsKey(returnVariable)) {
-                edgeOrVertexPropertyIndices.add(new EdgeOrVertexPropertyIndices(
-                    false /* is edge or edge property */,
-                    edgeVariableOrderIndexMap.get(returnVariable),
-                    typeAndPropertyKeyStore.mapStringPropertyKeyToShort(
-                        returnVariablePropertyPair.b)));
-            } else {
-                logger.warn("ERROR: The return variable in variablePropertyPair always has to "
-                    + "exist either in vertexVariableOrderIndexMapAfterProjection or "
-                    + "edgeOrVertexPropertyIndices.");
-            }
-        }
-        return new PropertyResolver(outputSink, edgeOrVertexPropertyIndices);
     }
 
     private Pair<List<String>, List<String>>
-    getOrderedVertexVariablesAfterProjectionAndOrderedEdgeVariables() {
-        List<String> returnVariables = structuredQuery.getReturnVariables();
-        List<Pair<String, String>> returnVariablePropertyPairs =
-            structuredQuery.getReturnVariablePropertyPairs();
-
+        getOrderedVertexVariablesAfterProjectionAndOrderedEdgeVariables() {
         List<String> orderedVertexVariablesAfterProjection = new ArrayList<>();
         Set<String> variablesToProjectSet = new HashSet<>();
         List<String> orderedEdgeVariables = new ArrayList<>();
         Set<String> edgeVariablesToResolve = new HashSet<>();
-        for (String returnVariable : returnVariables) {
-            if (queryGraph.getAllVariables().contains(returnVariable)) {
-                if (!variablesToProjectSet.contains(returnVariable)) {
-                    variablesToProjectSet.add(returnVariable);
-                    orderedVertexVariablesAfterProjection = new ArrayList<>(returnVariables);
-                }
-            } else {
-                if (!edgeVariablesToResolve.contains(returnVariable)) {
-                    edgeVariablesToResolve.add(returnVariable);
-                    orderedEdgeVariables.add(returnVariable);
-                }
+        for (String returnVariable : structuredQuery.getReturnVariables()) {
+            addVariableToOrderedVertexOrEdgeVariableList(orderedVertexVariablesAfterProjection,
+                variablesToProjectSet, orderedEdgeVariables, edgeVariablesToResolve,
+                returnVariable);
+        }
+        for (Pair<String, String> returnVariablePropertyPair :
+            structuredQuery.getReturnVariablePropertyPairs()) {
+            addVariableToOrderedVertexOrEdgeVariableList(orderedVertexVariablesAfterProjection,
+                variablesToProjectSet, orderedEdgeVariables, edgeVariablesToResolve,
+                returnVariablePropertyPair.a);
+        }
+
+        for (QueryAggregation queryAggregation : structuredQuery.getQueryAggregations()) {
+            if (null != queryAggregation.getVariable()) {
+                addVariableToOrderedVertexOrEdgeVariableList(orderedVertexVariablesAfterProjection,
+                    variablesToProjectSet, orderedEdgeVariables, edgeVariablesToResolve,
+                    queryAggregation.getVariable());
+            } else if (null != queryAggregation.getVariablePropertyPair()) {
+                addVariableToOrderedVertexOrEdgeVariableList(orderedVertexVariablesAfterProjection,
+                    variablesToProjectSet, orderedEdgeVariables, edgeVariablesToResolve,
+                    queryAggregation.getVariablePropertyPair().a);
             }
         }
-        String variableName;
-        for (Pair<String, String> returnVariablePropertyPair : returnVariablePropertyPairs) {
-            variableName = returnVariablePropertyPair.a;
-            if (queryGraph.getAllVariables().contains(variableName)) {
-                if (!variablesToProjectSet.contains(variableName)) {
-                    variablesToProjectSet.add(variableName);
-                    orderedVertexVariablesAfterProjection.add(variableName);
-                }
-            } else {
-                if (!edgeVariablesToResolve.contains(variableName)) {
-                    edgeVariablesToResolve.add(variableName);
-                    orderedEdgeVariables.add(variableName);
-                }
-            }
-        }
+
         return new Pair<>(orderedVertexVariablesAfterProjection, orderedEdgeVariables);
+    }
+
+    private void addVariableToOrderedVertexOrEdgeVariableList(
+        List<String> orderedVertexVariablesAfterProjection, Set<String> variablesToProjectSet,
+        List<String> orderedEdgeVariables, Set<String> edgeVariablesToResolve,
+        String returnVariable) {
+        if (queryGraph.getAllVariableNames().contains(returnVariable)) {
+            // returnVariable is a vertex variable
+            if (!variablesToProjectSet.contains(returnVariable)) {
+                variablesToProjectSet.add(returnVariable);
+                orderedVertexVariablesAfterProjection.add(returnVariable);
+            }
+        } else {
+            // returnVariable is an edge variable
+            if (!edgeVariablesToResolve.contains(returnVariable)) {
+                edgeVariablesToResolve.add(returnVariable);
+                orderedEdgeVariables.add(returnVariable);
+            }
+        }
     }
 
     private AbstractDBOperator getIdentityPropertyResolver(
         List<String> orderedVertexVariablesBeforeProjection) {
-        List<EdgeOrVertexPropertyIndices> edgeOrVertexPropertyIndices = new ArrayList<>();
+        List<EdgeOrVertexPropertyDescriptor> edgeOrVertexPropertyIndices = new ArrayList<>();
         for (int i = 0; i < orderedVertexVariablesBeforeProjection.size(); ++i) {
             // Since the vertex Ids in the prefixes will be ordered we just pass in i as the index
             // below.
-            edgeOrVertexPropertyIndices.add(new EdgeOrVertexPropertyIndices(
-                true /* is vertex or vertex property */, i,
-                (short) -1 /* No type. just return the vertex ID. */));
+            edgeOrVertexPropertyIndices.add(new EdgeOrVertexPropertyDescriptor(
+                DescriptorType.VERTEX_ID, i, (short) -1 /* No type. just return the vertex ID. */));
         }
         logger.info("Appending PropertyResolver->OutputSink.");
         return new PropertyResolver(outputSink, edgeOrVertexPropertyIndices);

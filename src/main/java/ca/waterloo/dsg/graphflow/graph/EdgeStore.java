@@ -216,7 +216,8 @@ public class EdgeStore extends PropertyStore {
         if (edgeId >= nextIDNeverYetAssigned) {
             throw new NoSuchElementException("Edge with ID " + edgeId + " does not exist.");
         }
-        recycledIds = ArrayUtils.resizeIfNecessary(recycledIds, recycledIdsSize + 1);
+        recycledIds = ArrayUtils.resizeIfNecessary(recycledIds, recycledIdsSize + 1,
+            -1 /* default value to fill new cells if resizing */);
         recycledIds[recycledIdsSize++] = edgeId;
     }
 

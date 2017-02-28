@@ -22,7 +22,11 @@ deletePattern : digitsEdgeWithOptionalType ( whitespace? ',' whitespace? digitsE
 createEdgePattern : digitsEdgeWithTypeAndProperties ( whitespace? ',' whitespace? digitsEdgeWithTypeAndProperties )* ;
 createVertexPattern : digitsVertexWithTypeAndProperties ( whitespace ? ',' whitespace? digitsVertexWithTypeAndProperties)* ;
 pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
-returnClause : RETURN whitespace (variable | variableWithProperty) ( whitespace? ',' whitespace? (variable | variableWithProperty) )* ;
+returnClause : RETURN whitespace (variable | variableWithProperty | aggregationPattern ) ( whitespace? ',' whitespace? (variable | variableWithProperty | aggregationPattern ) )* ;
+aggregationPattern : ( ( aggregationFunction '(' whitespace? ( variable | variableWithProperty ) whitespace? ')' ) 
+						| ( countStarPattern ) );
+aggregationFunction : ( AVG | MAX | MIN | SUM ) ;
+countStarPattern :  COUNT '(' whitespace? '*' whitespace? ')' ;
 
 variableEdge : variableVertex (DASH edgeOptionalTypeAndOptionalProperties)? DASH RIGHT_ARROWHEAD variableVertex ;
 digitsEdgeWithOptionalType : digitsVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD digitsVertex ;
@@ -70,7 +74,17 @@ DELETE : D E L E T E;
 SHORTEST: S H O R T E S T ;
 PATH: P A T H ;
 
-RETURN: R E T U R N ;
+RETURN : R E T U R N ;
+
+COUNT : C O U N T;
+
+AVG : A V G ;
+
+MAX : M A X ;
+
+MIN : M I N ;
+
+SUM : S U M ;
 
 whitespace : (WHITESPACE)+ ;
 

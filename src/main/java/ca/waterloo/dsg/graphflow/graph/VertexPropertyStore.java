@@ -49,9 +49,7 @@ public class VertexPropertyStore extends PropertyStore {
         if (null == properties) {
             return;
         }
-        System.out.println("Setting: "+ vertexId+ " ");
         vertexProperties[vertexId] = serializeProperties(properties);
-        System.out.println("array length"+vertexProperties[vertexId].length);
     }
 
     /**

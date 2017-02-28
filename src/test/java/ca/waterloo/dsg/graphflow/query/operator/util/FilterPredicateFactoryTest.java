@@ -20,8 +20,8 @@ public class FilterPredicateFactoryTest {
     @Before
     public void setUp() throws Exception {
         Graph.getInstance().reset();
-        String createQuery = "CREATE (0:Person{name:string=name0, age:int=20, views:int=120})" +
-            "-[:FOLLOWS{isRelated:boolean=true, views:int=100}]->(1:Person{name:string=name1, " +
+        String createQuery = "CREATE (0:Person{name:string='name0', age:int=20, views:int=120})" +
+            "-[:FOLLOWS{isRelated:boolean=true, views:int=100}]->(1:Person{name:string='name1', " +
             "age:int=10, views:int=50}),(0:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->" +
             "(0:Person),(1:Person)-[:TAGGED]->(3:Person),(3:Person)-[:LIKES{rating:double=4.1, " +
             "views:int=300}]->(1:Person);";
@@ -91,7 +91,7 @@ public class FilterPredicateFactoryTest {
         String propertyKey = "views";
         QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
             new Pair<>("a", propertyKey), null, "74", ComparisonOperator.GREATER_THAN_OR_EQUAL,
-            OperandType.EDGE, OperandType.CONSTANT);
+            OperandType.EDGE, OperandType.LITERAL);
         Map<String, Integer> orderedEdgeVariableIndexMap = new HashMap<>();
         orderedEdgeVariableIndexMap.put("a", 3);
         orderedEdgeVariableIndexMap.put("d", 2);
@@ -108,7 +108,7 @@ public class FilterPredicateFactoryTest {
         String propertyKey = "views";
         QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
             new Pair<>("a", propertyKey), null, "74", ComparisonOperator.GREATER_THAN_OR_EQUAL,
-            OperandType.VERTEX, OperandType.CONSTANT);
+            OperandType.VERTEX, OperandType.LITERAL);
         Map<String, Integer> orderedVertexVariableIndexMap = new HashMap<>();
         orderedVertexVariableIndexMap.put("a", 3);
         orderedVertexVariableIndexMap.put("d", 2);

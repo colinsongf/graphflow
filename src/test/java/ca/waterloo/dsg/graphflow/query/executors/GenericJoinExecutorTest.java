@@ -4,22 +4,19 @@ import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.graph.VertexPropertyStore;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
-import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
 import org.antlr.v4.runtime.misc.Pair;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 
 /**
  * Tests {@code GenericJoinExecutor}.
@@ -242,14 +239,14 @@ public class GenericJoinExecutorTest {
         Object[][] expectedMotifsAfterAdditions, Object[][] expectedMotifsAfterDeletion) {
         Graph graph = Graph.getInstance();
         TestUtils.initializeGraphPermanentlyWithProperties("CREATE " +
-            "(0:Person{name:string=name0, age:int=20, views:int=120})-[:FOLLOWS]->" +
-            "(1:Person{name:string=name1, age:int=25, views:int=70})," +
+            "(0:Person{name:string='name0', age:int=20, views:int=120})-[:FOLLOWS]->" +
+            "(1:Person{name:string='name1', age:int=25, views:int=70})," +
             "(0:Person)-[:LIKES{views:int=2}]->(1:Person)," +
             "(1:Person)-[:LIKES{views:int=250}]->(0:Person)," +
-            "(1:Person)-[:TAGGED]->(3:Person{name:string=name3, age:int=22, views:int=250})," +
+            "(1:Person)-[:TAGGED]->(3:Person{name:string='name3', age:int=22, views:int=250})," +
             "(3:Person)-[:LIKES{views:int=44}]->(1:Person)," +
             "(3:Person)-[:FOLLOWS]->(0:Person)," +
-            "(4:Person{name:string=name4, age:int=40, views:int=20})-[:FOLLOWS]->(1:Person)," +
+            "(4:Person{name:string='name4', age:int=40, views:int=20})-[:FOLLOWS]->(1:Person)," +
             "(4:Person)-[:LIKES{views:int=56}]->(1:Person)," +
             "(1:Person)-[:LIKES{views:int=68}]->(4:Person)," +
             "(3:Person)-[:FOLLOWS]->(4:Person)," +
@@ -276,14 +273,16 @@ public class GenericJoinExecutorTest {
             expectedMotifsAfterDeletion)));
     }
 
-    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(Object[][] motifs) {
+    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(Object[][] results) {
         InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
-        MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
-        for (Object[] motif : motifs) {
-            matchQueryOutput.results = motif;
-            matchQueryOutput.resultLength = motif.length;
-            matchQueryOutput.matchQueryResultType = MatchQueryResultType.MATCHED;
-            inMemoryOutputSink.append(matchQueryOutput);
+        StringJoiner joiner;
+        for (Object[] resultRecord : results) {
+            joiner = new StringJoiner(" ");
+            for (Object element : resultRecord) {
+                joiner.add(element.toString());
+            }
+            joiner.add(MatchQueryResultType.MATCHED.name());
+            inMemoryOutputSink.append(joiner.toString());
         }
         return inMemoryOutputSink;
     }

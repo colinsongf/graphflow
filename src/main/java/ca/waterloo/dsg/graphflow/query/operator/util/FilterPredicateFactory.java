@@ -51,10 +51,10 @@ public class FilterPredicateFactory {
             case VERTEX_AND_EDGE:
                 return getVertexAndEdgePropertyPredicate(queryPropertyPredicate,
                     orderedVariableIndexMap, orderedEdgeVariableIndexMap);
-            case VERTEX_AND_CONSTANT:
+            case VERTEX_AND_LITERAL:
                 return getVertexAndConstantPropertyPredicate(queryPropertyPredicate,
                     orderedVariableIndexMap);
-            case EDGE_AND_CONSTANT:
+            case EDGE_AND_LITERAL:
                 return getEdgeAndConstantPropertyPredicate(queryPropertyPredicate,
                     orderedEdgeVariableIndexMap);
         }
@@ -132,7 +132,7 @@ public class FilterPredicateFactory {
 
         return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(VertexPropertyStore.
                 getInstance().getProperty(p.vertexIds[var1IdWithProperty.a], var1IdWithProperty.b),
-            resolveConstant(queryPropertyPredicate.getConstant(), var1IdWithProperty.b),
+            resolveConstant(queryPropertyPredicate.getLiteral(), var1IdWithProperty.b),
             queryPropertyPredicate.getComparisonOperator());
     }
 
@@ -144,7 +144,7 @@ public class FilterPredicateFactory {
 
         return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(EdgeStore.getInstance().
                 getProperty(p.edgeIds[var1IdWithProperty.a], var1IdWithProperty.b),
-            resolveConstant(queryPropertyPredicate.getConstant(), var1IdWithProperty.b),
+            resolveConstant(queryPropertyPredicate.getLiteral(), var1IdWithProperty.b),
             queryPropertyPredicate.getComparisonOperator());
     }
 

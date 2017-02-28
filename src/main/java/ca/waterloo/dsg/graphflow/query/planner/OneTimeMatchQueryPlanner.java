@@ -46,10 +46,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType.CONSTANT;
-import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType.EDGE;
-import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType.VERTEX;
-
 /**
  * Create a {@code QueryPlan} for the MATCH operation.
  */
@@ -71,6 +67,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         super(structuredQuery);
         this.outputSink = outputSink;
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
+            System.out.println(queryRelation);
             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(
                 queryRelation.getRelationType());
             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(
@@ -137,19 +134,20 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             }
             leftOperandKeyAndDataType = getKeyAndDataTypePair(predicate.getVariable1().b);
             if (null == predicate.getVariable2()) {
-                rightOperandType = CONSTANT;
+                rightOperandType = OperandType.LITERAL;
                 DataType.assertValueCanBeCastToDataType(leftOperandKeyAndDataType.b.toString(),
-                    predicate.getConstant());
+                    predicate.getLiteral());
             } else {
                 if (null == predicate.getPredicateType()) {
                     rightOperandType = getOperandType(predicate.getVariable2());
                 }
                 rightOperandKeyAndDataType = getKeyAndDataTypePair(predicate.getVariable2().b);
                 if (leftOperandKeyAndDataType.b != rightOperandKeyAndDataType.b) {
-                    throw new IncorrectDataTypeException("The left operand " + predicate.
-                        getVariable1().a + "." + predicate.getVariable1().b + " and the right " +
-                        "operand " + predicate.getVariable2().a + "." + predicate.getVariable2().b +
-                        " in the WHERE statement are not of the same data type.");
+                    throw new IncorrectDataTypeException("DataType Mismatch - The left operand " +
+                        predicate.getVariable1().a + "." + predicate.getVariable1().b + " is of " +
+                        "data type " + leftOperandKeyAndDataType.b + " and the right operand " +
+                        predicate.getVariable2().a + "." + predicate.getVariable2().b +
+                        " is of data type " + rightOperandKeyAndDataType.b);
                 }
             }
             if (null == predicate.getPredicateType()) {
@@ -160,9 +158,9 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
 
     private OperandType getOperandType(Pair<String, String> variable) {
         if (queryGraph.getAllVariableNames().contains(variable.a)) {
-            return VERTEX;
+            return OperandType.VERTEX;
         } else if (queryGraph.getAllRelationNames().contains(variable.a)) {
-            return EDGE;
+            return OperandType.EDGE;
         } else {
             throw new MalformedWhereClauseException("WHERE " + UNDEFINED_VARIABLE_ERROR_MESSAGE);
         }
@@ -344,6 +342,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                 getOrderedVariableIndexMap(orderedVertexVariablesAfterProjection);
             Map<String, Integer> edgeVariableOrderIndexMap = getOrderedVariableIndexMap(
                 orderedEdgeVariablesAfterProjection);
+            orderedEdgeVariablesForFiltersAndProjection = orderedEdgeVariablesAfterProjection;
             if (structuredQuery.getQueryAggregations().isEmpty()) {
                 projectionsNextOperator = new PropertyResolver(outputSink,
                     constructEdgeOrVertexPropertyDescriptorList(
@@ -364,6 +363,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         }
 
         // Construct the {@code Filter} operator if needed.
+        System.out.println(structuredQuery.getQueryPropertyPredicates().size());
         if (!structuredQuery.getQueryPropertyPredicates().isEmpty()) {
             orderedEdgeVariablesForFiltersAndProjection =
                 getOrderedEdgeVariablesInFiltersAndProjections(orderedEdgeVariablesAfterProjection);

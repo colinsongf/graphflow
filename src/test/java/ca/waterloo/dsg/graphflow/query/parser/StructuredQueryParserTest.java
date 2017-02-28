@@ -42,15 +42,15 @@ public class StructuredQueryParserTest {
     }
 
     /**
-     * Tests the parsing of a CREATE query.
+     * Tests the parsing of a CREATE edges query.
      */
     @Test
     public void testParseCreateEdgesQuery() throws Exception {
         StructuredQuery actualStructuredQuery;
-        String query = "CREATE (1:Person { name: String = Olivier })-[:FOLLOWS]->(2:Person " +
-            "{ name: String = Mohannad }), (2:Person { name: String = Mohannad } )-[:FOLLOWS]->" +
-            "(3:Person { name: String = Sid }), (1:Person {name: String = Olivier})-[:FOLLOWS]->" +
-            "(3:Person { name: String = Sid });";
+        String query = "CREATE (1:Person { name:String='Olivier' })-[:FOLLOWS]->(2:Person " +
+            "{ name:String='Mohannad' }), (2:Person { name:String='Mohannad' } )-[:FOLLOWS]->" +
+            "(3:Person { name:String='Sid' }), (1:Person { name:String='Olivier'})-[:FOLLOWS]->" +
+            "(3:Person { name:String='Sid' });";
         try {
             actualStructuredQuery = new StructuredQueryParser().parse(query);
         } catch (ParseCancellationException e) {
@@ -91,13 +91,13 @@ public class StructuredQueryParserTest {
     }
 
     /**
-     * Tests the parsing of a CREATE query.
+     * Tests the parsing of a CREATE vertices query.
      */
     @Test
     public void testParseCreateVerticesQuery() throws Exception {
         StructuredQuery actualStructuredQuery;
-        String query = "CREATE (1:Person { name: String = Olivier }), (2:Person " +
-            "{ name: String = Mohannad }), (3:Person { name: String = Sid })";
+        String query = "CREATE (1:Person { name: String = 'Olivier' }), (2:Person " +
+            "{ name: String = 'Mohannad' }), (3:Person { name: String = 'Sid' })";
         try {
             actualStructuredQuery = new StructuredQueryParser().parse(query);
         } catch (ParseCancellationException e) {

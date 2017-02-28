@@ -43,7 +43,7 @@ public class StructuredQuery implements AbstractStructuredQuery {
     /**
      * @return A read-only list of query variables.
      */
-    public List<QueryVariable> getQueryVaribles() {
+    public List<QueryVariable> getQueryVariables() {
         return Collections.unmodifiableList(queryVariables);
     }
 

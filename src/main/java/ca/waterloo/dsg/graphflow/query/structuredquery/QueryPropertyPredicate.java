@@ -1,12 +1,10 @@
 package ca.waterloo.dsg.graphflow.query.structuredquery;
 
-import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
 import org.antlr.v4.runtime.misc.Pair;
 
 import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType
-    .CONSTANT;
+    .LITERAL;
 import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType.EDGE;
 import static ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType.VERTEX;
 
@@ -30,31 +28,31 @@ public class QueryPropertyPredicate {
         TWO_EDGE,
         EDGE_AND_VERTEX,
         VERTEX_AND_EDGE,
-        EDGE_AND_CONSTANT,
-        VERTEX_AND_CONSTANT
+        EDGE_AND_LITERAL,
+        VERTEX_AND_LITERAL
     }
 
     public enum OperandType {
         EDGE,
         VERTEX,
-        CONSTANT
-    }
-
-    public QueryPropertyPredicate() { }
-
-    public QueryPropertyPredicate(Pair<String, String> variable1, String constant,
-        ComparisonOperator comparisonOperator, PredicateType predicateType) {
-        this.variable1 = variable1;
-        this.constant = constant;
-        this.comparisonOperator = comparisonOperator;
-        this.predicateType = predicateType;
+        LITERAL
     }
 
     private Pair<String, String> variable1;
     private Pair<String, String> variable2;
-    private String constant;
+    private String literal;
     private ComparisonOperator comparisonOperator;
     private PredicateType predicateType;
+
+    public QueryPropertyPredicate() { }
+
+    public QueryPropertyPredicate(Pair<String, String> variable1, String literal,
+        ComparisonOperator comparisonOperator, PredicateType predicateType) {
+        this.variable1 = variable1;
+        this.literal = literal;
+        this.comparisonOperator = comparisonOperator;
+        this.predicateType = predicateType;
+    }
 
     public Pair<String, String> getVariable1() {
         return variable1;
@@ -64,8 +62,8 @@ public class QueryPropertyPredicate {
         return variable2;
     }
 
-    public String getConstant() {
-        return constant;
+    public String getLiteral() {
+        return literal;
     }
 
     public ComparisonOperator getComparisonOperator() {
@@ -84,8 +82,8 @@ public class QueryPropertyPredicate {
         this.variable2 = variable2;
     }
 
-    public void setConstant(String constant) {
-        this.constant = constant;
+    public void setLiteral(String constant) {
+        this.literal = constant;
     }
 
     public void setComparisonOperator(ComparisonOperator comparisonOperator) {
@@ -101,10 +99,10 @@ public class QueryPropertyPredicate {
             this.predicateType = PredicateType.VERTEX_AND_EDGE;
         } else if (leftOperandType == EDGE && rightOperandType == VERTEX) {
             this.predicateType = PredicateType.EDGE_AND_VERTEX;
-        } else if (leftOperandType == VERTEX && rightOperandType == CONSTANT) {
-            this.predicateType = PredicateType.VERTEX_AND_CONSTANT;
-        } else if (leftOperandType == EDGE && rightOperandType == CONSTANT) {
-            this.predicateType = PredicateType.EDGE_AND_CONSTANT;
+        } else if (leftOperandType == VERTEX && rightOperandType == LITERAL) {
+            this.predicateType = PredicateType.VERTEX_AND_LITERAL;
+        } else if (leftOperandType == EDGE && rightOperandType == LITERAL) {
+            this.predicateType = PredicateType.EDGE_AND_LITERAL;
         }
     }
 }

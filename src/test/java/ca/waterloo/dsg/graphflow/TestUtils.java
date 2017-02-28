@@ -164,7 +164,7 @@ public class TestUtils {
         QueryPropertyPredicate queryPropertyPredicate = new QueryPropertyPredicate();
         queryPropertyPredicate.setVariable1(variable1);
         queryPropertyPredicate.setVariable2(variable2);
-        queryPropertyPredicate.setConstant(constant);
+        queryPropertyPredicate.setLiteral(constant);
         queryPropertyPredicate.setComparisonOperator(comparisonOperator);
         queryPropertyPredicate.setPredicateType(leftOperandType, rightOperandType);
         return queryPropertyPredicate;

@@ -25,6 +25,7 @@ deletePattern : digitsEdgeWithOptionalType ( whitespace? ',' whitespace? digitsE
 createEdgePattern : digitsEdgeWithTypeAndProperties ( whitespace? ',' whitespace? digitsEdgeWithTypeAndProperties )* ;
 createVertexPattern : digitsVertexWithTypeAndProperties ( whitespace? ',' whitespace? digitsVertexWithTypeAndProperties)* ;
 pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
+
 returnAndWhereClauses : ( returnClause (whitespace whereClause)? ) | ( whereClause (whitespace returnClause)? ) ;
 returnClause : RETURN whitespace (variable | variableWithProperty | aggregationPattern ) ( whitespace? ',' whitespace? (variable | variableWithProperty | aggregationPattern ) )* ;
 aggregationPattern : ( aggregationFunction '(' whitespace? ( variable | variableWithProperty ) whitespace? ')' )
@@ -33,7 +34,7 @@ aggregationFunction : ( AVG | MAX | MIN | SUM ) ;
 countStarPattern :  COUNT '(' whitespace? '*' whitespace? ')' ;
 whereClause : WHERE whitespace predicates ;
 predicates : predicate ( whitespace AND whitespace predicate )* ;
-predicate : variableWithProperty whitespace operator whitespace (value | variableWithProperty) ;
+predicate : variableWithProperty whitespace operator whitespace (literal | variableWithProperty) ;
 
 variableEdge : variableVertex (DASH edgeVariable)? DASH RIGHT_ARROWHEAD variableVertex ;
 digitsEdgeWithOptionalType : digitsVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD digitsVertex ;
@@ -41,17 +42,25 @@ digitsEdgeWithTypeAndProperties : digitsVertexWithTypeAndProperties (DASH edgeTy
 
 digitsVertex : '(' whitespace? Digits whitespace? ')' ;
 digitsVertexWithTypeAndProperties : '(' whitespace? Digits whitespace? ':' type whitespace? properties? whitespace? ')' ;
-variableVertex : '(' whitespace? variable (whitespace? ':' type)? (whitespace properties)? whitespace? ')' ;
+variableVertex : '(' whitespace? variable (whitespace? ':' type)? (whitespace? propertyFilters)? whitespace? ')' ;
 
 edgeType : '[' whitespace? ':' type whitespace? ']' ;
 edgeTypeAndOptionalProperties : '[' whitespace? ':' type whitespace? properties? whitespace? ']' ;
-edgeVariable : '[' whitespace? variable (whitespace? ':' type)? whitespace? properties whitespace? ']' |
+edgeVariable : '[' whitespace? variable (whitespace? ':' type)? whitespace? propertyFilters whitespace? ']' |
                '[' whitespace? variable? (whitespace? ':' type)? whitespace? ']' ;
 
 type : variable ;
+propertyFilters : '{' whitespace? ( propertyFilter ( whitespace? ',' whitespace? propertyFilter )* )? whitespace? '}' ;
+propertyFilter : key whitespace? equalTo whitespace? literal ;
 properties : '{' whitespace? ( property ( whitespace? ',' whitespace? property )* )? whitespace? '}' ;
-property : key whitespace? ':' whitespace? dataType whitespace? '=' whitespace? value ;
+property : key whitespace? ':' whitespace? dataType whitespace? equalTo whitespace? literal ;
 key : ( Characters | UNDERSCORE ) ( Digits | Characters | UNDERSCORE )* ;
+literal : integerLiteral | doubleLiteral | booleanLiteral | stringLiteral  ;
+
+integerLiteral : Digits ;
+doubleLiteral : Digits DOT Digits ;
+booleanLiteral : TRUE | FALSE ;
+stringLiteral : '\'' value '\'';
 value : ( Digits | Characters | UNDERSCORE | DASH | DOT )+ ;
 
 filePath: ( Digits | Characters | UNDERSCORE | DASH | DOT | SLASH | SPACE )+ ;
@@ -64,18 +73,9 @@ greaterThan : '>' ;
 lessThanOrEqualTo : '<=' ;
 greaterThanOrEqualTo : '>=' ;
 
-variableWithProperty : variable DOT variable;
-variable : ( Digits | Characters | UNDERSCORE | DASH )+ ;
+variableWithProperty : variable DOT key;
+variable : ( Characters | UNDERSCORE | DASH ) ( Digits | Characters | UNDERSCORE | DASH )* ;
 dataType : ( INT | DOUBLE | BOOLEAN | STRING ) ;
-
-INT: I N T ;
-DOUBLE: D O U B L E ;
-BOOLEAN: B O O L E A N ;
-STRING: S T R I N G;
-
-Digits : (Digit)+ ;
-
-FILE : F I L E ;
 
 MATCH : M A T C H ;
 CONTINUOUS : C O N T I N U O U S ;
@@ -85,8 +85,6 @@ SHORTEST : S H O R T E S T ;
 PATH : P A T H ;
 WHERE : W H E R E ;
 RETURN : R E T U R N ;
-
-AND : A N D ;
 
 COUNT : C O U N T;
 AVG : A V G ;
@@ -100,7 +98,22 @@ FROM: F R O M ;
 TO: T O ;
 DIR: D I R ;
 
+INT: I N T ;
+DOUBLE: D O U B L E ;
+BOOLEAN: B O O L E A N ;
+STRING: S T R I N G;
+
+TRUE : T R U E ;
+FALSE : F A L S E ;
+
+AND : A N D ;
+OR : O R ;
+
+FILE : F I L E ;
+
 whitespace : (WHITESPACE)+ ;
+
+Digits : (Digit)+ ;
 
 Characters : ( [a-z] | [A-Z] )+ ;
 

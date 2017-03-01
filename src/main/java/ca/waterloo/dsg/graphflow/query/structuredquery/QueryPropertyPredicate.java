@@ -41,6 +41,14 @@ public class QueryPropertyPredicate {
 
     public QueryPropertyPredicate() { }
 
+    /**
+     * Constructs a {@code QueryPropertyPredicate}.
+     *
+     * @param variable1 The vertexId and Property key as left operand.
+     * @param literal The literal as right operand.
+     * @param comparisonOperator The {@link ComparisonOperator} of the predicate.
+     * @param predicateType The {@link PredicateType} of the predicate.
+     */
     public QueryPropertyPredicate(Pair<String, String> variable1, String literal,
         ComparisonOperator comparisonOperator, PredicateType predicateType) {
         this.variable1 = variable1;
@@ -104,10 +112,10 @@ public class QueryPropertyPredicate {
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("{ " + variable1.a + "." + variable1.b);
-        stringBuilder.append(" " + comparisonOperator.name() + " ");
-        stringBuilder.append(" ");
+        StringBuilder stringBuilder = new StringBuilder()
+            .append("{ " + variable1.a + "." + variable1.b)
+            .append(" " + comparisonOperator.name() + " ")
+            .append(" ");
         if (variable2 != null) {
             stringBuilder.append(variable2.a + "." + variable2.b + "}");
         } else {

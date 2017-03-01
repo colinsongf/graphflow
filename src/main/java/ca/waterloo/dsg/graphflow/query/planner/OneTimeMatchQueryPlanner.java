@@ -316,9 +316,11 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                             Direction.FORWARD : Direction.BACKWARD;
                         stage.add(new GenericJoinIntersectionRule(j, direction,
                             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
-                                queryRelation.getRelationType()), TypeAndPropertyKeyStore.
-                            getInstance().mapStringPropertiesToShortAndDataType(queryRelation.
-                            getRelationProperties())));
+                                queryRelation.getFromQueryVariable().getVariableType()),
+                            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
+                                queryRelation.getToQueryVariable().getVariableType()),
+                            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
+                                queryRelation.getRelationType())));
                     }
                 }
             }

@@ -249,7 +249,7 @@ public class SortedAdjacencyListTest {
         listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.
             getSize()));
         IntArrayList intersections = adjacencyList1.getIntersection(listToIntersect,
-            intersectionFilterEdgeType, null /* no property equality filters */);
+            intersectionFilterEdgeType);
         int[] expectedNeighbours = {14, 34, 54};
         Assert.assertArrayEquals(expectedNeighbours, intersections.toArray());
     }
@@ -270,7 +270,7 @@ public class SortedAdjacencyListTest {
         listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.
             getSize()));
         IntArrayList intersections = adjacencyList1.getIntersection(listToIntersect,
-            TypeAndPropertyKeyStore.ANY, null /* no property equality filters */);
+            TypeAndPropertyKeyStore.ANY);
         int[] expectedNeighbours = {1, 14, 34, 54, 89};
         Assert.assertArrayEquals(expectedNeighbours, intersections.toArray());
     }
@@ -291,7 +291,7 @@ public class SortedAdjacencyListTest {
         listToIntersect.addAll(Arrays.copyOf(adjacencyList2.neighbourIds, adjacencyList2.
             getSize()));
         IntArrayList intersections = adjacencyList1.getIntersection(listToIntersect,
-            TypeAndPropertyKeyStore.ANY, null);
+            TypeAndPropertyKeyStore.ANY);
         int[] expectedNeighbours = {14, 34, 54, 89};
         Assert.assertArrayEquals(expectedNeighbours, intersections.toArray());
     }
@@ -305,40 +305,12 @@ public class SortedAdjacencyListTest {
             edgeIds);
 
         IntArrayList filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds((short) 1,
-            null /* no property equality filters */);
+            TypeAndPropertyKeyStore.ANY);
         int[] expectedFilteredNeighbourIds = {1, 9, 54, 89};
         Assert.assertArrayEquals(expectedFilteredNeighbourIds, filteredNeighbourIds.toArray());
 
         filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds(TypeAndPropertyKeyStore.ANY,
-            null /* no property equality filters */);
+            TypeAndPropertyKeyStore.ANY);
         Assert.assertArrayEquals(neighbourIds, filteredNeighbourIds.toArray());
-    }
-
-    @Test
-    public void testGetFilteredNeighbourIdsWithPropertyEqualityFilters() {
-        int[] neighbourIds = {1, 9, 14, 23, 34, 54, 89};
-        short[] edgeTypes = {1, 1, 2, 3, 2, 1, 1};
-        long[] edgeIds = {0, 1, 2, 3, 4, 5, 6};
-        SortedAdjacencyList adjacencyList = getPopulatedAdjacencyList(neighbourIds, edgeTypes,
-            edgeIds);
-
-        // add 7 edges with Ids i: 0 to 6 each with properties of size 1 with key: 0, String
-        // DataType and value "value-" + i
-        Map<Short, Pair<DataType, String>> properties = new HashMap<>();
-        for (int i = 0; i < 7; ++i) {
-            TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyValueToShortAndDataType(
-                Integer.toString(i), "String", true /* insert in the store */, true /* checkAll */);
-            properties.put((short) 0, new Pair<>(DataType.STRING, "value-" + i));
-            EdgeStore.getInstance().addEdge(properties);
-        }
-
-        Map<Short, Pair<DataType, String>> propertyEqualityFilters = new HashMap<>();
-        propertyEqualityFilters.put((short) 0, new Pair<>(DataType.STRING, "value-4"));
-
-        // This filtering would get the neighbour with edgeId 4, neighbour Id 34, and edgeType 2.
-        IntArrayList filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds(
-            TypeAndPropertyKeyStore.ANY, propertyEqualityFilters);
-        Assert.assertEquals(1, filteredNeighbourIds.getSize());
-        Assert.assertEquals(34, filteredNeighbourIds.get(0));
     }
 }

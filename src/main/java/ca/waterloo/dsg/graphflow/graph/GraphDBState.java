@@ -20,9 +20,9 @@ public class GraphDBState {
      */
     public static void reset() {
         Graph.reset();
-        EdgeStore.reset();
-        VertexPropertyStore.reset();
-        TypeAndPropertyKeyStore.reset();
+        EdgeStore.getInstance().reset();
+        VertexPropertyStore.getInstance().reset();
+        TypeAndPropertyKeyStore.getInstance().reset();
     }
 
     /**

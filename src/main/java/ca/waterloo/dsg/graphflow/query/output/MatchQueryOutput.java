@@ -16,6 +16,4 @@ public class MatchQueryOutput {
     public long[] edgeIds;
     public MatchQueryResultType matchQueryResultType;
     public Object[] results;
-    public int resultLength;
-
 }

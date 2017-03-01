@@ -44,7 +44,6 @@ public class VertexPropertyStore extends PropertyStore {
      * those of the list at the given {@code vertexId}.
      */
     public void set(int vertexId, Map<Short, Pair<DataType, String>> properties) {
-
         vertexProperties = ArrayUtils.resizeIfNecessary(vertexProperties, vertexId + 1);
         if (null == properties) {
             return;
@@ -141,7 +140,7 @@ public class VertexPropertyStore extends PropertyStore {
     /**
      * Resets the {@link VertexPropertyStore} state by creating a new {@code INSTANCE}.
      */
-    static void reset() {
+    void reset() {
         INSTANCE = new VertexPropertyStore();
     }
 

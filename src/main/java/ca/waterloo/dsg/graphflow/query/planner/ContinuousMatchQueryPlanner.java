@@ -96,8 +96,11 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
 
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, graphVersion,
             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(diffRelation.
-                getRelationType()), TypeAndPropertyKeyStore.getInstance().
-            mapStringPropertiesToShortAndDataType((diffRelation.getRelationProperties()))));
+                getFromQueryVariable().getVariableType()),
+            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(diffRelation.
+                getToQueryVariable().getVariableType()),
+            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(diffRelation.
+                getRelationType())));
         oneTimeMatchQueryPlan.addStage(stage);
         // Add the other relations that are present between the diffRelation's
         // {@code fromVariable} to {@code toVariable}.
@@ -178,8 +181,11 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         }
         stage.add(new GenericJoinIntersectionRule(prefixIndex, direction, version,
             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(newRelation.
-                getRelationType()), TypeAndPropertyKeyStore.getInstance().
-            mapStringPropertiesToShortAndDataType(newRelation.getRelationProperties())));
+                getFromQueryVariable().getVariableType()),
+            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(newRelation.
+                getToQueryVariable().getVariableType()),
+            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(newRelation.
+                getRelationType())));
     }
 
     /**

@@ -13,6 +13,9 @@ public class DiffEdgesIterator implements Iterator<int[]> {
 
     private List<int[]> diffEdges;
     private ShortArrayList diffEdgeTypes;
+    private ShortArrayList vertexTypes;
+    private short fromVertexTypeFilter;
+    private short toVertexTypeFilter;
     private short edgeTypeFilter;
     private int next = -1;
 
@@ -22,11 +25,21 @@ public class DiffEdgesIterator implements Iterator<int[]> {
      *
      * @param diffEdges The set of edges that were added or deleted from the graph.
      * @param diffEdgeTypes The types of the added or deleted edges.
+     * @param vertexTypes The types of the graph vertices.
+     * @param fromVertexTypeFilter The {@code short} filter on the type of the from vertex of the
+     * edge that should be matched.
+     * @param toVertexTypeFilter The {@code short} filter on the type of the to vertex of the edge
+     * that should be matched.
      * @param edgeTypeFilter The {@code short} filter on the type of edges that should be matched.
      */
-    public DiffEdgesIterator(List<int[]> diffEdges, ShortArrayList diffEdgeTypes, short edgeTypeFilter) {
+    public DiffEdgesIterator(List<int[]> diffEdges, ShortArrayList diffEdgeTypes,
+        ShortArrayList vertexTypes, short fromVertexTypeFilter, short toVertexTypeFilter,
+        short edgeTypeFilter) {
         this.diffEdges = diffEdges;
         this.diffEdgeTypes = diffEdgeTypes;
+        this.vertexTypes = vertexTypes;
+        this.fromVertexTypeFilter = fromVertexTypeFilter;
+        this.toVertexTypeFilter = toVertexTypeFilter;
         this.edgeTypeFilter = edgeTypeFilter;
         setIndexToNextEdge();
     }
@@ -53,8 +66,12 @@ public class DiffEdgesIterator implements Iterator<int[]> {
             // edgeTypeFilter} and {@code e}'s properties match {@code edgePropertyEqualityFilters}.
             // If there is no such {@code e=(u, v)}, the {@code next} index is set to the size of
             // {@code diffEdges.size()}.
-            if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
-                diffEdgeTypes.get(next) == edgeTypeFilter)) {
+            if ((TypeAndPropertyKeyStore.ANY == fromVertexTypeFilter ||
+                vertexTypes.get(diffEdges.get(next)[0]) == fromVertexTypeFilter) &&
+                (TypeAndPropertyKeyStore.ANY == toVertexTypeFilter ||
+                    vertexTypes.get(diffEdges.get(next)[1]) == toVertexTypeFilter) &&
+                (TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
+                    diffEdgeTypes.get(next) == edgeTypeFilter)) {
                 return;
             }
             next++;

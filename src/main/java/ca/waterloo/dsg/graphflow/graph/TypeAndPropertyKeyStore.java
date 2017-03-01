@@ -132,23 +132,6 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
     }
 
     /**
-     * Given some properties as Map<String (key), Pair<String (dataType), String (value)>>,
-     * returns the same properties as Map<Short, Pair<DataType, String>>.
-     *
-     * @param stringProperties The properties as {@code Map<String, Pair<String, String>>}.
-     * @return The properties as as {@code Map<Short, Pair<DataType, String>>}. If the {@code
-     * stringProperties} passed is {@code null}, {@code null} is returned.
-     * @throws IncorrectDataTypeException if any of the property keys has been previously
-     * stored with a different data type from the one passed.
-     * @throws NoSuchPropertyKeyException if any of the property keys is not in the store.
-     */
-    public Map<Short, Pair<DataType, String>> mapStringPropertiesToShortAndDataType(
-        Map<String, Pair<String, String>> stringProperties) {
-        return mapStringPropertiesToShortAndDataType(stringProperties,
-            false /* do not insert if key doesn't exist */, true /* assert all keys exist */);
-    }
-
-    /**
      * Ensures for each property in properties that its associated data type is the same as that
      * in the store if it had previously been inserted.
      *
@@ -254,7 +237,7 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
     /**
      * Resets the {@link TypeAndPropertyKeyStore} state by creating a new {@code INSTANCE}.
      */
-    static void reset() {
+    void reset() {
         INSTANCE = new TypeAndPropertyKeyStore();
     }
 

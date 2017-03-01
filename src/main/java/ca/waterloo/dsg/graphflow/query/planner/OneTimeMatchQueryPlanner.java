@@ -1,6 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
+import ca.waterloo.dsg.graphflow.exceptions.IncorrectTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.MalformedMatchQueryException;
 import ca.waterloo.dsg.graphflow.exceptions.MalformedReturnClauseException;
 import ca.waterloo.dsg.graphflow.exceptions.MalformedWhereClauseException;
@@ -30,6 +31,7 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.QueryGraph;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.query.operator.filter.FilterPredicateFactory;
 import ca.waterloo.dsg.graphflow.util.DataType;
@@ -65,6 +67,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         AbstractDBOperator outputSink) {
         super(structuredQuery);
         this.outputSink = outputSink;
+        checkQueryVariableTypesAreConsistent();
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(
                 queryRelation.getRelationType());
@@ -152,6 +155,39 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             if (null == predicate.getPredicateType()) {
                 predicate.setPredicateType(leftOperandType, rightOperandType);
             }
+        }
+    }
+
+    private void checkQueryVariableTypesAreConsistent() {
+        Map<String, String> variableTypeMap = new HashMap<>();
+        for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
+            QueryVariable fromQueryVariable = queryRelation.getFromQueryVariable();
+            QueryVariable toQueryVariable = queryRelation.getToQueryVariable();
+            assetQueryVariableTypeIsConsistent(fromQueryVariable.getVariableName(),
+                fromQueryVariable.getVariableType(), variableTypeMap);
+            assetQueryVariableTypeIsConsistent(toQueryVariable.getVariableName(),
+                toQueryVariable.getVariableType(), variableTypeMap);
+        }
+        for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
+            String fromQueryVariable = queryRelation.getFromQueryVariable().getVariableName();
+            String toQueryVariable = queryRelation.getToQueryVariable().getVariableName();
+            String fromQueryType = variableTypeMap.get(fromQueryVariable);
+            String toQueryType = variableTypeMap.get(toQueryVariable);
+            queryRelation.getFromQueryVariable().setVariableType(fromQueryType);
+            queryRelation.getToQueryVariable().setVariableType(toQueryType);
+        }
+    }
+
+    private void assetQueryVariableTypeIsConsistent(String variableName, String variableType,
+        Map<String, String> variableTypeMap) {
+        if (!variableTypeMap.containsKey(variableName) ||
+            null == variableTypeMap.get(variableName)) {
+            variableTypeMap.put(variableName, variableType);
+        } else if (null != variableType &&
+            !variableType.equals(variableTypeMap.get(variableName))) {
+            throw new IncorrectTypeException("Incorrect type usage - The query variable '" +
+                variableName + "' in the MATCH clause is used with two different types: '" +
+                variableType + "' and '" + variableTypeMap.get(variableName) + "'.");
         }
     }
 

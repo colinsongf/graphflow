@@ -43,7 +43,7 @@ public class EdgeOrVertexPropertyDescriptor {
      * <li> key: the key of the property to be used by the operator. When -1 only the ID of the
      * vertex or edge should be used.
      * </ul>
-     * 
+     *
      * @param descriptorType Whether this descriptor is describing a vertex ID/property
      * or edge ID/property.
      * @param index index of the vertex or edge in the vertexIds or edgeIds fields of

@@ -23,7 +23,6 @@ import ca.waterloo.dsg.graphflow.query.operator.GroupByAndAggregate;
 import ca.waterloo.dsg.graphflow.query.operator.Projection;
 import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver;
 import ca.waterloo.dsg.graphflow.query.operator.Filter;
-import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryAggregation;
@@ -67,7 +66,6 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         super(structuredQuery);
         this.outputSink = outputSink;
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
-            System.out.println(queryRelation);
             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(
                 queryRelation.getRelationType());
             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(
@@ -300,12 +298,19 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
     /**
      * Adds to {@link OneTimeMatchQueryPlan} the next plan which can be one of the following. The
      * op1->op2 below indicates that operator op1 appends results to operator op2.
+     * {@link EdgeIdResolver} is only added when the WHERE or RETURN clauses contain edge variables.
+     *
      * <ul>
      * <li> {@link PropertyResolver}->{@link #outputSink}. (when no RETURN statement is specified).
+     * <li> {@link Filter}->{@link PropertyResolver}->{@link #outputSink}.
      * <li> {@link Projection}->({@link PropertyResolver} OR {@link GroupByAndAggregate})->
      * {@link #outputSink}.
+     * <li> ({@link EdgeIdResolver}->){@link Filter}->{@link Projection}->({@link PropertyResolver}
+     * OR {@link GroupByAndAggregate})->{@link #outputSink}.
      * <li> {@link EdgeIdResolver}->{@link Projection}->({@link PropertyResolver} OR
      * {@link GroupByAndAggregate})->{@link #outputSink}.
+     * <li> ({@link EdgeIdResolver}->){{@link Filter}->{@link Projection}->({@link PropertyResolver}
+     * OR {@link GroupByAndAggregate})->{@link #outputSink}.
      * </ul>
      */
     AbstractDBOperator getNextOperator(
@@ -352,8 +357,8 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                 projectionsNextOperator = constructGroupByAndAggregate(
                     vertexVariableOrderIndexMapAfterProjection, edgeVariableOrderIndexMap);
             }
-            // Then construct the Projection.
 
+            // Then construct the Projection.
             logger.info("Appending Projection->PropertyResolver->OutputSink.");
             List<Integer> vertexIndicesToProject = new ArrayList<>();
             for (String returnVariable : orderedVertexVariablesAfterProjection) {
@@ -364,25 +369,64 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         }
 
         // Construct the {@code Filter} operator if needed.
-        System.out.println(structuredQuery.getQueryPropertyPredicates().size());
         if (!structuredQuery.getQueryPropertyPredicates().isEmpty()) {
             orderedEdgeVariablesForFiltersAndProjection =
                 getOrderedEdgeVariablesInFiltersAndProjections(orderedEdgeVariablesAfterProjection);
             Map<String, Integer> orderedEdgeIndexMap = getOrderedVariableIndexMap
                 (orderedEdgeVariablesForFiltersAndProjection);
-            Predicate<MatchQueryOutput> filterPredicate = getFilterPredicates
-                (orderedVariableIndexMap, orderedEdgeIndexMap);
-            nextOperator = new Filter(nextOperator, filterPredicate, structuredQuery
-                .getQueryPropertyPredicates());
+            nextOperator = constructFilter(orderedVariableIndexMap, orderedEdgeIndexMap,
+                nextOperator);
         }
 
-        // Finally construct the EdgeIdResolver if needed.
+        // Finally construct the EdgeIdResolver if needed. Uses the ordered edgeId variables used
+        // by {@code Filter} and {@code Projection}/{@code GroupByAndAggregate}.
         if (orderedEdgeVariablesForFiltersAndProjection.isEmpty()) {
             return nextOperator;
         } else {
             return constructEdgeIdResolver(orderedEdgeVariablesForFiltersAndProjection,
                 orderedVariableIndexMap, nextOperator);
         }
+    }
+
+    private AbstractDBOperator constructFilter(Map<String, Integer>
+        vertexVariableOrderIndexMapBeforeProjection, Map<String, Integer>
+        edgeVariableOrderIndexMap, AbstractDBOperator nextOperator) {
+        List<EdgeOrVertexPropertyDescriptor> edgeOrVertexPropertyDescriptors = new ArrayList<>();
+        // The {@code descriptorIndexMap} holds the position of the descriptor for a given
+        // variable in {@code edgeOrVertexPropertyDescriptors} list. A map is used to prevent
+        // duplicate descriptors in the list.
+        Map<String, Integer> descriptorIndexMap = new HashMap<>();
+        Predicate<String[]> predicate = null;
+        for (QueryPropertyPredicate queryPropertyPredicate : structuredQuery.
+            getQueryPropertyPredicates()) {
+            Pair<String, String> variable1 = queryPropertyPredicate.getVariable1();
+            if (descriptorIndexMap.get(variable1.a) == null) {
+                descriptorIndexMap.put(variable1.a, edgeOrVertexPropertyDescriptors.size());
+                edgeOrVertexPropertyDescriptors.add(getEdgeOrVertexPropertyDescriptor(
+                    vertexVariableOrderIndexMapBeforeProjection, edgeVariableOrderIndexMap,
+                    variable1.a, typeAndPropertyKeyStore.mapStringPropertyKeyToShort(variable1.b)));
+            }
+            Pair<String, String> variable2 = queryPropertyPredicate.getVariable2();
+            if (variable2 != null && descriptorIndexMap.get(variable2.a) == null) {
+                descriptorIndexMap.put(variable2.a, edgeOrVertexPropertyDescriptors.size());
+                edgeOrVertexPropertyDescriptors.add(getEdgeOrVertexPropertyDescriptor(
+                    vertexVariableOrderIndexMapBeforeProjection, edgeVariableOrderIndexMap,
+                    variable2.a, typeAndPropertyKeyStore.mapStringPropertyKeyToShort(variable2.b)));
+            }
+            int variable2Index = (variable2 != null) ? descriptorIndexMap.get(variable2.a) : -1;
+            if (predicate == null) {
+                // Assign the first predicate to {@code Predicate}.
+                predicate = FilterPredicateFactory.getFilterPredicate(queryPropertyPredicate,
+                    descriptorIndexMap.get(variable1.a), variable2Index);
+            } else {
+                // Create a composite {@link Predicate} with subsequent predicates by calling
+                // {@code and} on the existing {@code predicate}.
+                predicate.and(FilterPredicateFactory.getFilterPredicate(queryPropertyPredicate,
+                    descriptorIndexMap.get(variable1.a), variable2Index));
+            }
+        }
+        return new Filter(nextOperator, predicate, new ArrayList<>(edgeOrVertexPropertyDescriptors),
+            structuredQuery.getQueryPropertyPredicates());
     }
 
     private List<String> getOrderedEdgeVariablesInFiltersAndProjections(List<String>
@@ -408,25 +452,6 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             }
         }
         return orderedEdgeVariablesInFiltersAndProjections;
-    }
-
-    private Predicate<MatchQueryOutput> getFilterPredicates(Map<String, Integer>
-        orderedVariableIndexMap, Map<String, Integer> orderedEdgeVariableIndexMap) {
-        Predicate<MatchQueryOutput> predicate = null;
-        for (QueryPropertyPredicate queryPropertyPredicate : structuredQuery
-            .getQueryPropertyPredicates()) {
-            if (predicate == null) {
-                // Assign the first predicate to {@code Predicate}.
-                predicate = FilterPredicateFactory.getFilterPredicate(queryPropertyPredicate,
-                    orderedVariableIndexMap, orderedEdgeVariableIndexMap);
-            } else {
-                // Create a composite {@link Predicate} with subsequent predicates by calling
-                // {@code and} on the existing {@code predicate}.
-                predicate.and(FilterPredicateFactory.getFilterPredicate(queryPropertyPredicate,
-                    orderedVariableIndexMap, orderedEdgeVariableIndexMap));
-            }
-        }
-        return predicate;
     }
 
     private AbstractDBOperator constructGroupByAndAggregate(

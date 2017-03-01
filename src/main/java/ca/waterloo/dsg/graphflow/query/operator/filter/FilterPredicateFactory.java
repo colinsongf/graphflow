@@ -3,6 +3,7 @@ package ca.waterloo.dsg.graphflow.query.operator.filter;
 import ca.waterloo.dsg.graphflow.graph.EdgeStore;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.graph.VertexPropertyStore;
+import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
 import ca.waterloo.dsg.graphflow.util.DataType;
@@ -11,6 +12,7 @@ import ca.waterloo.dsg.graphflow.query.operator.Filter;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
 import org.antlr.v4.runtime.misc.Pair;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 
@@ -19,6 +21,8 @@ import java.util.function.Predicate;
  */
 public class FilterPredicateFactory {
 
+    private static TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore
+        .getInstance();
     /**
      * Returns a {@link Predicate} which performs the comparison specified in the given
      * {@code queryPropertyPredicate}. Uses the {@link QueryPropertyPredicate#comparisonOperator}
@@ -26,37 +30,39 @@ public class FilterPredicateFactory {
      *
      * @param queryPropertyPredicate the {@link QueryPropertyPredicate} which contains operand,
      * operator and type information for creating the {@link Predicate} that is returned.
-     * @param orderedVariableIndexMap a {@code Map<String, Integer>} between
-     * {@link QueryVariable#variableName} and its index in the {@link MatchQueryOutput} object
-     * that is input to the {@link Predicate}.
-     * @param orderedEdgeVariableIndexMap a {@code Map<String, Integer>} between query variable
-     * representing an edge and its index in the {@link MatchQueryOutput} object
-     * that is input to the {@link Predicate}.
-     * @return a {@link Predicate<MatchQueryOutput>} instance that will perform the comparison
+     * @param variable1IndexInPropertyResults the index of variable1's property in the property
+     * resultset created by the {@link Filter} operator. {@link Filter} uses its
+     * {@link EdgeOrVertexPropertyDescriptor} list to create the property resultset from the
+     * {@link MatchQueryOutput}.
+     * @param variable2IndexInPropertyResults the index of variable1's property in the property
+     * resultset created by the {@link Filter} operator. {@link Filter} uses its
+     * {@link EdgeOrVertexPropertyDescriptor} list to create the property resultset from the
+     * {@link MatchQueryOutput}.
+     * @return a {@link Predicate<String[]>} instance that will perform the comparison
      * specified in the {@code queryPropertyPredicate}.
      */
-    public static Predicate<MatchQueryOutput> getFilterPredicate(QueryPropertyPredicate
-        queryPropertyPredicate, Map<String, Integer> orderedVariableIndexMap, Map<String,
-        Integer> orderedEdgeVariableIndexMap) {
+    public static Predicate<String[]> getFilterPredicate(QueryPropertyPredicate
+        queryPropertyPredicate, int variable1IndexInPropertyResults,
+        int variable2IndexInPropertyResults) {
         switch (queryPropertyPredicate.getPredicateType()) {
             case TWO_VERTEX:
                 return getTwoVertexPropertyPredicate(queryPropertyPredicate,
-                    orderedVariableIndexMap);
+                    variable1IndexInPropertyResults, variable2IndexInPropertyResults);
             case TWO_EDGE:
                 return getTwoEdgePropertyPredicate(queryPropertyPredicate,
-                    orderedEdgeVariableIndexMap);
+                    variable1IndexInPropertyResults, variable2IndexInPropertyResults);
             case EDGE_AND_VERTEX:
                 return getEdgeAndVertexPropertyPredicate(queryPropertyPredicate,
-                    orderedVariableIndexMap, orderedEdgeVariableIndexMap);
+                    variable1IndexInPropertyResults, variable2IndexInPropertyResults);
             case VERTEX_AND_EDGE:
                 return getVertexAndEdgePropertyPredicate(queryPropertyPredicate,
-                    orderedVariableIndexMap, orderedEdgeVariableIndexMap);
+                    variable1IndexInPropertyResults, variable2IndexInPropertyResults);
             case VERTEX_AND_LITERAL:
                 return getVertexAndConstantPropertyPredicate(queryPropertyPredicate,
-                    orderedVariableIndexMap);
+                    variable1IndexInPropertyResults);
             case EDGE_AND_LITERAL:
                 return getEdgeAndConstantPropertyPredicate(queryPropertyPredicate,
-                    orderedEdgeVariableIndexMap);
+                    variable1IndexInPropertyResults);
         }
 
         // Should never execute. Every predicate type introduced should be supported.
@@ -64,94 +70,78 @@ public class FilterPredicateFactory {
             getPredicateType().name() + " is not supported.");
     }
 
-    private static Predicate<MatchQueryOutput> getTwoVertexPropertyPredicate(
-        QueryPropertyPredicate queryPropertyPredicate,
-        Map<String, Integer> orderedVertexVariableIndexMap) {
-        Pair<Integer, Short> var1IdWithProperty = getVariableIdWithProperty(
-            orderedVertexVariableIndexMap, queryPropertyPredicate.getVariable1());
-        Pair<Integer, Short> var2IdWithProperty = getVariableIdWithProperty(
-            orderedVertexVariableIndexMap, queryPropertyPredicate.getVariable2());
-
-        VertexPropertyStore vertexStore = VertexPropertyStore.getInstance();
-        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(
-            vertexStore.getProperty(p.vertexIds[var1IdWithProperty.a], var1IdWithProperty.b),
-            vertexStore.getProperty(p.vertexIds[var2IdWithProperty.a], var2IdWithProperty.b),
-            queryPropertyPredicate.getComparisonOperator());
+    private static Predicate<String[]> getTwoVertexPropertyPredicate(
+        QueryPropertyPredicate queryPropertyPredicate, int vertex1IndexInPropertyResults,
+        int vertex2IndexInPropertyResults) {
+        short vertex1PropertyKey = typeAndPropertyKeyStore.mapStringPropertyKeyToShort
+            (queryPropertyPredicate.getVariable1().b);
+        short vertex2PropertyKey = typeAndPropertyKeyStore.mapStringPropertyKeyToShort
+            (queryPropertyPredicate.getVariable2().b);
+        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(resolveConstant(
+            p[vertex1IndexInPropertyResults], vertex1PropertyKey), resolveConstant(
+            p[vertex2IndexInPropertyResults], vertex2PropertyKey), queryPropertyPredicate.
+            getComparisonOperator());
     }
 
-    private static Predicate<MatchQueryOutput> getTwoEdgePropertyPredicate(
-        QueryPropertyPredicate queryPropertyPredicate,
-        Map<String, Integer> orderedEdgeVariableIndexMap) {
-        Pair<Integer, Short> var1IdWithProperty = getVariableIdWithProperty(
-            orderedEdgeVariableIndexMap, queryPropertyPredicate.getVariable1());
-        Pair<Integer, Short> var2IdWithProperty = getVariableIdWithProperty(
-            orderedEdgeVariableIndexMap, queryPropertyPredicate.getVariable2());
-
-        EdgeStore edgeStore = EdgeStore.getInstance();
-        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(
-            edgeStore.getProperty(p.edgeIds[var1IdWithProperty.a], var1IdWithProperty.b),
-            edgeStore.getProperty(p.edgeIds[var2IdWithProperty.a], var2IdWithProperty.b),
-            queryPropertyPredicate.getComparisonOperator());
+    private static Predicate<String[]> getTwoEdgePropertyPredicate(
+        QueryPropertyPredicate queryPropertyPredicate, int edge1IndexInPropertyResults,
+        int edge2IndexInPropertyResults) {
+        short edge1PropertyKey = typeAndPropertyKeyStore.mapStringPropertyKeyToShort
+            (queryPropertyPredicate.getVariable1().b);
+        short edge2PropertyKey = typeAndPropertyKeyStore.mapStringPropertyKeyToShort
+            (queryPropertyPredicate.getVariable2().b);
+        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(resolveConstant(
+            p[edge1IndexInPropertyResults], edge1PropertyKey), resolveConstant(
+            p[edge2IndexInPropertyResults], edge2PropertyKey), queryPropertyPredicate.
+            getComparisonOperator());
     }
 
-    private static Predicate<MatchQueryOutput> getVertexAndEdgePropertyPredicate(
-        QueryPropertyPredicate queryPropertyPredicate,
-        Map<String, Integer> orderedVertexVariableIndexMap,
-        Map<String, Integer> orderedEdgeVariableIndexMap) {
-        Pair<Integer, Short> var1IdWithProperty = getVariableIdWithProperty(
-            orderedVertexVariableIndexMap, queryPropertyPredicate.getVariable1());
-        Pair<Integer, Short> var2IdWithProperty = getVariableIdWithProperty(
-            orderedEdgeVariableIndexMap, queryPropertyPredicate.getVariable2());
-
-        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(VertexPropertyStore.
-                getInstance().getProperty(p.vertexIds[var1IdWithProperty.a], var1IdWithProperty.b),
-            EdgeStore.getInstance().getProperty(p.edgeIds[var2IdWithProperty.a],
-                var2IdWithProperty.b), queryPropertyPredicate.getComparisonOperator());
+    private static Predicate<String[]> getVertexAndEdgePropertyPredicate(
+        QueryPropertyPredicate queryPropertyPredicate, int vertexIndexInPropertyResults,
+        int edgeIndexInPropertyResults) {
+        short vertexPropertyKey = typeAndPropertyKeyStore.mapStringPropertyKeyToShort
+            (queryPropertyPredicate.getVariable1().b);
+        short edgePropertyKey = typeAndPropertyKeyStore.mapStringPropertyKeyToShort
+            (queryPropertyPredicate.getVariable2().b);
+        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(resolveConstant(
+            p[vertexIndexInPropertyResults], vertexPropertyKey), resolveConstant(
+            p[edgeIndexInPropertyResults], edgePropertyKey), queryPropertyPredicate.
+            getComparisonOperator());
     }
 
-    private static Predicate<MatchQueryOutput> getEdgeAndVertexPropertyPredicate(
-        QueryPropertyPredicate queryPropertyPredicate,
-        Map<String, Integer> orderedVertexVariableIndexMap,
-        Map<String, Integer> orderedEdgeVariableIndexMap) {
-        Pair<Integer, Short> var1IdWithProperty = getVariableIdWithProperty(
-            orderedEdgeVariableIndexMap, queryPropertyPredicate.getVariable1());
-        Pair<Integer, Short> var2IdWithProperty = getVariableIdWithProperty(
-            orderedVertexVariableIndexMap, queryPropertyPredicate.getVariable2());
-
-        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(EdgeStore.getInstance().
-            getProperty(p.edgeIds[var1IdWithProperty.a], var1IdWithProperty.b), VertexPropertyStore.
-                getInstance().getProperty(p.vertexIds[var2IdWithProperty.a], var2IdWithProperty.b),
-            queryPropertyPredicate.getComparisonOperator());
+    private static Predicate<String[]> getEdgeAndVertexPropertyPredicate(
+        QueryPropertyPredicate queryPropertyPredicate, int
+        edgeIndexInPropertyResults, int vertexIndexInPropertyResults) {
+        short edgePropertyKey = typeAndPropertyKeyStore.mapStringPropertyKeyToShort
+            (queryPropertyPredicate.getVariable1().b);
+        short vertexPropertyKey = typeAndPropertyKeyStore.mapStringPropertyKeyToShort
+            (queryPropertyPredicate.getVariable2().b);
+        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(resolveConstant(
+            p[edgeIndexInPropertyResults], edgePropertyKey), resolveConstant(
+            p[vertexIndexInPropertyResults], vertexPropertyKey), queryPropertyPredicate.
+            getComparisonOperator());
     }
 
-    private static Predicate<MatchQueryOutput> getVertexAndConstantPropertyPredicate(
-        QueryPropertyPredicate queryPropertyPredicate,
-        Map<String, Integer> orderedVertexVariableIndexMap) {
-        Pair<Integer, Short> var1IdWithProperty = getVariableIdWithProperty(
-            orderedVertexVariableIndexMap, queryPropertyPredicate.getVariable1());
+    private static Predicate<String[]> getVertexAndConstantPropertyPredicate(
+        QueryPropertyPredicate queryPropertyPredicate, int vertexIndexInPropertyResults) {
+        short vertexPropertyKey = TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyToShort(
+            queryPropertyPredicate.getVariable1().b);
 
-        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(VertexPropertyStore.
-                getInstance().getProperty(p.vertexIds[var1IdWithProperty.a], var1IdWithProperty.b),
-            resolveConstant(queryPropertyPredicate.getLiteral(), var1IdWithProperty.b),
-            queryPropertyPredicate.getComparisonOperator());
+        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(resolveConstant(
+            p[vertexIndexInPropertyResults], vertexPropertyKey), resolveConstant(
+            queryPropertyPredicate.getLiteral(), vertexPropertyKey), queryPropertyPredicate.
+            getComparisonOperator());
     }
 
-    private static Predicate<MatchQueryOutput> getEdgeAndConstantPropertyPredicate(
-        QueryPropertyPredicate queryPropertyPredicate,
-        Map<String, Integer> orderedEdgeVariableIndexMap) {
-        Pair<Integer, Short> var1IdWithProperty = getVariableIdWithProperty(
-            orderedEdgeVariableIndexMap, queryPropertyPredicate.getVariable1());
+    private static Predicate<String[]> getEdgeAndConstantPropertyPredicate(
+        QueryPropertyPredicate queryPropertyPredicate, int edgeIndexInPropertyResults) {
+        short edgePropertyKey = TypeAndPropertyKeyStore.getInstance().mapStringPropertyKeyToShort(
+            queryPropertyPredicate.getVariable1().b);
 
-        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(EdgeStore.getInstance().
-                getProperty(p.edgeIds[var1IdWithProperty.a], var1IdWithProperty.b),
-            resolveConstant(queryPropertyPredicate.getLiteral(), var1IdWithProperty.b),
-            queryPropertyPredicate.getComparisonOperator());
-    }
-
-    private static Pair<Integer, Short> getVariableIdWithProperty(
-        Map<String, Integer> orderedVariableIndexMap, Pair<String, String> variable) {
-        return new Pair<>(orderedVariableIndexMap.get(variable.a), TypeAndPropertyKeyStore.
-            getInstance().mapStringPropertyKeyToShort(variable.b));
+        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(resolveConstant
+            (p[edgeIndexInPropertyResults], edgePropertyKey), resolveConstant(
+            queryPropertyPredicate.getLiteral(), edgePropertyKey), queryPropertyPredicate.
+            getComparisonOperator());
     }
 
     private static Object resolveConstant(String constant, short propertyKey) {

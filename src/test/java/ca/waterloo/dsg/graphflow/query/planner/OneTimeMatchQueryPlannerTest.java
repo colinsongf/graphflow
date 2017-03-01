@@ -207,7 +207,6 @@ public class OneTimeMatchQueryPlannerTest {
         String[] orderedVertexVariables = {"a", "b", "c"};
         AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList
             (orderedVertexVariables));
-        System.out.println(nextOperator.getClass());
         Assert.assertTrue(nextOperator instanceof EdgeIdResolver);
         Assert.assertTrue(nextOperator.nextOperator instanceof Projection);
         Assert.assertTrue(nextOperator.nextOperator.nextOperator instanceof PropertyResolver);
@@ -220,10 +219,10 @@ public class OneTimeMatchQueryPlannerTest {
         StructuredQuery structuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)-[d:FOLLOWS]->(b), (b)-[e:FOLLOWS]->(c), (c)-[f:FOLLOWS]->(a);");
         List<QueryPropertyPredicate> queryPropertyPredicates = new ArrayList<>();
-        queryPropertyPredicates.add(TestUtils.initializeQueryPropertyPredicate(new Pair<>("a",
+        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("a",
                 "views"), new Pair<>("d", "views"), null, ComparisonOperator.GREATER_THAN,
             OperandType.EDGE, OperandType.VERTEX));
-        queryPropertyPredicates.add(TestUtils.initializeQueryPropertyPredicate(new Pair<>("d",
+        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("d",
                 "views"), new Pair<>("e", "views"), null, ComparisonOperator.EQUALS,
             OperandType.EDGE, OperandType.EDGE));
         structuredQuery.setQueryPropertyPredicates(queryPropertyPredicates);
@@ -245,10 +244,10 @@ public class OneTimeMatchQueryPlannerTest {
             "(a)-[d:FOLLOWS]->(b), (b)-[e:FOLLOWS]->(c), (c)-[f:FOLLOWS]->(a) RETURN a.name, b" +
             ".views, d.views, c, e;");
         List<QueryPropertyPredicate> queryPropertyPredicates = new ArrayList<>();
-        queryPropertyPredicates.add(TestUtils.initializeQueryPropertyPredicate(new Pair<>("a",
+        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("a",
                 "views"), new Pair<>("d", "views"), null, ComparisonOperator.GREATER_THAN,
             OperandType.EDGE, OperandType.VERTEX));
-        queryPropertyPredicates.add(TestUtils.initializeQueryPropertyPredicate(new Pair<>("d",
+        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("d",
                 "views"), new Pair<>("e", "views"), null, ComparisonOperator.EQUALS, OperandType.
             EDGE, OperandType.EDGE));
         structuredQuery.setQueryPropertyPredicates(queryPropertyPredicates);

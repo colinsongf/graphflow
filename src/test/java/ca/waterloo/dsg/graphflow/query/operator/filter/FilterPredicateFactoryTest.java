@@ -2,19 +2,20 @@ package ca.waterloo.dsg.graphflow.query.operator.filter;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
+
 import org.antlr.v4.runtime.misc.Pair;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Predicate;
 
+/**
+ * Tests the static functions of the {@link FilterPredicateFactory} class for generating
+ * {@link Predicate} lambda expressions.
+ */
 public class FilterPredicateFactoryTest {
 
     @Before
@@ -31,92 +32,84 @@ public class FilterPredicateFactoryTest {
     @Test
     public void testTwoVertexPropertyPredicate() {
         String propertyKey = "age";
-        QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
+        QueryPropertyPredicate queryPropertyPredicate = TestUtils.createQueryPropertyPredicate(
             new Pair<>("a", propertyKey), new Pair<>("b", propertyKey), null,
             ComparisonOperator.GREATER_THAN, OperandType.VERTEX, OperandType.VERTEX);
-        Map<String, Integer> orderedVertexVariableIndexMap = new HashMap<>();
-        orderedVertexVariableIndexMap.put("a", 0);
-        orderedVertexVariableIndexMap.put("b", 2);
-
-        Predicate<MatchQueryOutput> predicate = FilterPredicateFactory.getFilterPredicate
-            (queryPropertyPredicate, orderedVertexVariableIndexMap, null);
-        MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
-        int[] outputVertexIds = {0, 2, 1};
-        matchQueryOutput.vertexIds = outputVertexIds;
-        Assert.assertTrue(predicate.test(matchQueryOutput));
+        int vertex1PropertyResultIndex = 0;
+        int vertex2PropertyResultIndex = 2;
+        Predicate<String[]> predicate = FilterPredicateFactory.getFilterPredicate
+            (queryPropertyPredicate, vertex1PropertyResultIndex, vertex2PropertyResultIndex);
+        String[] resolvedProperties = {"15", "20", "10"};
+        Assert.assertTrue(predicate.test(resolvedProperties));
     }
 
     @Test
     public void testTwoEdgePropertyPredicate() {
         String propertyKey = "views";
-        QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
+        QueryPropertyPredicate queryPropertyPredicate = TestUtils.createQueryPropertyPredicate(
             new Pair<>("b", propertyKey), new Pair<>("a", propertyKey), null,
             ComparisonOperator.LESS_THAN_OR_EQUAL, OperandType.EDGE, OperandType.EDGE);
-        Map<String, Integer> orderedEdgeVariableIndexMap = new HashMap<>();
-        orderedEdgeVariableIndexMap.put("a", 0);
-        orderedEdgeVariableIndexMap.put("b", 2);
-
-        Predicate<MatchQueryOutput> predicate = FilterPredicateFactory.getFilterPredicate
-            (queryPropertyPredicate, null, orderedEdgeVariableIndexMap);
-        MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
-        long[] outputEdgeIds = {4, 2, 0};
-        matchQueryOutput.edgeIds = outputEdgeIds;
-        Assert.assertTrue(predicate.test(matchQueryOutput));
+        int edge1PropertyResultIndex = 0;
+        int edge2PropertyResultIndex = 2;
+        Predicate<String[]> predicate = FilterPredicateFactory.getFilterPredicate
+            (queryPropertyPredicate, edge1PropertyResultIndex, edge2PropertyResultIndex);
+        String[] resolvedProperties = {"10", "20", "15"};
+        Assert.assertTrue(predicate.test(resolvedProperties));
     }
 
     @Test
     public void testEdgeAndVertexPropertyPredicate() {
         String propertyKey = "views";
-        QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
+        QueryPropertyPredicate queryPropertyPredicate = TestUtils.createQueryPropertyPredicate(
+            new Pair<>("a", propertyKey), new Pair<>("b", propertyKey), null /* no constant */,
+            ComparisonOperator.GREATER_THAN_OR_EQUAL, OperandType.EDGE, OperandType.VERTEX);
+        int edgePropertyResultIndex = 0;
+        int vertexPropertyResultIndex = 2;
+        Predicate<String[]> predicate = FilterPredicateFactory.getFilterPredicate
+            (queryPropertyPredicate, edgePropertyResultIndex, vertexPropertyResultIndex);
+        String[] resolvedProperties = {"15", "20", "10"};
+        Assert.assertTrue(predicate.test(resolvedProperties));
+    }
+
+    @Test
+    public void testVertexAndEdgePropertyPredicate() {
+        String propertyKey = "views";
+        QueryPropertyPredicate queryPropertyPredicate = TestUtils.createQueryPropertyPredicate(
             new Pair<>("a", propertyKey), new Pair<>("b", propertyKey), null /* no constant */,
             ComparisonOperator.GREATER_THAN_OR_EQUAL, OperandType.VERTEX, OperandType.EDGE);
-        Map<String, Integer> orderedVertexVariableIndexMap = new HashMap<>();
-        orderedVertexVariableIndexMap.put("a", 0);
-        orderedVertexVariableIndexMap.put("c", 2);
-        Map<String, Integer> orderedEdgeVariableIndexMap = new HashMap<>();
-        orderedEdgeVariableIndexMap.put("b", 3);
-        orderedEdgeVariableIndexMap.put("d", 2);
-        Predicate<MatchQueryOutput> predicate = FilterPredicateFactory.getFilterPredicate(
-            queryPropertyPredicate, orderedVertexVariableIndexMap, orderedEdgeVariableIndexMap);
-        MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
-        int[] outputVertexIds = {0, 2, 3};
-        long[] outputEdgeIds = {4, 2, 1, 0};
-        matchQueryOutput.vertexIds = outputVertexIds;
-        matchQueryOutput.edgeIds = outputEdgeIds;
-        Assert.assertTrue(predicate.test(matchQueryOutput));
+        int vertexPropertyResultIndex = 0;
+        int edgePropertyResultIndex = 2;
+        Predicate<String[]> predicate = FilterPredicateFactory.getFilterPredicate
+            (queryPropertyPredicate, vertexPropertyResultIndex, edgePropertyResultIndex);
+        String[] resolvedProperties = {"15", "20", "10"};
+        Assert.assertTrue(predicate.test(resolvedProperties));
     }
 
     @Test
     public void testEdgeAndConstantPropertyPredicate() {
         String propertyKey = "views";
-        QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
+        QueryPropertyPredicate queryPropertyPredicate = TestUtils.createQueryPropertyPredicate(
             new Pair<>("a", propertyKey), null, "74", ComparisonOperator.GREATER_THAN_OR_EQUAL,
             OperandType.EDGE, OperandType.LITERAL);
-        Map<String, Integer> orderedEdgeVariableIndexMap = new HashMap<>();
-        orderedEdgeVariableIndexMap.put("a", 3);
-        orderedEdgeVariableIndexMap.put("d", 2);
-        Predicate<MatchQueryOutput> predicate = FilterPredicateFactory.getFilterPredicate
-            (queryPropertyPredicate, null, orderedEdgeVariableIndexMap);
-        MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
-        long[] outputEdgeIds = {0, 2, 1, 4};
-        matchQueryOutput.edgeIds = outputEdgeIds;
-        Assert.assertTrue(predicate.test(matchQueryOutput));
+        int edgePropertyResultIndex = 0;
+        Predicate<String[]> predicate = FilterPredicateFactory.getFilterPredicate
+            (queryPropertyPredicate, edgePropertyResultIndex, -1/* The index for variable2 goes
+            unused.*/);
+        String[] resolvedProperties = {"75", "20", "10"};
+        Assert.assertTrue(predicate.test(resolvedProperties));
     }
 
     @Test
     public void testVertexAndConstantPropertyPredicate() {
         String propertyKey = "views";
-        QueryPropertyPredicate queryPropertyPredicate = TestUtils.initializeQueryPropertyPredicate(
+        QueryPropertyPredicate queryPropertyPredicate = TestUtils.createQueryPropertyPredicate(
             new Pair<>("a", propertyKey), null, "74", ComparisonOperator.GREATER_THAN_OR_EQUAL,
             OperandType.VERTEX, OperandType.LITERAL);
-        Map<String, Integer> orderedVertexVariableIndexMap = new HashMap<>();
-        orderedVertexVariableIndexMap.put("a", 3);
-        orderedVertexVariableIndexMap.put("d", 2);
-        Predicate<MatchQueryOutput> predicate = FilterPredicateFactory.getFilterPredicate
-            (queryPropertyPredicate, orderedVertexVariableIndexMap, null);
-        MatchQueryOutput matchQueryOutput = new MatchQueryOutput();
-        int[] outputEdgeIds = {0, 2, 3, 1};
-        matchQueryOutput.vertexIds = outputEdgeIds;
-        Assert.assertFalse(predicate.test(matchQueryOutput));
+        int vertexPropertyResultIndex = 0;
+        Predicate<String[]> predicate = FilterPredicateFactory.getFilterPredicate
+            (queryPropertyPredicate, vertexPropertyResultIndex, -1/* The index for variable2 goes
+            unused.*/);
+        String[] resolvedProperties = {"75", "20", "10"};
+        Assert.assertTrue(predicate.test(resolvedProperties));
     }
 }

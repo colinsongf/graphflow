@@ -4,6 +4,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
@@ -161,7 +162,7 @@ public class TestUtils {
      * the {@link QueryPropertyPredicate}.
      * @return a {@link QueryPropertyPredicate} created using the given parameters.
      */
-    public static QueryPropertyPredicate initializeQueryPropertyPredicate(
+    public static QueryPropertyPredicate createQueryPropertyPredicate(
         Pair<String, String> variable1, Pair<String, String> variable2, String constant,
         ComparisonOperator comparisonOperator, OperandType leftOperandType,
         OperandType rightOperandType) {
@@ -174,12 +175,23 @@ public class TestUtils {
         return queryPropertyPredicate;
     }
 
+    /**
+     * @see TestUtils#getInMemoryOutputSinkForMotifs(Object[][], MatchQueryResultType[])
+     */
     public static InMemoryOutputSink getInMemoryOutputSinkForMotifs(Object[][] results) {
         MatchQueryResultType[] matchQueryResultTypes = new MatchQueryResultType[results.length];
         Arrays.fill(matchQueryResultTypes, MatchQueryResultType.MATCHED);
         return getInMemoryOutputSinkForMotifs(results, matchQueryResultTypes);
     }
 
+    /**
+     * Creates an {@link InMemoryOutputSink} containing the results given in {@code results}.
+     * @param results a {@code Object[][]} where the outer array is a list of {@code Object[]}
+     * result records.
+     * @param matchQueryResultTypes an array of {@link MatchQueryResultType}s that will be
+     * appended to the end of each record added to the {@link InMemoryOutputSink}.
+     * @return an {@link InMemoryOutputSink} containing the given results.
+     */
     public static InMemoryOutputSink getInMemoryOutputSinkForMotifs(Object[][] results,
         MatchQueryResultType[] matchQueryResultTypes) {
         InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();

@@ -1,5 +1,7 @@
 package ca.waterloo.dsg.graphflow.util;
 
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -81,19 +83,48 @@ public class ShortArrayList {
         size = 0;
     }
 
+    /**
+     * See {@link GraphDBState#serialize(ObjectOutputStream)}.
+     */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeInt(size);
-        for (int i = 0; i < size; i++) {
-            objectOutputStream.writeShort(data[i]);
-        }
+        objectOutputStream.writeObject(data);
     }
 
+    /**
+     * See {@link GraphDBState#deserialize(ObjectInputStream)}.
+     */
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
         size = objectInputStream.readInt();
-        data = new short[size];
-        for (int i = 0; i < size; i++) {
-            data[i] = objectInputStream.readShort();
+        data = (short[]) objectInputStream.readObject();
+    }
+
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if the {@code a} object values are the same as the
+     * {@code b} object values, {@code false} otherwise.
+     */
+    @UsedOnlyByTests
+    public static boolean isSameAs(ShortArrayList a, ShortArrayList b) {
+        if (a == b) {
+            return true;
         }
+        if (a == null || b == null) {
+            return false;
+        }
+        if (a.size != b.size) {
+            return false;
+        }
+        for (int i = 0; i < a.size; i++) {
+            if (a.data[i] != b.data[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 }

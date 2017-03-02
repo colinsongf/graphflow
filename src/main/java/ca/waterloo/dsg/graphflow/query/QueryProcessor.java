@@ -4,6 +4,7 @@ import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.query.executors.ShortestPathExecutor;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
@@ -15,26 +16,13 @@ import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.DeleteQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.ShortestPathPlanner;
-import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
-import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
-import ca.waterloo.dsg.graphflow.query.plans.DeleteQueryPlan;
-import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
-import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
-import ca.waterloo.dsg.graphflow.query.plans.ShortestPathPlan;
-import ca.waterloo.dsg.graphflow.query.structuredquery.QueryAggregation;
+import ca.waterloo.dsg.graphflow.query.plans.*;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 
 /**
  * Class to accept incoming queries from the gRPC server, process them and return the results.
@@ -83,26 +71,23 @@ public class QueryProcessor {
 
     private String handleSaveGraphQuery(StructuredQuery structuredQuery) {
         try {
-            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(
-                new FileOutputStream(structuredQuery.getFilePath()));
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(bufferedOutputStream);
-            graph.serialize(objectOutputStream);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new BufferedOutputStream(
+                new FileOutputStream(structuredQuery.getFilePath())));
+            GraphDBState.serialize(objectOutputStream);
             objectOutputStream.close();
-            bufferedOutputStream.close();
             return String.format("Graph saved to file '%s'", structuredQuery.getFilePath());
         } catch (IOException e) {
-            return String.format("IOError for file '%s': %s", structuredQuery.getFilePath(), e);
+            return String.format("IOError for file '%s': %s", structuredQuery.getFilePath(),
+                e.getMessage());
         }
     }
 
     private String handleLoadGraphQuery(StructuredQuery structuredQuery) {
         try {
-            BufferedInputStream bufferedInputStream = new BufferedInputStream(
-                new FileInputStream(structuredQuery.getFilePath()));
-            ObjectInputStream objectInputStream = new ObjectInputStream(bufferedInputStream);
-            graph.deserialize(objectInputStream);
+            ObjectInputStream objectInputStream = new ObjectInputStream(new BufferedInputStream(
+                new FileInputStream(structuredQuery.getFilePath())));
+            GraphDBState.deserialize(objectInputStream);
             objectInputStream.close();
-            bufferedInputStream.close();
             return String.format("Graph loaded from file '%s'", structuredQuery.getFilePath());
         } catch (IOException e) {
             return String.format("IOError for file '%s': %s", structuredQuery.getFilePath(), e);

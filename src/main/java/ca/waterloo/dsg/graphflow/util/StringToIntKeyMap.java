@@ -1,11 +1,14 @@
 package ca.waterloo.dsg.graphflow.util;
 
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -72,29 +75,41 @@ public class StringToIntKeyMap {
     }
 
     /**
-     * Resets the map.
-     */
-    public void reset() {
-        stringToIntMap = new HashMap<>();
-        nextKeyAsInt = 0;
-    }
-
-    /**
-     * Writes the class
-     *
-     * @param objectOutputStream The output stream to write to.
+     * See {@link GraphDBState#serialize(ObjectOutputStream)}
      */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+        objectOutputStream.writeInt(nextKeyAsInt);
         objectOutputStream.writeObject(stringToIntMap);
     }
 
     /**
-     * Reads back the
-     *
-     * @param objectInputStream The input stream to read from.
+     * See {@link GraphDBState#deserialize(ObjectInputStream)}
      */
+    @SuppressWarnings("unchecked") // Ignore {@code HashMap<String, Integer>} cast warnings.
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
+        nextKeyAsInt = objectInputStream.readInt();
         stringToIntMap = (HashMap<String, Integer>) objectInputStream.readObject();
+    }
+
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
+     * values, {@code false} otherwise.
+     */
+    @UsedOnlyByTests
+    public static boolean isSameAs(StringToIntKeyMap a, StringToIntKeyMap b) {
+        if (a == b) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        return a.nextKeyAsInt == b.nextKeyAsInt &&
+            Objects.equals(a.stringToIntMap, b.stringToIntMap);
     }
 }

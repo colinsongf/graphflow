@@ -19,7 +19,7 @@ public class GraphTest {
 
     @Before
     public void setUp() {
-        Graph.getInstance().reset();
+        GraphDBState.reset();
     }
 
     /**
@@ -37,7 +37,6 @@ public class GraphTest {
         short[][] vertexTypes = {{0, 12}, {0, 6}, {0, 10}, {0, 2}, {0, 8}, {0, 4}, {10, 12},
             {2, 12}, {8, 12}, {6, 12}, {4, 12}};
 
-        EdgeStore.getInstance().reset();
         Graph graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
         assertInsertions(graph);
 
@@ -96,7 +95,6 @@ public class GraphTest {
         short[] edgeTypes = {3, 1, 3, 2, 0, 9};
         short[][] vertexTypes = {{0, 3}, {0, 1}, {1, 3}, {1, 2}, {4, 0}, {4, 1}};
 
-        EdgeStore.getInstance().reset();
         Graph graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
         // Delete a list of edges.
         int[][] deleteEdges = {{0, 1}, {4, 1}}; /* Edges exist in the graph.*/

@@ -20,7 +20,7 @@ import java.io.FileReader;
 public class FileOutputSinkTest {
 
     private static String FILENAME = "test.out";
-    // Special JUnit defined temporary folder used to test IO operations on files. Requires
+    // Special JUnit defined temporary folder used to test I/O operations on files. Requires
     // {@code public} visibility.
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();

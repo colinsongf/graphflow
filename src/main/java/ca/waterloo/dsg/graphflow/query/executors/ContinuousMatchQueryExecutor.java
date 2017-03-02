@@ -52,7 +52,7 @@ public class ContinuousMatchQueryExecutor {
      * Deleted all the registered CONTINUOUS MATCH queries.
      */
     @UsedOnlyByTests
-    void clear() {
+    void reset() {
         continuousMatchQueryPlans.clear();
     }
 }

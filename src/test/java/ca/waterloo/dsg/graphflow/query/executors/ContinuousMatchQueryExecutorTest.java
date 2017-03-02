@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
@@ -27,19 +28,22 @@ import java.util.StringJoiner;
  */
 public class ContinuousMatchQueryExecutorTest {
 
-    // Special JUnit defined temporary folder used to test IO operations on files. Requires
+    // Special JUnit defined temporary folder used to test I/O operations on files. Requires
     // {@code public} visibility.
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Before
     public void setUp() {
-        Graph.getInstance().reset();
+        GraphDBState.reset();
     }
 
+    /**
+     * Removes all registered Continuous Match queries after the
+     */
     @AfterClass
-    public static void clearContinuousMatchQueries() {
-        ContinuousMatchQueryExecutor.getInstance().clear();
+    public static void resetContinuousMatchQueries() {
+        ContinuousMatchQueryExecutor.getInstance().reset();
     }
 
     /**

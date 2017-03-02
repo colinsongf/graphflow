@@ -9,18 +9,20 @@ import org.antlr.v4.runtime.misc.Pair;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
  * Stores the IDs and properties of the edges in the Graph.
- * Warning: The properties of a deleted are not deleted. The ID of the deleted edge is recycled and
- * the properties are overwritten by those of the edge that gets assigned the recycled ID next.
+ * <p>
+ * Warning: The properties of a deleted edge are not deleted. The ID of the deleted edge is recycled
+ * and the properties are overwritten by those of the edge that gets assigned the recycled ID next.
  */
 public class EdgeStore extends PropertyStore {
 
-    private static final EdgeStore INSTANCE = new EdgeStore();
+    private static EdgeStore INSTANCE = new EdgeStore();
 
     private static final int INITIAL_CAPACITY = 2;
     public final int MAX_EDGES_PER_BUCKET = 8;
@@ -40,7 +42,7 @@ public class EdgeStore extends PropertyStore {
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
      * class.
      */
-    private EdgeStore() { }
+    private EdgeStore() {}
 
     /**
      * Adds a new edge and sets its properties to the given properties.
@@ -272,20 +274,16 @@ public class EdgeStore extends PropertyStore {
             (((long) bucketID) & 0xFFFF) << 8 | (long) bucketOffset;
     }
 
-    @UsedOnlyByTests
-    public void reset() {
-        nextIDNeverYetAssigned = 0;
-        nextBucketOffset = 0;
-        nextBucketId = 0;
-        nextPartitionId = 0;
-
-        recycledIds = new long[INITIAL_CAPACITY];
-        recycledIdsSize = 0;
-
-        data = new byte[INITIAL_CAPACITY][][];
-        dataOffsets = new int[INITIAL_CAPACITY][][];
+    /**
+     * Resets the {@link EdgeStore} state by creating a new {@code INSTANCE}.
+     */
+    void reset() {
+        INSTANCE = new EdgeStore();
     }
 
+    /**
+     * See {@link GraphDBState#serialize(ObjectOutputStream)}.
+     */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeObject(data);
         objectOutputStream.writeObject(dataOffsets);
@@ -294,11 +292,12 @@ public class EdgeStore extends PropertyStore {
         objectOutputStream.writeInt(nextBucketId);
         objectOutputStream.writeInt(nextPartitionId);
         objectOutputStream.writeInt(recycledIdsSize);
-        for (int i = 0; i < recycledIdsSize; i++) {
-            objectOutputStream.writeLong(recycledIds[i]);
-        }
+        objectOutputStream.writeObject(recycledIds);
     }
 
+    /**
+     * See {@link GraphDBState#deserialize(ObjectInputStream)}.
+     */
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
         data = (byte[][][]) objectInputStream.readObject();
@@ -308,9 +307,7 @@ public class EdgeStore extends PropertyStore {
         nextBucketId = objectInputStream.readInt();
         nextPartitionId = objectInputStream.readInt();
         recycledIdsSize = objectInputStream.readInt();
-        for (int i = 0; i < recycledIdsSize; i++) {
-            recycledIds[i] = objectInputStream.readLong();
-        }
+        recycledIds = (long[]) objectInputStream.readObject();
     }
 
     /**
@@ -318,5 +315,41 @@ public class EdgeStore extends PropertyStore {
      */
     public static EdgeStore getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
+     * values, {@code false} otherwise.
+     */
+    @UsedOnlyByTests
+    public static boolean isSameAs(EdgeStore a, EdgeStore b) {
+        if (a == b) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        if (a.nextIDNeverYetAssigned != b.nextIDNeverYetAssigned ||
+            a.nextBucketOffset != b.nextBucketOffset ||
+            a.nextBucketId != b.nextBucketId ||
+            a.nextPartitionId != b.nextPartitionId ||
+            a.recycledIdsSize != b.recycledIdsSize) {
+            return false;
+        }
+        for (int i = 0; i < a.recycledIdsSize; i++) {
+            if (a.recycledIds[i] != b.recycledIds[i]) {
+                return false;
+            }
+        }
+        if (!Arrays.deepEquals(a.data, b.data) ||
+            !Arrays.deepEquals(a.dataOffsets, b.dataOffsets)) {
+            return false;
+        }
+        return true;
     }
 }

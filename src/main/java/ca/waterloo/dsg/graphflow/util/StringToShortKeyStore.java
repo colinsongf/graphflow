@@ -1,8 +1,11 @@
 package ca.waterloo.dsg.graphflow.util;
 
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 /**
@@ -28,18 +31,16 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
     }
 
     /**
-     * Resets the store.
+     * See {@link GraphDBState#serialize(ObjectOutputStream)}.
      */
-    public void reset() {
-        super.reset();
-        shortToStringMap = new String[DEFAULT_CAPACITY];
-    }
-
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         super.serialize(objectOutputStream);
         objectOutputStream.writeObject(shortToStringMap);
     }
 
+    /**
+     * See {@link GraphDBState#deserialize(ObjectInputStream)}.
+     */
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
         super.deserialize(objectInputStream);
@@ -80,5 +81,26 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
                 "key store.");
         }
         return shortToStringMap[shortKey];
+    }
+
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
+     * values, {@code false} otherwise.
+     */
+    @UsedOnlyByTests
+    public static boolean isSameAs(StringToShortKeyStore a, StringToShortKeyStore b) {
+        if (a == b) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        return Arrays.equals(a.shortToStringMap, b.shortToStringMap) &&
+            StringToIntKeyMap.isSameAs(a, b);
     }
 }

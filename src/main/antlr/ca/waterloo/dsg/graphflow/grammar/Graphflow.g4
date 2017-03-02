@@ -25,8 +25,8 @@ createEdgePattern : digitsEdgeWithTypeAndProperties ( whitespace? ',' whitespace
 createVertexPattern : digitsVertexWithTypeAndProperties ( whitespace ? ',' whitespace? digitsVertexWithTypeAndProperties)* ;
 pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
 returnClause : RETURN whitespace (variable | variableWithProperty | aggregationPattern ) ( whitespace? ',' whitespace? (variable | variableWithProperty | aggregationPattern ) )* ;
-aggregationPattern : ( ( aggregationFunction '(' whitespace? ( variable | variableWithProperty ) whitespace? ')' ) 
-						| ( countStarPattern ) );
+aggregationPattern : ( aggregationFunction '(' whitespace? ( variable | variableWithProperty ) whitespace? ')' )
+                    | countStarPattern;
 aggregationFunction : ( AVG | MAX | MIN | SUM ) ;
 countStarPattern :  COUNT '(' whitespace? '*' whitespace? ')' ;
 
@@ -49,7 +49,6 @@ property : key whitespace? ':' whitespace? dataType whitespace? '=' whitespace? 
 key : variable ;
 value : ( Digits | Characters | UNDERSCORE | DASH | DOT )+ ;
 
-// Supports only *nix filepaths
 filePath: ( Digits | Characters | UNDERSCORE | DASH | DOT | SLASH | SPACE )+ ;
 
 variableWithProperty : variable DOT variable;

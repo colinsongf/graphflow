@@ -1,15 +1,7 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
-
 import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
@@ -17,6 +9,15 @@ import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.assertArrayEquals;
 
 /**
  * End to end tests for group by and aggregation. The tests in this class are executed on a
@@ -45,16 +46,16 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
  *       <li> doubleEP: {i.0 + j.0}.
  *     </ul>
  * </ul>
- * 
+ *
  */
 public class OneTimeMatchQueryGroupByTests {
 
     @Before
     public void setUp() throws Exception {
-        Graph.getInstance().reset();
+        GraphDBState.reset();
         constructTestGraph();
     }
-  
+
     private void constructTestGraph() {
         String[] verticesInQuery = {
             "(0:VType0{strVP:string=strVPValueE, intVP:int=0, doubleVP:double=0.0})",
@@ -62,7 +63,7 @@ public class OneTimeMatchQueryGroupByTests {
             "(2:VType2{strVP:string=strVPValueE, intVP:int=2, doubleVP:double=2.0})",
             "(3:VType3{strVP:string=strVPValueO, intVP:int=3, doubleVP:double=3.0})",
             "(4:VType4{strVP:string=strVPValueE, intVP:int=4, doubleVP:double=4.0})",
-            "(5:VType5{strVP:string=strVPValueO, intVP:int=5, doubleVP:double=5.0})"};        
+            "(5:VType5{strVP:string=strVPValueO, intVP:int=5, doubleVP:double=5.0})"};
         StructuredQuery createQuery = new StructuredQueryParser().parse("CREATE " +
            verticesInQuery[0] + "-[:StarEdge{strEP:string=strEPValueO, intEP:int=1, doubleEP:double=1.0}]->"  + verticesInQuery[1] +
            "," + verticesInQuery[0] + "-[:StarEdge{strEP:string=strEPValueE, intEP:int=2, doubleEP:double=2.0}]->" + verticesInQuery[2] +
@@ -75,7 +76,7 @@ public class OneTimeMatchQueryGroupByTests {
            "," + verticesInQuery[4] + "-[:CycleEdge{strEP:string=strEPValueO, intEP:int=9, doubleEP:double=9.0}]->" + verticesInQuery[5] +
            "," + verticesInQuery[5] + "-[:CycleEdge{strEP:string=strEPValueE, intEP:int=6, doubleEP:double=6.0}]->" + verticesInQuery[1]
            );
-        
+
         ((CreateQueryPlan) new CreateQueryPlanner(createQuery).plan()).execute(
             Graph.getInstance(), new InMemoryOutputSink());
     }
@@ -156,7 +157,7 @@ public class OneTimeMatchQueryGroupByTests {
         double strEPValueEAvg = (double) (2 + 4 + 1)/3;
         runTest(queryString, "strEPValueO " + strEPValueOAvg, "strEPValueE " + strEPValueEAvg);
     }
-    
+
     @Test
     public void testAverageDouble() {
         String queryString = "MATCH (a)-[e]->(b) return e.strEP, avg(a.doubleVP);";

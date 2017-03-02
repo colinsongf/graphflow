@@ -367,9 +367,14 @@ public class SortedAdjacencyList {
             -1 /* default value to fill new cells if resizing */);
     }
 
-    public void serialize(ObjectOutputStream objectOutputStream) throws
-        IOException {
+    /**
+     * See {@link GraphDBState#serialize(ObjectOutputStream)}.
+     */
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeInt(size);
+        objectOutputStream.writeInt(neighbourIds.length);
+        objectOutputStream.writeInt(edgeTypes.length);
+        objectOutputStream.writeInt(edgeIds.length);
         for (int i = 0; i < size; i++) {
             objectOutputStream.writeInt(neighbourIds[i]);
             objectOutputStream.writeShort(edgeTypes[i]);
@@ -377,23 +382,22 @@ public class SortedAdjacencyList {
         }
     }
 
-    public void deserialize(ObjectInputStream objectInputStream) throws
-        IOException,
+    /**
+     * See {@link GraphDBState#deserialize(ObjectInputStream)}.
+     */
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
         size = objectInputStream.readInt();
-        if (size > 0) {
-            neighbourIds = new int[size];
-            edgeTypes = new short[size];
-            edgeIds = new long[size];
-            for (int i = 0; i < size; i++) {
-                neighbourIds[i] = objectInputStream.readInt();
-                edgeTypes[i] = objectInputStream.readShort();
-                edgeIds[i] = objectInputStream.readLong();
-            }
-        } else {
-            neighbourIds = new int[INITIAL_CAPACITY];
-            edgeTypes = new short[INITIAL_CAPACITY];
-            edgeIds = new long[INITIAL_CAPACITY];
+        int neighbourIdsLength = objectInputStream.readInt();
+        int edgeTypesLength = objectInputStream.readInt();
+        int edgeIdsLength = objectInputStream.readInt();
+        neighbourIds = new int[neighbourIdsLength];
+        edgeTypes = new short[edgeTypesLength];
+        edgeIds = new long[edgeIdsLength];
+        for (int i = 0; i < size; i++) {
+            neighbourIds[i] = objectInputStream.readInt();
+            edgeTypes[i] = objectInputStream.readShort();
+            edgeIds[i] = objectInputStream.readLong();
         }
     }
 
@@ -419,7 +423,8 @@ public class SortedAdjacencyList {
         }
         for (int i = 0; i < a.size; i++) {
             if ((a.getNeighbourId(i) != b.getNeighbourId(i)) ||
-                (a.getEdgeType(i) != b.getEdgeType(i)) || (a.getEdgeId(i) != b.getEdgeId(i))) {
+                (a.getEdgeType(i) != b.getEdgeType(i)) ||
+                (a.getEdgeId(i) != b.getEdgeId(i))) {
                 return false;
             }
         }

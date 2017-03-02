@@ -18,8 +18,7 @@ public class SortedAdjacencyListTest {
 
     @Before
     public void setUp() {
-        TypeAndPropertyKeyStore.getInstance().reset();
-        EdgeStore.getInstance().reset();
+        GraphDBState.reset();
     }
 
     private SortedAdjacencyList getPopulatedAdjacencyList(int[] neighbourIds,

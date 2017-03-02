@@ -14,6 +14,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Stores a mapping from {@code String} types and property keys to {@code short} types and
@@ -22,13 +23,15 @@ import java.util.Map;
 public class TypeAndPropertyKeyStore {
 
     public static final short ANY = -1;
-    private static final TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
+    private static TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
+
     @VisibleForTesting
     StringToShortKeyStore typeKeyStore = new StringToShortKeyStore();
     // TypeAndPropertyKeyStore has the invariant that if a property key has a short key,
     // then the property key certainly has a DataType associated with it.
     @VisibleForTesting
     StringToShortKeyStore propertyKeyStore = new StringToShortKeyStore();
+
     @VisibleForTesting
     Map<Short, DataType> propertyDataTypeStore = new HashMap<>();
 
@@ -36,7 +39,7 @@ public class TypeAndPropertyKeyStore {
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
      * class.
      */
-    private TypeAndPropertyKeyStore() { }
+    private TypeAndPropertyKeyStore() {}
 
     /**
      * @param stringType The {@code String} type.
@@ -235,11 +238,35 @@ public class TypeAndPropertyKeyStore {
         return propertyKeyStore.mapShortKeyToString(typeId);
     }
 
-    @UsedOnlyByTests
-    public void reset() {
-        typeKeyStore.reset();
-        propertyKeyStore.reset();
-        propertyDataTypeStore.clear();
+    /**
+     * Resets the {@link TypeAndPropertyKeyStore} state by creating a new {@code INSTANCE}.
+     */
+    void reset() {
+        INSTANCE = new TypeAndPropertyKeyStore();
+    }
+
+    private boolean isNullOrEmpty(String key) {
+        return null == key || "".equals(key);
+    }
+
+    /**
+     * See {@link GraphDBState#serialize(ObjectOutputStream)}.
+     */
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+        typeKeyStore.serialize(objectOutputStream);
+        propertyKeyStore.serialize(objectOutputStream);
+        objectOutputStream.writeObject(propertyDataTypeStore);
+    }
+
+    /**
+     * See {@link GraphDBState#deserialize(ObjectInputStream)}.
+     */
+    @SuppressWarnings("unchecked") // Ignore {@code HashMap<Short, DataType>} cast warnings.
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        typeKeyStore.deserialize(objectInputStream);
+        propertyKeyStore.deserialize(objectInputStream);
+        propertyDataTypeStore = (HashMap<Short, DataType>) objectInputStream.readObject();
     }
 
     /**
@@ -249,21 +276,28 @@ public class TypeAndPropertyKeyStore {
         return INSTANCE;
     }
 
-    private boolean isNullOrEmpty(String key) {
-        return null == key || "".equals(key);
-    }
-
-    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
-        typeKeyStore.serialize(objectOutputStream);
-        propertyKeyStore.serialize(objectOutputStream);
-        objectOutputStream.writeObject(propertyDataTypeStore);
-    }
-
-    @SuppressWarnings("unchecked")
-    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
-        ClassNotFoundException {
-        typeKeyStore.deserialize(objectInputStream);
-        propertyKeyStore.deserialize(objectInputStream);
-        propertyDataTypeStore = (HashMap<Short, DataType>) objectInputStream.readObject();
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
+     * values, {@code false} otherwise.
+     */
+    @UsedOnlyByTests
+    public static boolean isSameAs(TypeAndPropertyKeyStore a, TypeAndPropertyKeyStore b) {
+        if (a == b) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        if (!StringToShortKeyStore.isSameAs(a.typeKeyStore, b.typeKeyStore) ||
+            !StringToShortKeyStore.isSameAs(a.propertyKeyStore, b.propertyKeyStore) ||
+            !Objects.equals(a.propertyDataTypeStore, b.propertyDataTypeStore)) {
+            return false;
+        }
+        return true;
     }
 }

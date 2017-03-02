@@ -2,12 +2,14 @@ package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -17,18 +19,18 @@ import java.util.NoSuchElementException;
  */
 public class VertexPropertyStore extends PropertyStore {
 
-    private static final VertexPropertyStore INSTANCE = new VertexPropertyStore();
+    private static VertexPropertyStore INSTANCE = new VertexPropertyStore();
 
     private static final int INITIAL_CAPACITY = 2;
     @VisibleForTesting
-    byte[][] vertexProperties = null;
+    byte[][] vertexProperties;
 
     /**
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
      * class.
      */
     private VertexPropertyStore() {
-        reset();
+        vertexProperties = new byte[INITIAL_CAPACITY][];
     }
 
     /**
@@ -106,15 +108,23 @@ public class VertexPropertyStore extends PropertyStore {
         return null;
     }
 
-    @VisibleForTesting
-    public void reset() {
-        vertexProperties = new byte[INITIAL_CAPACITY][];
+    /**
+     * Resets the {@link VertexPropertyStore} state by creating a new {@code INSTANCE}.
+     */
+    void reset() {
+        INSTANCE = new VertexPropertyStore();
     }
 
+    /**
+     * See {@link GraphDBState#serialize(ObjectOutputStream)}.
+     */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeObject(vertexProperties);
     }
 
+    /**
+     * See {@link GraphDBState#deserialize(ObjectInputStream)}.
+     */
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
         vertexProperties = (byte[][]) objectInputStream.readObject();
@@ -125,5 +135,25 @@ public class VertexPropertyStore extends PropertyStore {
      */
     public static VertexPropertyStore getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
+     * values, {@code false} otherwise.
+     */
+    @UsedOnlyByTests
+    public static boolean isSameAs(VertexPropertyStore a, VertexPropertyStore b) {
+        if (a == b) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        return Arrays.deepEquals(a.vertexProperties, b.vertexProperties);
     }
 }

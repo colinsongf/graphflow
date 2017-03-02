@@ -37,20 +37,6 @@ public enum DataType {
             "supported.");
     }
 
-    public static String mapObjectOfDataTypeToString(DataType dataType, Object object) {
-        if (INT == dataType) {
-            return String.valueOf((int) object);
-        } else if (DOUBLE == dataType) {
-            return String.valueOf((double) object);
-        } else if (BOOLEAN == dataType) {
-            return String.valueOf((boolean) object);
-        } else if (STRING == dataType) {
-            return (String) object;
-        }
-
-        throw new IllegalArgumentException("The data type " + dataType + " is not " + "supported.");
-    }
-
     /**
      * Checks if the {@code String} value can be cast to its actual data type.
      *

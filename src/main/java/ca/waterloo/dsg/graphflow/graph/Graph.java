@@ -5,7 +5,6 @@ import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.LongArrayList;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
-import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,15 +12,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.StringJoiner;
+import java.util.*;
 
 /**
  * Encapsulates the Graph representation and provides utility methods.
@@ -73,28 +64,27 @@ public class Graph {
     // vertex IDs being added.
     private int highestMergedVertexId = -1;
 
-    private ShortArrayList vertexTypes;
-    private VertexPropertyStore vertexProperties = VertexPropertyStore.getInstance();
+    private ShortArrayList vertexTypes = new ShortArrayList();
 
     // Adjacency lists for the permanent graph, containing both the neighbour vertex IDs and edge
     // type IDs to those neighbours.
-    private SortedAdjacencyList[] forwardAdjLists;
-    private SortedAdjacencyList[] backwardAdjLists;
+    private SortedAdjacencyList[] forwardAdjLists = new SortedAdjacencyList[DEFAULT_GRAPH_SIZE];
+    private SortedAdjacencyList[] backwardAdjLists = new SortedAdjacencyList[DEFAULT_GRAPH_SIZE];
     // Edges for additions and deletions.
-    private List<int[]> diffPlusEdges;
-    private List<int[]> diffMinusEdges;
+    private List<int[]> diffPlusEdges = new ArrayList<>();
+    private List<int[]> diffMinusEdges = new ArrayList<>();
     // Each edge at index i of {@link diffPlusEdges} or {@link diffMinusEdges} has a type at
     // index i of {@link diffPlusEdgeTypes} or {@link diffMinusEdgeTypes}.
-    private ShortArrayList diffPlusEdgeTypes;
-    private ShortArrayList diffMinusEdgeTypes;
-    private LongArrayList diffPlusEdgeIds;
-    private LongArrayList diffMinusEdgeIds;
+    private ShortArrayList diffPlusEdgeTypes = new ShortArrayList();
+    private ShortArrayList diffMinusEdgeTypes = new ShortArrayList();
+    private LongArrayList diffPlusEdgeIds = new LongArrayList();
+    private LongArrayList diffMinusEdgeIds = new LongArrayList();
     // Updated adjacency lists for the vertices affected by additions and deletions.
-    private Map<Integer, SortedAdjacencyList> mergedForwardAdjLists;
-    private Map<Integer, SortedAdjacencyList> mergedBackwardAdjLists;
+    private Map<Integer, SortedAdjacencyList> mergedForwardAdjLists = new HashMap<>();
+    private Map<Integer, SortedAdjacencyList> mergedBackwardAdjLists = new HashMap<>();
 
     private Graph() {
-        reset();
+        initializeSortedAdjacencyLists(0, DEFAULT_GRAPH_SIZE);
     }
 
     /**
@@ -171,8 +161,8 @@ public class Graph {
         }
         vertexTypes.set(fromVertex, fromVertexType);
         vertexTypes.set(toVertex, toVertexType);
-        vertexProperties.set(fromVertex, fromVertexProperties);
-        vertexProperties.set(toVertex, toVertexProperties);
+        VertexPropertyStore.getInstance().set(fromVertex, fromVertexProperties);
+        VertexPropertyStore.getInstance().set(toVertex, toVertexProperties);
         addOrDeleteEdgeTemporarily(true /* addition */, fromVertex, toVertex, edgeType,
             edgeProperties);
         highestMergedVertexId = Integer.max(highestMergedVertexId, Integer.max(fromVertex,
@@ -562,55 +552,44 @@ public class Graph {
         return "[" + stringJoiner.toString() + "]";
     }
 
-    @VisibleForTesting
-    public void reset() {
-        highestPermanentVertexId = -1;
-        highestMergedVertexId = -1;
-        forwardAdjLists = new SortedAdjacencyList[DEFAULT_GRAPH_SIZE];
-        backwardAdjLists = new SortedAdjacencyList[DEFAULT_GRAPH_SIZE];
-        initializeSortedAdjacencyLists(0, DEFAULT_GRAPH_SIZE);
-        diffPlusEdges = new ArrayList<>();
-        diffMinusEdges = new ArrayList<>();
-        diffPlusEdgeTypes = new ShortArrayList();
-        diffMinusEdgeTypes = new ShortArrayList();
-        diffPlusEdgeIds = new LongArrayList();
-        diffMinusEdgeIds = new LongArrayList();
-        mergedForwardAdjLists = new HashMap<>();
-        mergedBackwardAdjLists = new HashMap<>();
-        vertexTypes = new ShortArrayList();
-
-        // Also reset the other classes that the Graph class depends on.
-        EdgeStore.getInstance().reset();
-        VertexPropertyStore.getInstance().reset();
-        TypeAndPropertyKeyStore.getInstance().reset();
+    /**
+     * Resets the {@link Graph} state by creating a new {@code INSTANCE}.
+     */
+    void reset() {
+        INSTANCE = new Graph();
     }
 
+    /**
+     * See {@link GraphDBState#serialize(ObjectOutputStream)}.
+     */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         finalizeChanges();
         objectOutputStream.writeInt(highestPermanentVertexId);
+        objectOutputStream.writeInt(forwardAdjLists.length);
+        objectOutputStream.writeInt(backwardAdjLists.length);
         for (int i = 0; i <= highestPermanentVertexId; i++) {
             forwardAdjLists[i].serialize(objectOutputStream);
             backwardAdjLists[i].serialize(objectOutputStream);
         }
         vertexTypes.serialize(objectOutputStream);
-        EdgeStore.getInstance().serialize(objectOutputStream);
-        VertexPropertyStore.getInstance().serialize(objectOutputStream);
-        TypeAndPropertyKeyStore.getInstance().serialize(objectOutputStream);
     }
 
+    /**
+     * See {@link GraphDBState#deserialize(ObjectInputStream)}.
+     */
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
         highestPermanentVertexId = objectInputStream.readInt();
         highestMergedVertexId = highestPermanentVertexId;
-        ensureCapacity(highestPermanentVertexId + 1);
+        int forwardAdjListsLength = objectInputStream.readInt();
+        int backwardAdjListsLength = objectInputStream.readInt();
+        forwardAdjLists = new SortedAdjacencyList[forwardAdjListsLength];
+        backwardAdjLists = new SortedAdjacencyList[backwardAdjListsLength];
         for (int i = 0; i <= highestPermanentVertexId; i++) {
             forwardAdjLists[i].deserialize(objectInputStream);
             backwardAdjLists[i].deserialize(objectInputStream);
         }
         vertexTypes.deserialize(objectInputStream);
-        EdgeStore.getInstance().deserialize(objectInputStream);
-        VertexPropertyStore.getInstance().deserialize(objectInputStream);
-        TypeAndPropertyKeyStore.getInstance().deserialize(objectInputStream);
     }
 
     /**
@@ -618,5 +597,38 @@ public class Graph {
      */
     public static Graph getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if the {@code a} object values are the same as the
+     * {@code b} object values, {@code false} otherwise.
+     */
+    @UsedOnlyByTests
+    public static boolean isSamePermanentGraphAs(Graph a, Graph b) {
+        if (a == b) {
+            return true;
+        }
+        if (a == null || b == null) {
+            return false;
+        }
+        if (a.highestPermanentVertexId != b.highestPermanentVertexId ||
+            a.highestMergedVertexId != b.highestMergedVertexId ||
+            !ShortArrayList.isSameAs(a.vertexTypes, b.vertexTypes)) {
+            return false;
+        }
+        for (int i = 0; i < a.highestPermanentVertexId; i++) {
+            if (!SortedAdjacencyList.isSameAs(a.forwardAdjLists[i], b.forwardAdjLists[i])) {
+                return false;
+            }
+            if (!SortedAdjacencyList.isSameAs(a.backwardAdjLists[i], b.backwardAdjLists[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 }

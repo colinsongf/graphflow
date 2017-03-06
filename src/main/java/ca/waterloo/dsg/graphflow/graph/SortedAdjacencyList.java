@@ -368,7 +368,7 @@ public class SortedAdjacencyList {
     }
 
     /**
-     * See {@link GraphDBState#serialize(ObjectOutputStream)}.
+     * See {@link GraphDBState#serialize(String)}.
      */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeInt(size);
@@ -383,7 +383,7 @@ public class SortedAdjacencyList {
     }
 
     /**
-     * See {@link GraphDBState#deserialize(ObjectInputStream)}.
+     * See {@link GraphDBState#deserialize(String)}.
      */
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {

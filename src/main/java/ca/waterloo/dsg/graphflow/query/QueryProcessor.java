@@ -3,6 +3,7 @@ package ca.waterloo.dsg.graphflow.query;
 import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
+import ca.waterloo.dsg.graphflow.exceptions.SerializationDeserializationException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
@@ -16,13 +17,20 @@ import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.DeleteQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.ShortestPathPlanner;
-import ca.waterloo.dsg.graphflow.query.plans.*;
+import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.DeleteQueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
+import ca.waterloo.dsg.graphflow.query.plans.ShortestPathPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
+import ca.waterloo.dsg.graphflow.util.Util;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Class to accept incoming queries from the gRPC server, process them and return the results.
@@ -71,29 +79,25 @@ public class QueryProcessor {
 
     private String handleSaveGraphQuery(StructuredQuery structuredQuery) {
         try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(new BufferedOutputStream(
-                new FileOutputStream(structuredQuery.getFilePath())));
-            GraphDBState.serialize(objectOutputStream);
-            objectOutputStream.close();
-            return String.format("Graph saved to file '%s'", structuredQuery.getFilePath());
-        } catch (IOException e) {
-            return String.format("IOError for file '%s': %s", structuredQuery.getFilePath(),
-                e.getMessage());
+            long beginTime = System.nanoTime();
+            GraphDBState.serialize(structuredQuery.getFilePath());
+            return String.format("Graph saved to directory '%s' in %.3f ms.", structuredQuery.
+                getFilePath(), Util.getElapsedTimeInMicro(beginTime));
+        } catch (SerializationDeserializationException e) {
+            return String.format("Error saving graph state to '%s'. Please check the Graphflow " +
+                "server logs for details.", structuredQuery.getFilePath());
         }
     }
 
     private String handleLoadGraphQuery(StructuredQuery structuredQuery) {
         try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(new BufferedInputStream(
-                new FileInputStream(structuredQuery.getFilePath())));
-            GraphDBState.deserialize(objectInputStream);
-            objectInputStream.close();
-            return String.format("Graph loaded from file '%s'", structuredQuery.getFilePath());
-        } catch (IOException e) {
-            return String.format("IOError for file '%s': %s", structuredQuery.getFilePath(), e);
-        } catch (ClassNotFoundException e) {
-            return String.format("ERROR: incorrect format of file '%s'", structuredQuery.
-                getFilePath());
+            long beginTime = System.nanoTime();
+            GraphDBState.deserialize(structuredQuery.getFilePath());
+            return String.format("Graph loaded from directory '%s' in %.3f ms.", structuredQuery.
+                getFilePath(), Util.getElapsedTimeInMicro(beginTime));
+        } catch (SerializationDeserializationException e) {
+            return String.format("Error loading graph state from '%s'. Please check the Graphflow" +
+                " server logs for details.", structuredQuery.getFilePath());
         }
     }
 

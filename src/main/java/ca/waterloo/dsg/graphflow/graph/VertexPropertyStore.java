@@ -111,19 +111,19 @@ public class VertexPropertyStore extends PropertyStore {
     /**
      * Resets the {@link VertexPropertyStore} state by creating a new {@code INSTANCE}.
      */
-    void reset() {
+    static void reset() {
         INSTANCE = new VertexPropertyStore();
     }
 
     /**
-     * See {@link GraphDBState#serialize(ObjectOutputStream)}.
+     * See {@link GraphDBState#serialize(String)}.
      */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeObject(vertexProperties);
     }
 
     /**
-     * See {@link GraphDBState#deserialize(ObjectInputStream)}.
+     * See {@link GraphDBState#deserialize(String)}.
      */
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {

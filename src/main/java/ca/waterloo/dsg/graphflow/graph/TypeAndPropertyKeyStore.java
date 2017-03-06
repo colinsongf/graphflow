@@ -241,7 +241,7 @@ public class TypeAndPropertyKeyStore {
     /**
      * Resets the {@link TypeAndPropertyKeyStore} state by creating a new {@code INSTANCE}.
      */
-    void reset() {
+    static void reset() {
         INSTANCE = new TypeAndPropertyKeyStore();
     }
 
@@ -250,7 +250,7 @@ public class TypeAndPropertyKeyStore {
     }
 
     /**
-     * See {@link GraphDBState#serialize(ObjectOutputStream)}.
+     * See {@link GraphDBState#serialize(String)}.
      */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         typeKeyStore.serialize(objectOutputStream);
@@ -259,7 +259,7 @@ public class TypeAndPropertyKeyStore {
     }
 
     /**
-     * See {@link GraphDBState#deserialize(ObjectInputStream)}.
+     * See {@link GraphDBState#deserialize(String)}.
      */
     @SuppressWarnings("unchecked") // Ignore {@code HashMap<Short, DataType>} cast warnings.
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,

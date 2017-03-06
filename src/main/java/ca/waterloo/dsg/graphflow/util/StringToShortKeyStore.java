@@ -31,7 +31,7 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
     }
 
     /**
-     * See {@link GraphDBState#serialize(ObjectOutputStream)}.
+     * See {@link GraphDBState#serialize(String)}.
      */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         super.serialize(objectOutputStream);
@@ -39,7 +39,7 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
     }
 
     /**
-     * See {@link GraphDBState#deserialize(ObjectInputStream)}.
+     * See {@link GraphDBState#deserialize(String)}.
      */
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {

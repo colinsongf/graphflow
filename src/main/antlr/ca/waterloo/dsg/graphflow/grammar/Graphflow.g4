@@ -17,7 +17,8 @@ continuousMatchQuery : CONTINUOUS whitespace matchQuery whitespace FILE whitespa
 createQuery : CREATE whitespace (createEdgePattern | createVertexPattern) ;
 deleteQuery : DELETE whitespace deletePattern ;
 shortestPathQuery: SHORTEST whitespace PATH whitespace pathPattern ;
-durabilityQuery: ( LOAD | SAVE ) whitespace GRAPH whitespace SINGLE_QUOTE filePath SINGLE_QUOTE ;
+durabilityQuery: ( LOAD whitespace FROM  | SAVE whitespace TO ) whitespace DIR whitespace
+                    SINGLE_QUOTE filePath SINGLE_QUOTE ;
 
 matchPattern: variableEdge ( whitespace? ',' whitespace? variableEdge )* ;
 deletePattern : digitsEdgeWithOptionalType ( whitespace? ',' whitespace? digitsEdgeWithOptionalType )* ;
@@ -87,9 +88,11 @@ MIN : M I N ;
 
 SUM : S U M ;
 
-LOAD: L O A D;
-SAVE: S A V E;
-GRAPH: G R A P H;
+LOAD: L O A D ;
+SAVE: S A V E ;
+FROM: F R O M ;
+TO: T O ;
+DIR: D I R ;
 
 whitespace : (WHITESPACE)+ ;
 

@@ -75,7 +75,7 @@ public class StringToIntKeyMap {
     }
 
     /**
-     * See {@link GraphDBState#serialize(ObjectOutputStream)}
+     * See {@link GraphDBState#serialize(String)}
      */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeInt(nextKeyAsInt);
@@ -83,7 +83,7 @@ public class StringToIntKeyMap {
     }
 
     /**
-     * See {@link GraphDBState#deserialize(ObjectInputStream)}
+     * See {@link GraphDBState#deserialize(String)}
      */
     @SuppressWarnings("unchecked") // Ignore {@code HashMap<String, Integer>} cast warnings.
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,

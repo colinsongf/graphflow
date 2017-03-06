@@ -143,7 +143,7 @@ public class EdgeStoreTest {
             (byte) 5 /* offset ID */);
         edgeStore.addEdge(propertiesOfEdgeToAdd);
         Assert.assertEquals(propertiesLengthInBytes, edgeStore.data[0][10].length);
-        for (int i = 0; i < edgeStore.MAX_EDGES_PER_BUCKET; ++i) {
+        for (int i = 0; i < EdgeStore.MAX_EDGES_PER_BUCKET; ++i) {
             if (i <= 5) {
                 Assert.assertEquals(0, edgeStore.dataOffsets[0][10][i]);
             } else {
@@ -160,7 +160,7 @@ public class EdgeStoreTest {
             (byte) 2 /* offset ID */);
         EdgeStore.getInstance().addEdge(propertiesOfEdgeToAdd); // added edge has offset ID 3.
         Assert.assertEquals(propertiesLengthInBytes, edgeStore.data[1][24].length);
-        for (int i = 0; i < edgeStore.MAX_EDGES_PER_BUCKET; ++i) {
+        for (int i = 0; i < EdgeStore.MAX_EDGES_PER_BUCKET; ++i) {
             if (i <= 2) {
                 Assert.assertEquals(0, edgeStore.dataOffsets[1][24][i]);
             } else {

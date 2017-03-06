@@ -1,6 +1,5 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.query.QueryProcessor;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
@@ -20,21 +19,16 @@ import java.io.IOException;
  */
 public class GraphDurabilityTest {
 
-    private static String FILENAME = "GraphDurabilityTest.out";
-    private static Graph graph = Graph.getInstance();
-    private static VertexPropertyStore vertexPropertyStore = VertexPropertyStore.getInstance();
-    private static EdgeStore edgeStore = EdgeStore.getInstance();
-    private static TypeAndPropertyKeyStore keyStore = TypeAndPropertyKeyStore.getInstance();
     // Special JUnit defined temporary folder used to test I/O operations on files. Requires
     // {@code public} visibility.
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
-    private File location;
+    private File saveDirectory;
 
     @Before
     public void setUp() throws IOException {
         GraphDBState.reset();
-        location = temporaryFolder.newFile(FILENAME);
+        saveDirectory = temporaryFolder.newFolder();
     }
 
     /**
@@ -59,12 +53,12 @@ public class GraphDurabilityTest {
             "(4:Person {name: String = Sid})" +
             "-[:LIKES]->" +
             "(1:Person { name: String = Amine });";
+
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(query);
-        ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(graph,
+        ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(Graph.getInstance(),
             new InMemoryOutputSink());
 
-        QueryProcessor queryProcessor = new QueryProcessor();
-        queryProcessor.process("SAVE GRAPH '" + location.getAbsolutePath() + "'");
+        GraphDBState.serialize(saveDirectory.getAbsolutePath());
 
         Graph oldGraph = Graph.getInstance();
         EdgeStore oldEdgeStore = EdgeStore.getInstance();
@@ -72,7 +66,7 @@ public class GraphDurabilityTest {
         TypeAndPropertyKeyStore oldTypeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
         GraphDBState.reset();
 
-        queryProcessor.process("LOAD GRAPH '" + location.getAbsolutePath() + "'");
+        GraphDBState.deserialize(saveDirectory.getAbsolutePath());
 
         Assert.assertTrue(Graph.isSamePermanentGraphAs(oldGraph, Graph.getInstance()));
         Assert.assertTrue(EdgeStore.isSameAs(oldEdgeStore, EdgeStore.getInstance()));

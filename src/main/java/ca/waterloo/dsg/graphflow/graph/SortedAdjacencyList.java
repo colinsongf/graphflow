@@ -388,12 +388,9 @@ public class SortedAdjacencyList {
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
         size = objectInputStream.readInt();
-        int neighbourIdsLength = objectInputStream.readInt();
-        int edgeTypesLength = objectInputStream.readInt();
-        int edgeIdsLength = objectInputStream.readInt();
-        neighbourIds = new int[neighbourIdsLength];
-        edgeTypes = new short[edgeTypesLength];
-        edgeIds = new long[edgeIdsLength];
+        neighbourIds = new int[objectInputStream.readInt()];
+        edgeTypes = new short[objectInputStream.readInt()];
+        edgeIds = new long[objectInputStream.readInt()];
         for (int i = 0; i < size; i++) {
             neighbourIds[i] = objectInputStream.readInt();
             edgeTypes[i] = objectInputStream.readShort();

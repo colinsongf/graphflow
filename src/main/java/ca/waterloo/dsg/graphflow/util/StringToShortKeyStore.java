@@ -97,7 +97,7 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
         if (a == b) {
             return true;
         }
-        if (a == null || b == null) {
+        if (null == a || null == b) {
             return false;
         }
         return Arrays.equals(a.shortToStringMap, b.shortToStringMap) &&

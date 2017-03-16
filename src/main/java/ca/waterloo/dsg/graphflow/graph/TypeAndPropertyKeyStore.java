@@ -3,6 +3,7 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
+import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDe;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
@@ -20,11 +21,12 @@ import java.util.Objects;
  * Stores a mapping from {@code String} types and property keys to {@code short} types and
  * property keys.
  */
-public class TypeAndPropertyKeyStore {
+public class TypeAndPropertyKeyStore implements MainFileSerDe {
 
-    public static final short ANY = -1;
     private static TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
 
+    private static String SERDE_FILE_NAME_PREFIX = "type_and_property_key_store";
+    public static final short ANY = -1;
     @VisibleForTesting
     StringToShortKeyStore typeKeyStore = new StringToShortKeyStore();
     // TypeAndPropertyKeyStore has the invariant that if a property key has a short key,
@@ -66,19 +68,19 @@ public class TypeAndPropertyKeyStore {
     }
 
     /**
-     * Asserts the {@code Short} type has been inserted in the store previously.
+     * Asserts that the {@code Short} type has been inserted in the store previously.
      *
+     * @param type The {@code String} type.
+     * @return The {@code short} type. If {@code stringType} is either {@code null} or an empty
+     * string, {@link TypeAndPropertyKeyStore#ANY} is returned.
      * @throws NoSuchTypeException if the type is not found in the store.
      */
     public Short mapStringTypeToShortAndAssertTypeExists(String type) {
-        if (null != type) {
-            Short shortType = mapStringTypeToShort(type);
-            if (null == shortType) {
-                throw new NoSuchTypeException("The type " + type + " is not found in the store.");
-            }
-            return shortType;
+        Short shortType = mapStringTypeToShort(type);
+        if (null == shortType) {
+            throw new NoSuchTypeException("The type " + type + " is not found in the store.");
         }
-        return ANY;
+        return shortType;
     }
 
     /**
@@ -224,33 +226,20 @@ public class TypeAndPropertyKeyStore {
         return propertyKeyStore.mapStringKeyToShort(stringKey);
     }
 
-    /**
-     * See {@link StringToShortKeyStore#mapStringKeyToShort(String)}
-     */
-    public String getTypeStringFromShort(short typeId) {
-        return typeKeyStore.mapShortKeyToString(typeId);
-    }
-
-    /**
-     * See {@link StringToShortKeyStore#mapStringKeyToShort(String)}
-     */
-    public String getPropertyStringFromShort(short typeId) {
-        return propertyKeyStore.mapShortKeyToString(typeId);
-    }
-
-    /**
-     * Resets the {@link TypeAndPropertyKeyStore} state by creating a new {@code INSTANCE}.
-     */
-    static void reset() {
-        INSTANCE = new TypeAndPropertyKeyStore();
-    }
-
     private boolean isNullOrEmpty(String key) {
-        return null == key || "".equals(key);
+        return null == key || key.isEmpty();
     }
 
     /**
-     * See {@link GraphDBState#serialize(String)}.
+     * See {@link MainFileSerDe#getFileNamePrefix()}.
+     */
+    @Override
+    public String getFileNamePrefix() {
+        return SERDE_FILE_NAME_PREFIX;
+    }
+
+    /**
+     * See {@link MainFileSerDe#serialize(ObjectOutputStream)}.
      */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         typeKeyStore.serialize(objectOutputStream);
@@ -259,7 +248,7 @@ public class TypeAndPropertyKeyStore {
     }
 
     /**
-     * See {@link GraphDBState#deserialize(String)}.
+     * See {@link MainFileSerDe#deserialize(ObjectInputStream)}.
      */
     @SuppressWarnings("unchecked") // Ignore {@code HashMap<Short, DataType>} cast warnings.
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
@@ -267,6 +256,13 @@ public class TypeAndPropertyKeyStore {
         typeKeyStore.deserialize(objectInputStream);
         propertyKeyStore.deserialize(objectInputStream);
         propertyDataTypeStore = (HashMap<Short, DataType>) objectInputStream.readObject();
+    }
+
+    /**
+     * Resets the {@link TypeAndPropertyKeyStore} state by creating a new {@code INSTANCE}.
+     */
+    static void reset() {
+        INSTANCE = new TypeAndPropertyKeyStore();
     }
 
     /**
@@ -290,7 +286,7 @@ public class TypeAndPropertyKeyStore {
         if (a == b) {
             return true;
         }
-        if (a == null || b == null) {
+        if (null == a || null == b) {
             return false;
         }
         if (!StringToShortKeyStore.isSameAs(a.typeKeyStore, b.typeKeyStore) ||

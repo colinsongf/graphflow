@@ -24,7 +24,7 @@ import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.ShortestPathPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import ca.waterloo.dsg.graphflow.util.Util;
+import ca.waterloo.dsg.graphflow.util.IOUtils;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,7 +40,6 @@ public class QueryProcessor {
     private static final Logger logger = LogManager.getLogger(QueryProcessor.class);
 
     private static String TMP_DIRECTORY = "/tmp/";
-    private Graph graph = Graph.getInstance();
 
     /**
      * Executes a string query by converting it into a {@link StructuredQuery}, creating the
@@ -50,6 +49,8 @@ public class QueryProcessor {
      * @return The result of the query as a {@code String}.
      */
     public String process(String query) {
+        long beginTime = System.nanoTime();
+        String output;
         StructuredQuery structuredQuery;
         try {
             structuredQuery = new StructuredQueryParser().parse(query);
@@ -58,31 +59,39 @@ public class QueryProcessor {
         }
         switch (structuredQuery.getQueryOperation()) {
             case CREATE:
-                return handleCreateQuery(structuredQuery);
+                output = handleCreateQuery(structuredQuery);
+                break;
             case DELETE:
-                return handleDeleteQuery(structuredQuery);
+                output = handleDeleteQuery(structuredQuery);
+                break;
             case MATCH:
-                return handleMatchQuery(structuredQuery);
+                output = handleMatchQuery(structuredQuery);
+                break;
             case CONTINUOUS_MATCH:
-                return handleContinuousMatchQuery(structuredQuery);
+                output = handleContinuousMatchQuery(structuredQuery);
+                break;
             case SHORTEST_PATH:
-                return handleShortestPathQuery(structuredQuery);
+                output = handleShortestPathQuery(structuredQuery);
+                break;
             case LOAD_GRAPH:
-                return handleLoadGraphQuery(structuredQuery);
+                output = handleLoadGraphQuery(structuredQuery);
+                break;
             case SAVE_GRAPH:
-                return handleSaveGraphQuery(structuredQuery);
+                output = handleSaveGraphQuery(structuredQuery);
+                break;
             default:
                 return "ERROR: the operation '" + structuredQuery.getQueryOperation() +
                     "' is not defined.";
         }
+        output += String.format("\nQuery executed in %.3f ms.", IOUtils.getElapsedTimeInMillis(
+            beginTime));
+        return output;
     }
 
     private String handleSaveGraphQuery(StructuredQuery structuredQuery) {
         try {
-            long beginTime = System.nanoTime();
             GraphDBState.serialize(structuredQuery.getFilePath());
-            return String.format("Graph saved to directory '%s' in %.3f ms.", structuredQuery.
-                getFilePath(), Util.getElapsedTimeInMicro(beginTime));
+            return String.format("Graph saved to directory '%s'.", structuredQuery.getFilePath());
         } catch (SerializationDeserializationException e) {
             return String.format("Error saving graph state to '%s'. Please check the Graphflow " +
                 "server logs for details.", structuredQuery.getFilePath());
@@ -91,10 +100,9 @@ public class QueryProcessor {
 
     private String handleLoadGraphQuery(StructuredQuery structuredQuery) {
         try {
-            long beginTime = System.nanoTime();
             GraphDBState.deserialize(structuredQuery.getFilePath());
-            return String.format("Graph loaded from directory '%s' in %.3f ms.", structuredQuery.
-                getFilePath(), Util.getElapsedTimeInMicro(beginTime));
+            return String.format("Graph loaded from directory '%s'.", structuredQuery.
+                getFilePath());
         } catch (SerializationDeserializationException e) {
             return String.format("Error loading graph state from '%s'. Please check the Graphflow" +
                 " server logs for details.", structuredQuery.getFilePath());
@@ -104,8 +112,8 @@ public class QueryProcessor {
     private String handleCreateQuery(StructuredQuery structuredQuery) {
         AbstractDBOperator outputSink = new InMemoryOutputSink();
         try {
-            ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(graph,
-                outputSink);
+            ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(Graph.
+                getInstance(), outputSink);
         } catch (IncorrectDataTypeException e) {
             logger.debug(e.getMessage());
             outputSink.append("ERROR: " + e.getMessage());
@@ -115,8 +123,8 @@ public class QueryProcessor {
 
     private String handleDeleteQuery(StructuredQuery structuredQuery) {
         AbstractDBOperator outputSink = new InMemoryOutputSink();
-        ((DeleteQueryPlan) new DeleteQueryPlanner(structuredQuery).plan()).execute(graph,
-            outputSink);
+        ((DeleteQueryPlan) new DeleteQueryPlanner(structuredQuery).plan()).execute(Graph.
+            getInstance(), outputSink);
         return outputSink.toString();
     }
 
@@ -124,12 +132,12 @@ public class QueryProcessor {
         AbstractDBOperator outputSink = new InMemoryOutputSink();
         try {
             ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink).
-                plan()).execute(graph);
+                plan()).execute(Graph.getInstance());
         } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
             logger.debug(e.getMessage());
             outputSink.append("ERROR: " + e.getMessage());
         }
-        return (0 == outputSink.toString().length()) ? "{}" : outputSink.toString();
+        return (outputSink.toString().isEmpty()) ? "{}" : outputSink.toString();
     }
 
     private String handleContinuousMatchQuery(StructuredQuery structuredQuery) {
@@ -154,7 +162,7 @@ public class QueryProcessor {
 
     private String handleShortestPathQuery(StructuredQuery structuredQuery) {
         if (!ShortestPathExecutor.getInstance().isInitialized()) {
-            ShortestPathExecutor.getInstance().init(graph);
+            ShortestPathExecutor.getInstance().init(Graph.getInstance());
         }
         AbstractDBOperator outputSink = new InMemoryOutputSink();
         ((ShortestPathPlan) new ShortestPathPlanner(structuredQuery).plan()).execute(outputSink);

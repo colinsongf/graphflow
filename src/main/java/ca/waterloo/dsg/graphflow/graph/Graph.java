@@ -1,17 +1,16 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.exceptions.SerializationDeserializationException;
+import ca.waterloo.dsg.graphflow.graph.serde.GraphAdjListSerDeContainer;
+import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDe;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.LongArrayList;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
-import ca.waterloo.dsg.graphflow.util.Util;
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -25,12 +24,10 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringJoiner;
 
-import static ca.waterloo.dsg.graphflow.graph.GraphDBState.MAX_SERIALIZATION_THREADS;
-
 /**
  * Encapsulates the Graph representation and provides utility methods.
  */
-public class Graph {
+public class Graph implements MainFileSerDe {
 
     // Used to represent different versions of the graph.
     public enum GraphVersion {
@@ -66,25 +63,23 @@ public class Graph {
         }
     }
 
-    private static Graph INSTANCE = new Graph();
-
     private static final Logger logger = LogManager.getLogger(Graph.class);
+    private static Graph INSTANCE = new Graph();
+    private static String SERDE_FILE_NAME_PREFIX = "graph";
     private static final int DEFAULT_GRAPH_SIZE = 2;
-    private static final String SERIALIZATION_FILENAME = "graph_%s";
-    private static final String MAIN_FILENAME = "main";
 
     // Stores the highest vertex ID of the permanent graph.
     private int highestPermanentVertexId = -1;
+    // Adjacency lists for the permanent graph, containing both the neighbour vertex IDs and edge
+    // type IDs to those neighbours.
+    private SortedAdjacencyList[] forwardAdjLists = new SortedAdjacencyList[DEFAULT_GRAPH_SIZE];
+    private SortedAdjacencyList[] backwardAdjLists = new SortedAdjacencyList[DEFAULT_GRAPH_SIZE];
     // Stores the highest vertex ID present among all vertices in the permanent graph and the
     // temporary vertices to be added. This is used when permanently applying the temporary changes
     // to the graph to decide if the adjacency list arrays need resizing to accommodate higher
     // vertex IDs being added.
     private int highestMergedVertexId = -1;
     private ShortArrayList vertexTypes = new ShortArrayList();
-    // Adjacency lists for the permanent graph, containing both the neighbour vertex IDs and edge
-    // type IDs to those neighbours.
-    private SortedAdjacencyList[] forwardAdjLists = new SortedAdjacencyList[DEFAULT_GRAPH_SIZE];
-    private SortedAdjacencyList[] backwardAdjLists = new SortedAdjacencyList[DEFAULT_GRAPH_SIZE];
     // Edges for additions and deletions.
     private List<int[]> diffPlusEdges = new ArrayList<>();
     private List<int[]> diffMinusEdges = new ArrayList<>();
@@ -98,8 +93,8 @@ public class Graph {
     private Map<Integer, SortedAdjacencyList> mergedForwardAdjLists = new HashMap<>();
     private Map<Integer, SortedAdjacencyList> mergedBackwardAdjLists = new HashMap<>();
 
-    private Graph() {
-        initializeSortedAdjacencyLists(0, DEFAULT_GRAPH_SIZE);
+    protected Graph() {
+        initializeSortedAdjacencyLists(0 /* starting index */, DEFAULT_GRAPH_SIZE);
     }
 
     /**
@@ -563,135 +558,51 @@ public class Graph {
     }
 
     /**
-     * Resets the {@link Graph} state by creating a new {@code INSTANCE}.
+     * See {@link MainFileSerDe#getFileNamePrefix()}.
      */
-    static void reset() {
-        INSTANCE = new Graph();
+    @Override
+    public String getFileNamePrefix() {
+        return SERDE_FILE_NAME_PREFIX;
     }
 
     /**
-     * See {@link GraphDBState#serialize(String)}.
+     * See {@link MainFileSerDe#serialize(ObjectOutputStream)}.
      */
-    public void serialize(String outputDirectoryPath) throws IOException, InterruptedException {
+    @Override
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         finalizeChanges();
-        long beginTime = System.nanoTime();
-        List<Thread> threads = new ArrayList<>();
-        int numArrayIndicesPerFile = highestPermanentVertexId / MAX_SERIALIZATION_THREADS;
-        int numberOfFiles = highestPermanentVertexId < MAX_SERIALIZATION_THREADS ? 1 :
-            MAX_SERIALIZATION_THREADS;
-        for (int i = 0; i < numberOfFiles; i++) {
-            int blockIndex = i;
-            int startIndexOfBlock = i * numArrayIndicesPerFile;
-            int endIndexOfBlock = ((i + 1) == numberOfFiles) ? highestPermanentVertexId :
-                (((i + 1) * numArrayIndicesPerFile) - 1);
-            Thread serialize = new Thread(() -> serializeBlock(outputDirectoryPath, blockIndex,
-                startIndexOfBlock, endIndexOfBlock));
-            serialize.start();
-            threads.add(serialize);
-        }
-        ObjectOutputStream objectOutputStream = Util.constructObjectOutputStream(
-            outputDirectoryPath + File.separator + String.format(
-                GraphDBState.FILE_PREFIX_SUFFIX, String.format(SERIALIZATION_FILENAME,
-                    MAIN_FILENAME)));
-        objectOutputStream.writeInt(numberOfFiles);
         objectOutputStream.writeInt(highestPermanentVertexId);
         objectOutputStream.writeInt(forwardAdjLists.length);
         objectOutputStream.writeInt(backwardAdjLists.length);
         vertexTypes.serialize(objectOutputStream);
-        objectOutputStream.close();
-        for (Thread thread : threads) {
-            thread.join();
-        }
-        logger.info(String.format("GRAPH serialized in %.3f ms.", Util.getElapsedTimeInMicro(
-            beginTime)));
     }
 
     /**
-     * See {@link GraphDBState#deserialize(String)}.
+     * See {@link MainFileSerDe#deserialize(ObjectInputStream)}.
      */
-    public void deserialize(String inputDirectoryPath) throws IOException, ClassNotFoundException,
-        InterruptedException {
-        List<Thread> threads = new ArrayList<>();
-        long beginTime = System.nanoTime();
-        ObjectInputStream objectInputStream = Util.constructObjectInputStream(
-            inputDirectoryPath + File.separator + String.format(
-                GraphDBState.FILE_PREFIX_SUFFIX, String.format(SERIALIZATION_FILENAME,
-                    MAIN_FILENAME)));
-        int numOfFiles = objectInputStream.readInt();
+    @Override
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
         highestPermanentVertexId = objectInputStream.readInt();
         highestMergedVertexId = highestPermanentVertexId;
         int forwardAdjListsLength = objectInputStream.readInt();
         int backwardAdjListsLength = objectInputStream.readInt();
         forwardAdjLists = new SortedAdjacencyList[forwardAdjListsLength];
         backwardAdjLists = new SortedAdjacencyList[backwardAdjListsLength];
-        for (int i = 0; i <= highestPermanentVertexId; i++) {
-            forwardAdjLists[i] = new SortedAdjacencyList();
-            backwardAdjLists[i] = new SortedAdjacencyList();
-        }
-        for (int i = 0; i < numOfFiles; i++) {
-            int blockIndex = i;
-            Thread serialize = new Thread(() -> deserializeBlock(inputDirectoryPath,
-                blockIndex));
-            serialize.start();
-            serialize.setUncaughtExceptionHandler(GraphDBState.
-                SERIALIZE_DESERIALIZE_THREAD_EXCEPTION_HANDLER);
-            threads.add(serialize);
-        }
+        initializeSortedAdjacencyLists(0, highestPermanentVertexId + 1);
         vertexTypes.deserialize(objectInputStream);
-        objectInputStream.close();
-        for (Thread thread : threads) {
-            thread.join();
-        }
-        logger.info(String.format("GRAPH deserialized in %.3f ms.", Util.getElapsedTimeInMicro(
-            beginTime)));
     }
 
-    private void serializeBlock(String outputDirectoryPath, int blockIndex, int startIndexOfBlock,
-        int endIndexOfBlock) {
-        logger.info("Serializing block " + blockIndex);
-        long beginTime = System.nanoTime();
-        try {
-            ObjectOutputStream objectOutputStream = Util.constructObjectOutputStream(
-                outputDirectoryPath + File.separator + String.format(
-                    GraphDBState.FILE_PREFIX_SUFFIX, String.format(SERIALIZATION_FILENAME,
-                        GraphDBState.BLOCK_FILE_SUBSTRING + blockIndex)));
-            objectOutputStream.writeInt(startIndexOfBlock);
-            objectOutputStream.writeInt(endIndexOfBlock);
-            for (int i = startIndexOfBlock; i <= endIndexOfBlock; i++) {
-                forwardAdjLists[i].serialize(objectOutputStream);
-                backwardAdjLists[i].serialize(objectOutputStream);
-            }
-            objectOutputStream.close();
-        } catch (IOException e) {
-            logger.error("Error in serialization", e);
-            throw new SerializationDeserializationException("Error in serialization");
-        }
-        logger.info(String.format("Block %s (from %s to %s) serialized in %.3f ms.", blockIndex,
-            startIndexOfBlock, endIndexOfBlock, Util.getElapsedTimeInMicro(beginTime)));
+    public GraphAdjListSerDeContainer getGraphAdjListSerDeHelper() {
+        return new GraphAdjListSerDeContainer(highestPermanentVertexId + 1, forwardAdjLists,
+            backwardAdjLists);
     }
 
-    private void deserializeBlock(String inputDirectoryPath, int blockIndex) {
-        logger.info("Deserializing block " + blockIndex);
-        long beginTime = System.nanoTime();
-        try {
-            ObjectInputStream objectInputStream = Util.constructObjectInputStream(
-                inputDirectoryPath + File.separator + String.format(
-                    GraphDBState.FILE_PREFIX_SUFFIX, String.format(SERIALIZATION_FILENAME,
-                        GraphDBState.BLOCK_FILE_SUBSTRING + blockIndex)));
-            int startIndexOfBlock = objectInputStream.readInt();
-            int endIndexOfBlock = objectInputStream.readInt();
-            for (int i = startIndexOfBlock; i <= endIndexOfBlock; i++) {
-                forwardAdjLists[i].deserialize(objectInputStream);
-                backwardAdjLists[i].deserialize(objectInputStream);
-            }
-            objectInputStream.close();
-            logger.info(String.format("Block %s (from %s to %s) deserialized in %.3f ms.",
-                blockIndex, startIndexOfBlock, endIndexOfBlock, Util.getElapsedTimeInMicro(
-                    beginTime)));
-        } catch (IOException | ClassNotFoundException e) {
-            logger.error("Error in deserialization", e);
-            throw new SerializationDeserializationException("Error in deserialization");
-        }
+    /**
+     * Resets the {@link Graph} state by creating a new {@code INSTANCE}.
+     */
+    static void reset() {
+        INSTANCE = new Graph();
     }
 
     /**
@@ -715,7 +626,7 @@ public class Graph {
         if (a == b) {
             return true;
         }
-        if (a == null || b == null) {
+        if (null == a || null == b) {
             return false;
         }
         if (a.highestPermanentVertexId != b.highestPermanentVertexId ||

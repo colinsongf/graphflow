@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.graph;
 
+import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDe;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
@@ -17,10 +18,11 @@ import java.util.NoSuchElementException;
 /**
  * Stores the properties of each vertex in the graph in serialized bytes.
  */
-public class VertexPropertyStore extends PropertyStore {
+public class VertexPropertyStore extends PropertyStore implements MainFileSerDe {
 
     private static VertexPropertyStore INSTANCE = new VertexPropertyStore();
 
+    private static String SERDE_FILE_NAME_PREFIX = "vertex_property_store";
     private static final int INITIAL_CAPACITY = 2;
     @VisibleForTesting
     byte[][] vertexProperties;
@@ -109,25 +111,35 @@ public class VertexPropertyStore extends PropertyStore {
     }
 
     /**
-     * Resets the {@link VertexPropertyStore} state by creating a new {@code INSTANCE}.
+     * See {@link MainFileSerDe#getFileNamePrefix()}.
      */
-    static void reset() {
-        INSTANCE = new VertexPropertyStore();
+    @Override
+    public String getFileNamePrefix() {
+        return SERDE_FILE_NAME_PREFIX;
     }
 
     /**
-     * See {@link GraphDBState#serialize(String)}.
+     * See {@link MainFileSerDe#serialize(ObjectOutputStream)}.
      */
+    @Override
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeObject(vertexProperties);
     }
 
     /**
-     * See {@link GraphDBState#deserialize(String)}.
+     * See {@link MainFileSerDe#deserialize(ObjectInputStream)}.
      */
+    @Override
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
         vertexProperties = (byte[][]) objectInputStream.readObject();
+    }
+
+    /**
+     * Resets the {@link VertexPropertyStore} state by creating a new {@code INSTANCE}.
+     */
+    static void reset() {
+        INSTANCE = new VertexPropertyStore();
     }
 
     /**
@@ -151,7 +163,7 @@ public class VertexPropertyStore extends PropertyStore {
         if (a == b) {
             return true;
         }
-        if (a == null || b == null) {
+        if (null == a || null == b) {
             return false;
         }
         return Arrays.deepEquals(a.vertexProperties, b.vertexProperties);

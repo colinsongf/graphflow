@@ -32,7 +32,7 @@ public class GraphDurabilityTest {
     }
 
     /**
-     * Tests that saving a the graph state for a simple graph to disk and loading it back results
+     * Tests that saving the graph state for a simple graph to disk and loading it back results
      * in the same graph state.
      */
     @Test
@@ -64,11 +64,12 @@ public class GraphDurabilityTest {
         EdgeStore oldEdgeStore = EdgeStore.getInstance();
         VertexPropertyStore oldVertexPropertyStore = VertexPropertyStore.getInstance();
         TypeAndPropertyKeyStore oldTypeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
-        GraphDBState.reset();
 
         GraphDBState.deserialize(saveDirectory.getAbsolutePath());
 
+        Graph graph = Graph.getInstance();
         Assert.assertTrue(Graph.isSamePermanentGraphAs(oldGraph, Graph.getInstance()));
+        EdgeStore edgeStore = EdgeStore.getInstance();
         Assert.assertTrue(EdgeStore.isSameAs(oldEdgeStore, EdgeStore.getInstance()));
         Assert.assertTrue(VertexPropertyStore.isSameAs(oldVertexPropertyStore,
             VertexPropertyStore.getInstance()));

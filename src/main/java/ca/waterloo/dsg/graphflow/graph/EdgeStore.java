@@ -1,27 +1,21 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.exceptions.SerializationDeserializationException;
+import ca.waterloo.dsg.graphflow.graph.serde.EdgeStoreDataOffsetsContainer;
+import ca.waterloo.dsg.graphflow.graph.serde.EdgeStoreDataContainer;
+import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDe;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
-import ca.waterloo.dsg.graphflow.util.Util;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-
-import static ca.waterloo.dsg.graphflow.graph.GraphDBState.MAX_SERIALIZATION_THREADS;
 
 /**
  * Stores the IDs and properties of the edges in the Graph.
@@ -29,17 +23,15 @@ import static ca.waterloo.dsg.graphflow.graph.GraphDBState.MAX_SERIALIZATION_THR
  * Warning: The properties of a deleted edge are not deleted. The ID of the deleted edge is recycled
  * and the properties are overwritten by those of the edge that gets assigned the recycled ID next.
  */
-public class EdgeStore extends PropertyStore {
+public class EdgeStore extends PropertyStore implements MainFileSerDe {
 
+    private static EdgeStore INSTANCE = new EdgeStore();
+    private static String SERDE_FILE_NAME_PREFIX = "edge_store";
     @VisibleForTesting
     static final int MAX_EDGES_PER_BUCKET = 8;
-    private static EdgeStore INSTANCE = new EdgeStore();
-    private static final Logger logger = LogManager.getLogger(EdgeStore.class);
     private static final int INITIAL_CAPACITY = 2;
-    private static final String SERIALIZATION_FILENAME = "edgestore_%s";
-    private static final String DATA_FILE_SUBSTRING = "data";
-    private static final String DATAOFFSETS_FILE_SUBSTRING = "dataoffsets";
     private static final int MAX_BUCKETS_PER_PARTITION = 1000000;
+
     @VisibleForTesting
     byte[][][] data = new byte[INITIAL_CAPACITY][][];
     @VisibleForTesting
@@ -152,8 +144,7 @@ public class EdgeStore extends PropertyStore {
      * @param edgeId The ID of the edge.
      * @param properties The properties of the edge. See {@link #addEdge(Map)}.
      */
-    @VisibleForTesting
-    void setProperties(long edgeId, Map<Short, Pair<DataType, String>> properties) {
+    private void setProperties(long edgeId, Map<Short, Pair<DataType, String>> properties) {
         int partitionId = (int) ((edgeId & 0xFFF00000) >> 40);
         int bucketId = (int) ((edgeId & 0x000FFFF0) >> 8);
         byte bucketOffset = (byte) (edgeId & 0x000000F);
@@ -288,44 +279,18 @@ public class EdgeStore extends PropertyStore {
     }
 
     /**
-     * Resets {@link EdgeStore} by creating a new {@code INSTANCE}.
+     * See {@link MainFileSerDe#getFileNamePrefix()}.
      */
-    static void reset() {
-        INSTANCE = new EdgeStore();
+    @Override
+    public String getFileNamePrefix() {
+        return SERDE_FILE_NAME_PREFIX;
     }
 
     /**
-     * See {@link GraphDBState#serialize(String)}.
+     * See {@link MainFileSerDe#serialize(ObjectOutputStream)}.
      */
-    public void serialize(String outputDirectoryPath) throws IOException, InterruptedException {
-        int numIndicesPerFile = data.length / MAX_SERIALIZATION_THREADS;
-        int numFiles = data.length < MAX_SERIALIZATION_THREADS ? 1 :
-            MAX_SERIALIZATION_THREADS;
-        List<Thread> threads = new ArrayList<>();
-        for (int i = 0; i < numFiles; i++) {
-            int blockIndex = i;
-            int startIndexOfBlock = i * numIndicesPerFile;
-            int endIndexOfBlock = ((i + 1) == numFiles) ? data.length - 1 :
-                (((i + 1) * numIndicesPerFile) - 1);
-            Thread dataSerializerThread = new Thread(() -> serializeBlock(true /* data */,
-                outputDirectoryPath, blockIndex, startIndexOfBlock, endIndexOfBlock));
-            dataSerializerThread.setUncaughtExceptionHandler(GraphDBState.
-                SERIALIZE_DESERIALIZE_THREAD_EXCEPTION_HANDLER);
-            threads.add(dataSerializerThread);
-            dataSerializerThread.start();
-            Thread dataOffsetSerializerThread = new Thread(() -> serializeBlock(
-                false /* dataOffsets */, outputDirectoryPath, blockIndex, startIndexOfBlock,
-                endIndexOfBlock));
-            dataOffsetSerializerThread.setUncaughtExceptionHandler(GraphDBState.
-                SERIALIZE_DESERIALIZE_THREAD_EXCEPTION_HANDLER);
-            dataOffsetSerializerThread.start();
-            threads.add(dataOffsetSerializerThread);
-        }
-        ObjectOutputStream objectOutputStream = Util.constructObjectOutputStream(
-            outputDirectoryPath + File.separator + String.format(
-                GraphDBState.FILE_PREFIX_SUFFIX, String.format(SERIALIZATION_FILENAME,
-                    "main")));
-        objectOutputStream.writeInt(numFiles);
+    @Override
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeInt(data.length);
         objectOutputStream.writeLong(nextIDNeverYetAssigned);
         objectOutputStream.writeByte(nextBucketOffset);
@@ -333,21 +298,14 @@ public class EdgeStore extends PropertyStore {
         objectOutputStream.writeInt(nextPartitionId);
         objectOutputStream.writeInt(recycledIdsSize);
         objectOutputStream.writeObject(recycledIds);
-        objectOutputStream.close();
-        for (Thread thread : threads) {
-            thread.join();
-        }
     }
 
     /**
-     * See {@link GraphDBState#deserialize(String)}.
+     * See {@link MainFileSerDe#deserialize(ObjectInputStream)}.
      */
-    public void deserialize(String inputDirectoryPath) throws IOException, ClassNotFoundException,
-        InterruptedException {
-        ObjectInputStream objectInputStream = Util.constructObjectInputStream(
-            inputDirectoryPath + File.separator + String.format(GraphDBState.FILE_PREFIX_SUFFIX,
-                String.format(SERIALIZATION_FILENAME, "main")));
-        int numFiles = objectInputStream.readInt();
+    @Override
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
         int arrayLength = objectInputStream.readInt();
         data = new byte[arrayLength][][];
         dataOffsets = new int[arrayLength][][];
@@ -357,77 +315,27 @@ public class EdgeStore extends PropertyStore {
         nextPartitionId = objectInputStream.readInt();
         recycledIdsSize = objectInputStream.readInt();
         recycledIds = (long[]) objectInputStream.readObject();
-        List<Thread> threads = new ArrayList<>();
-        for (int i = 0; i < numFiles; i++) {
-            int blockIndex = i;
-            Thread dataDeserializerThread = new Thread(() -> deserializeBlock(true /* data */,
-                inputDirectoryPath, blockIndex));
-            dataDeserializerThread.setUncaughtExceptionHandler(GraphDBState.
-                SERIALIZE_DESERIALIZE_THREAD_EXCEPTION_HANDLER);
-            threads.add(dataDeserializerThread);
-            dataDeserializerThread.start();
-            Thread dataOffsetDeserializerThread = new Thread(() -> deserializeBlock(
-                false /* dataOffsets */, inputDirectoryPath, blockIndex));
-            dataOffsetDeserializerThread.setUncaughtExceptionHandler(GraphDBState.
-                SERIALIZE_DESERIALIZE_THREAD_EXCEPTION_HANDLER);
-            dataOffsetDeserializerThread.start();
-            threads.add(dataOffsetDeserializerThread);
-        }
-        objectInputStream.close();
-        for (Thread thread : threads) {
-            thread.join();
-        }
     }
 
-    private void serializeBlock(boolean isDataArray, String outputDirectoryPath, int blockIndex,
-        int startIndexOfBlock, int endIndexOfBlock) {
-        String block = isDataArray ? DATA_FILE_SUBSTRING : DATAOFFSETS_FILE_SUBSTRING;
-        logger.info(String.format("Serializing %s block %s", block, blockIndex));
-        long beginTime = System.nanoTime();
-        try {
-            ObjectOutputStream objectOutputStream = Util.constructObjectOutputStream(
-                outputDirectoryPath + File.separator + String.format(
-                    GraphDBState.FILE_PREFIX_SUFFIX, String.format(SERIALIZATION_FILENAME,
-                        block + GraphDBState.BLOCK_FILE_SUBSTRING + blockIndex)));
-            objectOutputStream.writeInt(startIndexOfBlock);
-            objectOutputStream.writeInt(endIndexOfBlock);
-            for (int i = startIndexOfBlock; i <= endIndexOfBlock; i++) {
-                objectOutputStream.writeObject(isDataArray ? data[i] : dataOffsets[i]);
-            }
-            objectOutputStream.close();
-            logger.info(String.format("%s block %s (from %s to %s) serialized in %.3f ms.",
-                block, blockIndex, startIndexOfBlock, endIndexOfBlock, Util.getElapsedTimeInMicro(
-                    beginTime)));
-        } catch (IOException e) {
-            throw new SerializationDeserializationException(e);
-        }
+    /**
+     * Returns an instance of {@link EdgeStoreDataContainer} containing {@code data}.
+     */
+    public EdgeStoreDataContainer getEdgeStoreDataSerDeHelper() {
+        return new EdgeStoreDataContainer(data);
     }
 
-    private void deserializeBlock(boolean isDataArray, String inputDirectoryPath, int blockIndex) {
-        String block = isDataArray ? DATA_FILE_SUBSTRING : DATAOFFSETS_FILE_SUBSTRING;
-        logger.info(String.format("Deserializing %s block %s", block, blockIndex));
-        long beginTime = System.nanoTime();
-        try {
-            ObjectInputStream objectInputStream = Util.constructObjectInputStream(
-                inputDirectoryPath + File.separator + String.format(
-                    GraphDBState.FILE_PREFIX_SUFFIX, String.format(SERIALIZATION_FILENAME,
-                        block + GraphDBState.BLOCK_FILE_SUBSTRING + blockIndex)));
-            int startIndexOfBlock = objectInputStream.readInt();
-            int endIndexOfBlock = objectInputStream.readInt();
-            for (int i = startIndexOfBlock; i <= endIndexOfBlock; i++) {
-                if (isDataArray) {
-                    data[i] = (byte[][]) objectInputStream.readObject();
-                } else {
-                    dataOffsets[i] = (int[][]) objectInputStream.readObject();
-                }
-            }
-            objectInputStream.close();
-            logger.info(String.format("%s block %s (from %s to %s) deserialized in %.3f ms.",
-                block, blockIndex, startIndexOfBlock, endIndexOfBlock, Util.getElapsedTimeInMicro(
-                    beginTime)));
-        } catch (IOException | ClassNotFoundException e) {
-            throw new SerializationDeserializationException(e);
-        }
+    /**
+     * Returns an instance of {@link EdgeStoreDataOffsetsContainer} containing {@code dataOffsets}.
+     */
+    public EdgeStoreDataOffsetsContainer getEdgeStoreDataOffsetsSerDeHelper() {
+        return new EdgeStoreDataOffsetsContainer(dataOffsets);
+    }
+
+    /**
+     * Resets {@link EdgeStore} by creating a new {@code INSTANCE}.
+     */
+    static void reset() {
+        INSTANCE = new EdgeStore();
     }
 
     /**
@@ -451,7 +359,7 @@ public class EdgeStore extends PropertyStore {
         if (a == b) {
             return true;
         }
-        if (a == null || b == null) {
+        if (null == a || null == b) {
             return false;
         }
         if (a.nextIDNeverYetAssigned != b.nextIDNeverYetAssigned ||

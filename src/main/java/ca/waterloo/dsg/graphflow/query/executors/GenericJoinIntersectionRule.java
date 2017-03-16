@@ -151,7 +151,7 @@ public class GenericJoinIntersectionRule {
                 Short key = equalityFilter.getKey();
                 DataType dataType = equalityFilter.getValue().a;
                 String value = equalityFilter.getValue().b;
-                stringBuilder.append("(key: " + key + ", dataType: " + (dataType == null ? "null"
+                stringBuilder.append("(key: " + key + ", dataType: " + (null == dataType ? "null"
                     : dataType.name()) + ", value: " + value + ")");
             }
         }

@@ -114,7 +114,7 @@ public class ShortArrayList {
         if (a == b) {
             return true;
         }
-        if (a == null || b == null) {
+        if (null == a || null == b) {
             return false;
         }
         if (a.size != b.size) {

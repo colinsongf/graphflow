@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.graph;
 
+import ca.waterloo.dsg.graphflow.graph.serde.GraphflowSerializable;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import org.antlr.v4.runtime.misc.Pair;
 
@@ -10,7 +11,7 @@ import java.util.NoSuchElementException;
 /**
  * Abstract property store class for the {@link EdgeStore} and {@link VertexPropertyStore} classes.
  */
-abstract class PropertyStore {
+abstract class PropertyStore implements GraphflowSerializable {
 
     protected PropertyIterator propertyIterator = new PropertyIterator();
 

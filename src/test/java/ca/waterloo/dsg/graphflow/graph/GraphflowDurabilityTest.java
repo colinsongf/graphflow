@@ -15,9 +15,9 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Tests the durability feature of {@link Graph} and associated classes.
+ * Tests the durability feature of Graphflow.
  */
-public class GraphDurabilityTest {
+public class GraphflowDurabilityTest {
 
     // Special JUnit defined temporary folder used to test I/O operations on files. Requires
     // {@code public} visibility.
@@ -55,8 +55,8 @@ public class GraphDurabilityTest {
             "(1:Person { name: String = Amine });";
 
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(query);
-        ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(Graph.getInstance(),
-            new InMemoryOutputSink());
+        ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(
+            Graph.getInstance(), new InMemoryOutputSink());
 
         GraphDBState.serialize(saveDirectory.getAbsolutePath());
 
@@ -67,9 +67,7 @@ public class GraphDurabilityTest {
 
         GraphDBState.deserialize(saveDirectory.getAbsolutePath());
 
-        Graph graph = Graph.getInstance();
         Assert.assertTrue(Graph.isSamePermanentGraphAs(oldGraph, Graph.getInstance()));
-        EdgeStore edgeStore = EdgeStore.getInstance();
         Assert.assertTrue(EdgeStore.isSameAs(oldEdgeStore, EdgeStore.getInstance()));
         Assert.assertTrue(VertexPropertyStore.isSameAs(oldVertexPropertyStore,
             VertexPropertyStore.getInstance()));

@@ -9,50 +9,52 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 /**
- * Helper class to serialize and deserialize data for any given {@link MainFileSerDe}, and print
- * proper status and time output.
+ * Helper class to serialize and deserialize the main file data of a {@link GraphflowSerializable}
+ * class, and print proper status and time output.
  */
-public class MainFileSerDeHelper extends BaseSerDeHelper {
+public class MainFileSerDeHelper {
 
     private static final Logger logger = LogManager.getLogger(MainFileSerDeHelper.class);
 
-    public MainFileSerDeHelper(String ioDirectoryPath) {
-        this.ioDirectoryPath = ioDirectoryPath;
-    }
-
     /**
-     * Serializes data by calling the {@link MainFileSerDe#serialize(ObjectOutputStream)} method
-     * of the given {@code mainFileSerDe}.
+     * Serializes main file data by calling the {@link GraphflowSerializable#serializeMainFile
+     * (ObjectOutputStream)} method of the given {@code graphflowSerializable} object.
      *
-     * @param mainFileSerDe The {@link MainFileSerDe} used to serialize data to.
+     * @param graphflowSerializable The {@link GraphflowSerializable} object to be serialized.
+     * @param outputDirectoryPath The directory to write serialized data to.
      */
-    public void serialize(MainFileSerDe mainFileSerDe) throws IOException {
+    public static void serialize(GraphflowSerializable graphflowSerializable,
+        String outputDirectoryPath) throws IOException {
         long beginTimeInNano = System.nanoTime();
-        logger.info(String.format("Serializing main file of %s.", mainFileSerDe.getFileNamePrefix
-            ()));
+        logger.info(String.format("Serializing main file of %s.", graphflowSerializable.
+            getMainFileNamePrefix()));
         ObjectOutputStream objectOutputStream = IOUtils.constructObjectOutputStream(
-            getMainFilePath(mainFileSerDe.getFileNamePrefix()));
-        mainFileSerDe.serialize(objectOutputStream);
+            SerDeUtils.getMainFilePath(outputDirectoryPath, graphflowSerializable.
+                getMainFileNamePrefix()));
+        graphflowSerializable.serializeMainFile(objectOutputStream);
         objectOutputStream.close();
-        logger.info(String.format("Main file of %s serialized in %.3f ms.", mainFileSerDe.
-            getFileNamePrefix(), IOUtils.getElapsedTimeInMillis(beginTimeInNano)));
+        logger.info(String.format("Main file of %s serialized in %.3f ms.", graphflowSerializable.
+            getMainFileNamePrefix(), IOUtils.getElapsedTimeInMillis(beginTimeInNano)));
     }
 
     /**
-     * Deserializes data by calling the {@link MainFileSerDe#deserialize(ObjectInputStream)} method
-     * of the given {@code mainFileSerDe}.
+     * Deserializes main file data by calling the {@link GraphflowSerializable#deserializeMainFile
+     * (ObjectInputStream)} method of the given {@code graphflowSerializable} object.
      *
-     * @param mainFileSerDe The {@link MainFileSerDe} used to deserialize data from.
+     * @param graphflowSerializable The {@link GraphflowSerializable} object to be deserialized.
+     * @param inputDirectoryPath The directory to read serialized data from.
      */
-    public void deserialize(MainFileSerDe mainFileSerDe) throws IOException,
-        ClassNotFoundException {
+    public static void deserialize(GraphflowSerializable graphflowSerializable,
+        String inputDirectoryPath) throws IOException, ClassNotFoundException {
         long beginTimeInNano = System.nanoTime();
-        logger.info(String.format("Deserializing %s.", mainFileSerDe.getFileNamePrefix()));
+        logger.info(String.format("Deserializing %s.", graphflowSerializable.
+            getMainFileNamePrefix()));
         ObjectInputStream objectInputStream = IOUtils.constructObjectInputStream(
-            getMainFilePath(mainFileSerDe.getFileNamePrefix()));
-        mainFileSerDe.deserialize(objectInputStream);
+            SerDeUtils.getMainFilePath(inputDirectoryPath, graphflowSerializable.
+                getMainFileNamePrefix()));
+        graphflowSerializable.deserializeMainFile(objectInputStream);
         objectInputStream.close();
-        logger.info(String.format("Main file of %s deserialized in %.3f ms.", mainFileSerDe.
-            getFileNamePrefix(), IOUtils.getElapsedTimeInMillis(beginTimeInNano)));
+        logger.info(String.format("Main file of %s deserialized in %.3f ms.", graphflowSerializable.
+            getMainFileNamePrefix(), IOUtils.getElapsedTimeInMillis(beginTimeInNano)));
     }
 }

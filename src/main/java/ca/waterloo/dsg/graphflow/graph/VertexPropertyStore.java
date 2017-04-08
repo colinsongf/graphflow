@@ -1,6 +1,6 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDe;
+import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDeHelper;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
@@ -18,11 +18,11 @@ import java.util.NoSuchElementException;
 /**
  * Stores the properties of each vertex in the graph in serialized bytes.
  */
-public class VertexPropertyStore extends PropertyStore implements MainFileSerDe {
+public class VertexPropertyStore extends PropertyStore {
 
     private static VertexPropertyStore INSTANCE = new VertexPropertyStore();
 
-    private static String SERDE_FILE_NAME_PREFIX = "vertex_property_store";
+    private static final String SERDE_FILE_NAME_PREFIX = "vertex_property_store";
     private static final int INITIAL_CAPACITY = 2;
     @VisibleForTesting
     byte[][] vertexProperties;
@@ -110,29 +110,31 @@ public class VertexPropertyStore extends PropertyStore implements MainFileSerDe 
         return null;
     }
 
-    /**
-     * See {@link MainFileSerDe#getFileNamePrefix()}.
-     */
     @Override
-    public String getFileNamePrefix() {
-        return SERDE_FILE_NAME_PREFIX;
+    public void serializeAll(String outputDirectoryPath) throws IOException {
+        MainFileSerDeHelper.serialize(this, outputDirectoryPath);
     }
 
-    /**
-     * See {@link MainFileSerDe#serialize(ObjectOutputStream)}.
-     */
     @Override
-    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+    public void deserializeAll(String inputDirectoryPath) throws IOException,
+        ClassNotFoundException {
+        MainFileSerDeHelper.deserialize(this, inputDirectoryPath);
+    }
+
+    @Override
+    public void serializeMainFile(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeObject(vertexProperties);
     }
 
-    /**
-     * See {@link MainFileSerDe#deserialize(ObjectInputStream)}.
-     */
     @Override
-    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+    public void deserializeMainFile(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
         vertexProperties = (byte[][]) objectInputStream.readObject();
+    }
+
+    @Override
+    public String getMainFileNamePrefix() {
+        return SERDE_FILE_NAME_PREFIX;
     }
 
     /**
@@ -155,8 +157,7 @@ public class VertexPropertyStore extends PropertyStore implements MainFileSerDe 
      *
      * @param a One of the objects.
      * @param b The other object.
-     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
-     * values, {@code false} otherwise.
+     * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests
     public static boolean isSameAs(VertexPropertyStore a, VertexPropertyStore b) {

@@ -49,7 +49,7 @@ public class ContinuousMatchQueryExecutor {
     }
 
     /**
-     * Deleted all the registered CONTINUOUS MATCH queries.
+     * Deletes all the registered CONTINUOUS MATCH queries.
      */
     @UsedOnlyByTests
     void reset() {

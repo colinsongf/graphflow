@@ -3,7 +3,8 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
-import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDe;
+import ca.waterloo.dsg.graphflow.graph.serde.GraphflowSerializable;
+import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDeHelper;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
@@ -21,11 +22,11 @@ import java.util.Objects;
  * Stores a mapping from {@code String} types and property keys to {@code short} types and
  * property keys.
  */
-public class TypeAndPropertyKeyStore implements MainFileSerDe {
+public class TypeAndPropertyKeyStore implements GraphflowSerializable {
 
     private static TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
 
-    private static String SERDE_FILE_NAME_PREFIX = "type_and_property_key_store";
+    private static final String SERDE_FILE_NAME_PREFIX = "type_and_property_key_store";
     public static final short ANY = -1;
     @VisibleForTesting
     StringToShortKeyStore typeKeyStore = new StringToShortKeyStore();
@@ -76,11 +77,14 @@ public class TypeAndPropertyKeyStore implements MainFileSerDe {
      * @throws NoSuchTypeException if the type is not found in the store.
      */
     public Short mapStringTypeToShortAndAssertTypeExists(String type) {
-        Short shortType = mapStringTypeToShort(type);
-        if (null == shortType) {
-            throw new NoSuchTypeException("The type " + type + " is not found in the store.");
+        if (null != type) {
+            Short shortType = mapStringTypeToShort(type);
+            if (null == shortType) {
+                throw new NoSuchTypeException("The type " + type + " is not found in the store.");
+            }
+            return shortType;
         }
-        return shortType;
+        return ANY;
     }
 
     /**
@@ -230,32 +234,36 @@ public class TypeAndPropertyKeyStore implements MainFileSerDe {
         return null == key || key.isEmpty();
     }
 
-    /**
-     * See {@link MainFileSerDe#getFileNamePrefix()}.
-     */
     @Override
-    public String getFileNamePrefix() {
-        return SERDE_FILE_NAME_PREFIX;
+    public void serializeAll(String outputDirectoryPath) throws IOException {
+        MainFileSerDeHelper.serialize(this, outputDirectoryPath);
     }
 
-    /**
-     * See {@link MainFileSerDe#serialize(ObjectOutputStream)}.
-     */
-    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+    @Override
+    public void deserializeAll(String inputDirectoryPath) throws IOException,
+        ClassNotFoundException {
+        MainFileSerDeHelper.deserialize(this, inputDirectoryPath);
+    }
+
+    @Override
+    public void serializeMainFile(ObjectOutputStream objectOutputStream) throws IOException {
         typeKeyStore.serialize(objectOutputStream);
         propertyKeyStore.serialize(objectOutputStream);
         objectOutputStream.writeObject(propertyDataTypeStore);
     }
 
-    /**
-     * See {@link MainFileSerDe#deserialize(ObjectInputStream)}.
-     */
+    @Override
     @SuppressWarnings("unchecked") // Ignore {@code HashMap<Short, DataType>} cast warnings.
-    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+    public void deserializeMainFile(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
         typeKeyStore.deserialize(objectInputStream);
         propertyKeyStore.deserialize(objectInputStream);
         propertyDataTypeStore = (HashMap<Short, DataType>) objectInputStream.readObject();
+    }
+
+    @Override
+    public String getMainFileNamePrefix() {
+        return SERDE_FILE_NAME_PREFIX;
     }
 
     /**
@@ -278,8 +286,7 @@ public class TypeAndPropertyKeyStore implements MainFileSerDe {
      *
      * @param a One of the objects.
      * @param b The other object.
-     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
-     * values, {@code false} otherwise.
+     * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests
     public static boolean isSameAs(TypeAndPropertyKeyStore a, TypeAndPropertyKeyStore b) {

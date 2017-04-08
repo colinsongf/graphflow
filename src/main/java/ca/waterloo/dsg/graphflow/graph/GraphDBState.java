@@ -1,15 +1,13 @@
 package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.exceptions.SerializationDeserializationException;
-import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDeHelper;
-import ca.waterloo.dsg.graphflow.graph.serde.ParallelSerDeHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
 /**
- * Used to reset, serialize or deserialize {@link Graph}, {@link EdgeStore},
+ * Used to reset, serialize, or deserialize {@link Graph}, {@link EdgeStore},
  * {@link VertexPropertyStore}, and {@link TypeAndPropertyKeyStore}.
  */
 public class GraphDBState {
@@ -35,27 +33,10 @@ public class GraphDBState {
      */
     public static void serialize(String outputDirectoryPath) {
         try {
-            MainFileSerDeHelper serDeHelper = new MainFileSerDeHelper(outputDirectoryPath);
-
-            ParallelSerDeHelper graphAdjListsSerdeHelper = new ParallelSerDeHelper(
-                outputDirectoryPath, Graph.getInstance().getGraphAdjListSerDeHelper());
-            graphAdjListsSerdeHelper.startSerialization();
-            serDeHelper.serialize(Graph.getInstance());
-
-            ParallelSerDeHelper edgeStoreDataSerdeHelper = new ParallelSerDeHelper(
-                outputDirectoryPath, EdgeStore.getInstance().getEdgeStoreDataSerDeHelper());
-            edgeStoreDataSerdeHelper.startSerialization();
-            ParallelSerDeHelper edgeStoreDataOffsetsSerdeHelper = new ParallelSerDeHelper(
-                outputDirectoryPath, EdgeStore.getInstance().getEdgeStoreDataOffsetsSerDeHelper());
-            edgeStoreDataOffsetsSerdeHelper.startSerialization();
-            serDeHelper.serialize(EdgeStore.getInstance());
-
-            serDeHelper.serialize(VertexPropertyStore.getInstance());
-            serDeHelper.serialize(TypeAndPropertyKeyStore.getInstance());
-
-            graphAdjListsSerdeHelper.finishSerDe();
-            edgeStoreDataSerdeHelper.finishSerDe();
-            edgeStoreDataOffsetsSerdeHelper.finishSerDe();
+            Graph.getInstance().serializeAll(outputDirectoryPath);
+            EdgeStore.getInstance().serializeAll(outputDirectoryPath);
+            TypeAndPropertyKeyStore.getInstance().serializeAll(outputDirectoryPath);
+            VertexPropertyStore.getInstance().serializeAll(outputDirectoryPath);
         } catch (IOException | InterruptedException e) {
             logger.error("Error in serialization:", e);
             throw new SerializationDeserializationException("Error in serialization.");
@@ -72,27 +53,10 @@ public class GraphDBState {
     public static void deserialize(String inputDirectoryPath) {
         GraphDBState.reset();
         try {
-            MainFileSerDeHelper serDeHelper = new MainFileSerDeHelper(inputDirectoryPath);
-
-            serDeHelper.deserialize(Graph.getInstance());
-            ParallelSerDeHelper graphAdjListsSerdeHelper = new ParallelSerDeHelper(
-                inputDirectoryPath, Graph.getInstance().getGraphAdjListSerDeHelper());
-            graphAdjListsSerdeHelper.startDeserialization();
-
-            serDeHelper.deserialize(EdgeStore.getInstance());
-            ParallelSerDeHelper edgeStoreDataSerdeHelper = new ParallelSerDeHelper(
-                inputDirectoryPath, EdgeStore.getInstance().getEdgeStoreDataSerDeHelper());
-            edgeStoreDataSerdeHelper.startDeserialization();
-            ParallelSerDeHelper edgeStoreDataOffsetsSerdeHelper = new ParallelSerDeHelper(
-                inputDirectoryPath, EdgeStore.getInstance().getEdgeStoreDataOffsetsSerDeHelper());
-            edgeStoreDataOffsetsSerdeHelper.startDeserialization();
-
-            serDeHelper.deserialize(VertexPropertyStore.getInstance());
-            serDeHelper.deserialize(TypeAndPropertyKeyStore.getInstance());
-
-            graphAdjListsSerdeHelper.finishSerDe();
-            edgeStoreDataSerdeHelper.finishSerDe();
-            edgeStoreDataOffsetsSerdeHelper.finishSerDe();
+            Graph.getInstance().deserializeAll(inputDirectoryPath);
+            EdgeStore.getInstance().deserializeAll(inputDirectoryPath);
+            TypeAndPropertyKeyStore.getInstance().deserializeAll(inputDirectoryPath);
+            VertexPropertyStore.getInstance().deserializeAll(inputDirectoryPath);
         } catch (IOException | ClassNotFoundException | InterruptedException e) {
             GraphDBState.reset();
             logger.error("Error in deserialization:", e);

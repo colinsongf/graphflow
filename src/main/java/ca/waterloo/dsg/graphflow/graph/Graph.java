@@ -1,7 +1,9 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.graph.serde.GraphAdjListSerDeContainer;
-import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDe;
+import ca.waterloo.dsg.graphflow.graph.serde.GraphParallelSerDeUtils;
+import ca.waterloo.dsg.graphflow.graph.serde.GraphflowSerializable;
+import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDeHelper;
+import ca.waterloo.dsg.graphflow.graph.serde.ParallelArraySerDeUtils;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.LongArrayList;
@@ -27,7 +29,7 @@ import java.util.StringJoiner;
 /**
  * Encapsulates the Graph representation and provides utility methods.
  */
-public class Graph implements MainFileSerDe {
+public class Graph implements GraphflowSerializable {
 
     // Used to represent different versions of the graph.
     public enum GraphVersion {
@@ -63,9 +65,9 @@ public class Graph implements MainFileSerDe {
         }
     }
 
-    private static final Logger logger = LogManager.getLogger(Graph.class);
     private static Graph INSTANCE = new Graph();
-    private static String SERDE_FILE_NAME_PREFIX = "graph";
+
+    private static final Logger logger = LogManager.getLogger(Graph.class);
     private static final int DEFAULT_GRAPH_SIZE = 2;
 
     // Stores the highest vertex ID of the permanent graph.
@@ -93,7 +95,7 @@ public class Graph implements MainFileSerDe {
     private Map<Integer, SortedAdjacencyList> mergedForwardAdjLists = new HashMap<>();
     private Map<Integer, SortedAdjacencyList> mergedBackwardAdjLists = new HashMap<>();
 
-    protected Graph() {
+    private Graph() {
         initializeSortedAdjacencyLists(0 /* starting index */, DEFAULT_GRAPH_SIZE);
     }
 
@@ -557,31 +559,37 @@ public class Graph implements MainFileSerDe {
         return "[" + stringJoiner.toString() + "]";
     }
 
-    /**
-     * See {@link MainFileSerDe#getFileNamePrefix()}.
-     */
     @Override
-    public String getFileNamePrefix() {
-        return SERDE_FILE_NAME_PREFIX;
+    public void serializeAll(String outputDirectoryPath) throws IOException, InterruptedException {
+        finalizeChanges();
+        ParallelArraySerDeUtils parallelArraySerDeHelper = new GraphParallelSerDeUtils(
+            outputDirectoryPath, forwardAdjLists, backwardAdjLists, highestPermanentVertexId + 1);
+        parallelArraySerDeHelper.startSerialization();
+        MainFileSerDeHelper.serialize(this, outputDirectoryPath);
+        parallelArraySerDeHelper.finishSerDe();
     }
 
-    /**
-     * See {@link MainFileSerDe#serialize(ObjectOutputStream)}.
-     */
     @Override
-    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
-        finalizeChanges();
+    public void deserializeAll(String inputDirectoryPath) throws IOException,
+        ClassNotFoundException,
+        InterruptedException {
+        MainFileSerDeHelper.deserialize(this, inputDirectoryPath);
+        ParallelArraySerDeUtils parallelArraySerDeHelper = new GraphParallelSerDeUtils(
+            inputDirectoryPath, forwardAdjLists, backwardAdjLists, highestPermanentVertexId + 1);
+        parallelArraySerDeHelper.startDeserialization();
+        parallelArraySerDeHelper.finishSerDe();
+    }
+
+    @Override
+    public void serializeMainFile(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeInt(highestPermanentVertexId);
         objectOutputStream.writeInt(forwardAdjLists.length);
         objectOutputStream.writeInt(backwardAdjLists.length);
         vertexTypes.serialize(objectOutputStream);
     }
 
-    /**
-     * See {@link MainFileSerDe#deserialize(ObjectInputStream)}.
-     */
     @Override
-    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+    public void deserializeMainFile(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
         highestPermanentVertexId = objectInputStream.readInt();
         highestMergedVertexId = highestPermanentVertexId;
@@ -593,9 +601,9 @@ public class Graph implements MainFileSerDe {
         vertexTypes.deserialize(objectInputStream);
     }
 
-    public GraphAdjListSerDeContainer getGraphAdjListSerDeHelper() {
-        return new GraphAdjListSerDeContainer(highestPermanentVertexId + 1, forwardAdjLists,
-            backwardAdjLists);
+    @Override
+    public String getMainFileNamePrefix() {
+        return Graph.class.getName().toLowerCase();
     }
 
     /**
@@ -618,8 +626,7 @@ public class Graph implements MainFileSerDe {
      *
      * @param a One of the objects.
      * @param b The other object.
-     * @return {@code true} if the {@code a} object values are the same as the
-     * {@code b} object values, {@code false} otherwise.
+     * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests
     public static boolean isSamePermanentGraphAs(Graph a, Graph b) {

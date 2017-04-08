@@ -1,7 +1,5 @@
 package ca.waterloo.dsg.graphflow.util;
 
-import ca.waterloo.dsg.graphflow.graph.GraphDBState;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -75,7 +73,9 @@ public class StringToIntKeyMap {
     }
 
     /**
-     * See {@link GraphDBState#serialize(String)}
+     * Serializes data to the given {@link ObjectOutputStream}.
+     *
+     * @param objectOutputStream The {@link ObjectOutputStream} to write serialized data to.
      */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         objectOutputStream.writeInt(nextKeyAsInt);
@@ -83,7 +83,9 @@ public class StringToIntKeyMap {
     }
 
     /**
-     * See {@link GraphDBState#deserialize(String)}
+     * Deserializes data from the given {@link ObjectInputStream}.
+     *
+     * @param objectInputStream The {@link ObjectInputStream} to read serialized data from.
      */
     @SuppressWarnings("unchecked") // Ignore {@code HashMap<String, Integer>} cast warnings.
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,

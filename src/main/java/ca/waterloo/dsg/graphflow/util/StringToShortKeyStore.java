@@ -1,7 +1,5 @@
 package ca.waterloo.dsg.graphflow.util;
 
-import ca.waterloo.dsg.graphflow.graph.GraphDBState;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -31,7 +29,9 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
     }
 
     /**
-     * See {@link GraphDBState#serialize(String)}.
+     * Serializes data to the given {@link ObjectOutputStream}.
+     *
+     * @param objectOutputStream The {@link ObjectOutputStream} to write serialized data to.
      */
     public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
         super.serialize(objectOutputStream);
@@ -39,7 +39,9 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
     }
 
     /**
-     * See {@link GraphDBState#deserialize(String)}.
+     * Deserializes data from the given {@link ObjectInputStream}.
+     *
+     * @param objectInputStream The {@link ObjectInputStream} to read serialized data from.
      */
     public void deserialize(ObjectInputStream objectInputStream) throws IOException,
         ClassNotFoundException {
@@ -89,8 +91,7 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
      *
      * @param a One of the objects.
      * @param b The other object.
-     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
-     * values, {@code false} otherwise.
+     * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests
     public static boolean isSameAs(StringToShortKeyStore a, StringToShortKeyStore b) {

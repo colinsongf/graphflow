@@ -3,6 +3,7 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import org.antlr.v4.runtime.misc.Pair;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -18,10 +19,12 @@ public class EdgeStoreTest {
     private Map<Short, Pair<DataType, String>> propertiesOfEdgeToAdd = new HashMap<>();
     private int propertiesLengthInBytes;
 
-    private void resetPopulateTypeStoreAndPropertiesMap() {
-        EdgeStore.getInstance().reset();
-        TypeAndPropertyKeyStore.getInstance().reset();
+    @Before
+    public void resetGraphDB() {
+        GraphDBState.reset();
+    }
 
+    private void populateTypeStoreAndPropertiesMap() {
         for (short i = 0; i < 3; ++i) {
             TypeAndPropertyKeyStore.getInstance().propertyDataTypeStore.put(keys[i], DataType.
                 STRING);
@@ -41,7 +44,6 @@ public class EdgeStoreTest {
 
     @Test
     public void testGetNextIdNeverYetAssignedInsertsFrom0AndGivesLastDeletedId() {
-        EdgeStore.getInstance().reset();
         Assert.assertEquals(0, EdgeStore.getInstance().getNextIdToAssign());
         Assert.assertEquals(1, EdgeStore.getInstance().getNextIdToAssign());
         EdgeStore.getInstance().deleteEdge(0);
@@ -60,7 +62,7 @@ public class EdgeStoreTest {
 
     @Test
     public void testAddEdgeAndVerifyProperties() {
-        resetPopulateTypeStoreAndPropertiesMap();
+        populateTypeStoreAndPropertiesMap();
         // Adds an edge with ID 0. Ensures length of the bucket and dataOffset are set correctly.
         EdgeStore.getInstance().addEdge(propertiesOfEdgeToAdd);
 
@@ -75,7 +77,7 @@ public class EdgeStoreTest {
 
     @Test
     public void testAddEdgeWithNoPropertiesAtStartMiddleAndEndOfABucket() {
-        resetPopulateTypeStoreAndPropertiesMap();
+        populateTypeStoreAndPropertiesMap();
         EdgeStore edgeStore = EdgeStore.getInstance();
 
         // Add 7 edges with IDs from 0 to 6.
@@ -107,7 +109,7 @@ public class EdgeStoreTest {
 
     @Test
     public void testAddEdgeWithMultipleDataTypeProperties() {
-        resetPopulateTypeStoreAndPropertiesMap();
+        populateTypeStoreAndPropertiesMap();
         for (short i = 0; i < 3; ++i) {
             propertiesOfEdgeToAdd.put(keys[i], new Pair<>(DataType.STRING, values[i]));
         }
@@ -134,14 +136,14 @@ public class EdgeStoreTest {
 
     @Test
     public void testAddEdgeWithLargeEdgeIds() {
-        resetPopulateTypeStoreAndPropertiesMap();
+        populateTypeStoreAndPropertiesMap();
         EdgeStore edgeStore = EdgeStore.getInstance();
 
         edgeStore.setNextIDNeverYetAssigned(0 /* partition ID */, 10 /* bucket ID */,
             (byte) 5 /* offset ID */);
         edgeStore.addEdge(propertiesOfEdgeToAdd);
         Assert.assertEquals(propertiesLengthInBytes, edgeStore.data[0][10].length);
-        for (int i = 0; i < edgeStore.MAX_EDGES_PER_BUCKET; ++i) {
+        for (int i = 0; i < EdgeStore.MAX_EDGES_PER_BUCKET; ++i) {
             if (i <= 5) {
                 Assert.assertEquals(0, edgeStore.dataOffsets[0][10][i]);
             } else {
@@ -158,7 +160,7 @@ public class EdgeStoreTest {
             (byte) 2 /* offset ID */);
         EdgeStore.getInstance().addEdge(propertiesOfEdgeToAdd); // added edge has offset ID 3.
         Assert.assertEquals(propertiesLengthInBytes, edgeStore.data[1][24].length);
-        for (int i = 0; i < edgeStore.MAX_EDGES_PER_BUCKET; ++i) {
+        for (int i = 0; i < EdgeStore.MAX_EDGES_PER_BUCKET; ++i) {
             if (i <= 2) {
                 Assert.assertEquals(0, edgeStore.dataOffsets[1][24][i]);
             } else {

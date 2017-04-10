@@ -78,8 +78,8 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     public AbstractStructuredQuery visitContinuousMatchQuery(ContinuousMatchQueryContext ctx) {
         StructuredQuery structuredQuery = (StructuredQuery) visit(ctx.matchQuery());
         structuredQuery.setQueryOperation(QueryOperation.CONTINUOUS_MATCH);
-        structuredQuery.setContinuousMatchAction(ctx.userOperation().getText());
-        structuredQuery.setContinuousMatchOutputLocation(ctx.operationLocation().getText());
+        structuredQuery.setContinuousMatchAction(ctx.FILE().getText());
+        structuredQuery.setFilePath(ctx.filePath().getText());
         return structuredQuery;
     }
 
@@ -88,6 +88,18 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         StructuredQuery structuredQuery = new StructuredQuery();
         structuredQuery.setQueryOperation(QueryOperation.SHORTEST_PATH);
         structuredQuery.addRelation((QueryRelation) visit(ctx.pathPattern()));
+        return structuredQuery;
+    }
+
+    @Override
+    public AbstractStructuredQuery visitDurabilityQuery(DurabilityQueryContext ctx) {
+        StructuredQuery structuredQuery = new StructuredQuery();
+        if (null != ctx.LOAD()) {
+            structuredQuery.setQueryOperation(QueryOperation.LOAD_GRAPH);
+        } else {
+            structuredQuery.setQueryOperation(QueryOperation.SAVE_GRAPH);
+        }
+        structuredQuery.setFilePath(ctx.filePath().getText());
         return structuredQuery;
     }
 

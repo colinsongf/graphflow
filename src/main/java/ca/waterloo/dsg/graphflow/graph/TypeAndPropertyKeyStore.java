@@ -3,29 +3,38 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
+import ca.waterloo.dsg.graphflow.graph.serde.GraphflowSerializable;
+import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDeHelper;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.StringToShortKeyStore;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Stores a mapping from {@code String} types and property keys to {@code short} types and
  * property keys.
  */
-public class TypeAndPropertyKeyStore {
+public class TypeAndPropertyKeyStore implements GraphflowSerializable {
 
+    private static TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
+
+    private static final String SERDE_FILE_NAME_PREFIX = "type_and_property_key_store";
     public static final short ANY = -1;
-    private static final TypeAndPropertyKeyStore INSTANCE = new TypeAndPropertyKeyStore();
     @VisibleForTesting
     StringToShortKeyStore typeKeyStore = new StringToShortKeyStore();
     // TypeAndPropertyKeyStore has the invariant that if a property key has a short key,
     // then the property key certainly has a DataType associated with it.
     @VisibleForTesting
     StringToShortKeyStore propertyKeyStore = new StringToShortKeyStore();
+
     @VisibleForTesting
     Map<Short, DataType> propertyDataTypeStore = new HashMap<>();
 
@@ -33,7 +42,7 @@ public class TypeAndPropertyKeyStore {
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
      * class.
      */
-    private TypeAndPropertyKeyStore() { }
+    private TypeAndPropertyKeyStore() {}
 
     /**
      * @param stringType The {@code String} type.
@@ -60,8 +69,11 @@ public class TypeAndPropertyKeyStore {
     }
 
     /**
-     * Asserts the {@code Short} type has been inserted in the store previously.
+     * Asserts that the {@code Short} type has been inserted in the store previously.
      *
+     * @param type The {@code String} type.
+     * @return The {@code short} type. If {@code stringType} is either {@code null} or an empty
+     * string, {@link TypeAndPropertyKeyStore#ANY} is returned.
      * @throws NoSuchTypeException if the type is not found in the store.
      */
     public Short mapStringTypeToShortAndAssertTypeExists(String type) {
@@ -218,11 +230,47 @@ public class TypeAndPropertyKeyStore {
         return propertyKeyStore.mapStringKeyToShort(stringKey);
     }
 
-    @UsedOnlyByTests
-    public void reset() {
-        typeKeyStore.reset();
-        propertyKeyStore.reset();
-        propertyDataTypeStore.clear();
+    private boolean isNullOrEmpty(String key) {
+        return null == key || key.isEmpty();
+    }
+
+    @Override
+    public void serializeAll(String outputDirectoryPath) throws IOException {
+        MainFileSerDeHelper.serialize(this, outputDirectoryPath);
+    }
+
+    @Override
+    public void deserializeAll(String inputDirectoryPath) throws IOException,
+        ClassNotFoundException {
+        MainFileSerDeHelper.deserialize(this, inputDirectoryPath);
+    }
+
+    @Override
+    public void serializeMainFile(ObjectOutputStream objectOutputStream) throws IOException {
+        typeKeyStore.serialize(objectOutputStream);
+        propertyKeyStore.serialize(objectOutputStream);
+        objectOutputStream.writeObject(propertyDataTypeStore);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked") // Ignore {@code HashMap<Short, DataType>} cast warnings.
+    public void deserializeMainFile(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        typeKeyStore.deserialize(objectInputStream);
+        propertyKeyStore.deserialize(objectInputStream);
+        propertyDataTypeStore = (HashMap<Short, DataType>) objectInputStream.readObject();
+    }
+
+    @Override
+    public String getMainFileNamePrefix() {
+        return SERDE_FILE_NAME_PREFIX;
+    }
+
+    /**
+     * Resets the {@link TypeAndPropertyKeyStore} state by creating a new {@code INSTANCE}.
+     */
+    static void reset() {
+        INSTANCE = new TypeAndPropertyKeyStore();
     }
 
     /**
@@ -232,7 +280,27 @@ public class TypeAndPropertyKeyStore {
         return INSTANCE;
     }
 
-    private boolean isNullOrEmpty(String key) {
-        return null == key || "".equals(key);
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
+     */
+    @UsedOnlyByTests
+    public static boolean isSameAs(TypeAndPropertyKeyStore a, TypeAndPropertyKeyStore b) {
+        if (a == b) {
+            return true;
+        }
+        if (null == a || null == b) {
+            return false;
+        }
+        if (!StringToShortKeyStore.isSameAs(a.typeKeyStore, b.typeKeyStore) ||
+            !StringToShortKeyStore.isSameAs(a.propertyKeyStore, b.propertyKeyStore) ||
+            !Objects.equals(a.propertyDataTypeStore, b.propertyDataTypeStore)) {
+            return false;
+        }
+        return true;
     }
 }

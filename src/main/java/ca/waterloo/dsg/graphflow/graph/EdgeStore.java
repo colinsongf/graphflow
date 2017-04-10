@@ -1,27 +1,35 @@
 package ca.waterloo.dsg.graphflow.graph;
 
+import ca.waterloo.dsg.graphflow.graph.serde.EdgeStoreParallelSerDeUtils;
+import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDeHelper;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
  * Stores the IDs and properties of the edges in the Graph.
- * Warning: The properties of a deleted are not deleted. The ID of the deleted edge is recycled and
- * the properties are overwritten by those of the edge that gets assigned the recycled ID next.
+ * <p>
+ * Warning: The properties of a deleted edge are not deleted. The ID of the deleted edge is recycled
+ * and the properties are overwritten by those of the edge that gets assigned the recycled ID next.
  */
 public class EdgeStore extends PropertyStore {
 
-    private static final EdgeStore INSTANCE = new EdgeStore();
-
+    private static EdgeStore INSTANCE = new EdgeStore();
+    @VisibleForTesting
+    static final int MAX_EDGES_PER_BUCKET = 8;
     private static final int INITIAL_CAPACITY = 2;
-    public final int MAX_EDGES_PER_BUCKET = 8;
-    public final int MAX_BUCKETS_PER_PARTITION = 1000000;
+    private static final int MAX_BUCKETS_PER_PARTITION = 1000000;
+
     @VisibleForTesting
     byte[][][] data = new byte[INITIAL_CAPACITY][][];
     @VisibleForTesting
@@ -37,7 +45,7 @@ public class EdgeStore extends PropertyStore {
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
      * class.
      */
-    private EdgeStore() { }
+    private EdgeStore() {}
 
     /**
      * Adds a new edge and sets its properties to the given properties.
@@ -134,8 +142,7 @@ public class EdgeStore extends PropertyStore {
      * @param edgeId The ID of the edge.
      * @param properties The properties of the edge. See {@link #addEdge(Map)}.
      */
-    @VisibleForTesting
-    void setProperties(long edgeId, Map<Short, Pair<DataType, String>> properties) {
+    private void setProperties(long edgeId, Map<Short, Pair<DataType, String>> properties) {
         int partitionId = (int) ((edgeId & 0xFFF00000) >> 40);
         int bucketId = (int) ((edgeId & 0x000FFFF0) >> 8);
         byte bucketOffset = (byte) (edgeId & 0x000000F);
@@ -269,18 +276,62 @@ public class EdgeStore extends PropertyStore {
             (((long) bucketID) & 0xFFFF) << 8 | (long) bucketOffset;
     }
 
-    @UsedOnlyByTests
-    public void reset() {
-        nextIDNeverYetAssigned = 0;
-        nextBucketOffset = 0;
-        nextBucketId = 0;
-        nextPartitionId = 0;
+    @Override
+    public void serializeAll(String outputDirectoryPath) throws IOException, InterruptedException {
+        EdgeStoreParallelSerDeUtils parallelArraySerDeHelper = new EdgeStoreParallelSerDeUtils(
+            outputDirectoryPath, data, dataOffsets, nextPartitionId + 1);
+        parallelArraySerDeHelper.startSerialization();
+        MainFileSerDeHelper.serialize(this, outputDirectoryPath);
+        parallelArraySerDeHelper.finishSerDe();
+    }
 
-        recycledIds = new long[INITIAL_CAPACITY];
-        recycledIdsSize = 0;
+    @Override
+    public void deserializeAll(String inputDirectoryPath) throws IOException,
+        ClassNotFoundException,
+        InterruptedException {
+        // Deserialize main file first to initialize arrays.
+        MainFileSerDeHelper.deserialize(this, inputDirectoryPath);
+        EdgeStoreParallelSerDeUtils parallelArraySerDeHelper = new EdgeStoreParallelSerDeUtils(
+            inputDirectoryPath, data, dataOffsets, nextPartitionId + 1);
+        parallelArraySerDeHelper.startDeserialization();
+        parallelArraySerDeHelper.finishSerDe();
+    }
 
-        data = new byte[INITIAL_CAPACITY][][];
-        dataOffsets = new int[INITIAL_CAPACITY][][];
+    @Override
+    public void serializeMainFile(ObjectOutputStream objectOutputStream) throws IOException {
+        objectOutputStream.writeInt(data.length);
+        objectOutputStream.writeLong(nextIDNeverYetAssigned);
+        objectOutputStream.writeByte(nextBucketOffset);
+        objectOutputStream.writeInt(nextBucketId);
+        objectOutputStream.writeInt(nextPartitionId);
+        objectOutputStream.writeInt(recycledIdsSize);
+        objectOutputStream.writeObject(recycledIds);
+    }
+
+    @Override
+    public void deserializeMainFile(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        int arrayLength = objectInputStream.readInt();
+        this.data = new byte[arrayLength][][];
+        this.dataOffsets = new int[arrayLength][][];
+        this.nextIDNeverYetAssigned = objectInputStream.readLong();
+        this.nextBucketOffset = objectInputStream.readByte();
+        this.nextBucketId = objectInputStream.readInt();
+        this.nextPartitionId = objectInputStream.readInt();
+        this.recycledIdsSize = objectInputStream.readInt();
+        this.recycledIds = (long[]) objectInputStream.readObject();
+    }
+
+    @Override
+    public String getMainFileNamePrefix() {
+        return EdgeStore.class.getName().toLowerCase();
+    }
+
+    /**
+     * Resets {@link EdgeStore} by creating a new {@code INSTANCE}.
+     */
+    static void reset() {
+        INSTANCE = new EdgeStore();
     }
 
     /**
@@ -288,5 +339,40 @@ public class EdgeStore extends PropertyStore {
      */
     public static EdgeStore getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
+     */
+    @UsedOnlyByTests
+    public static boolean isSameAs(EdgeStore a, EdgeStore b) {
+        if (a == b) {
+            return true;
+        }
+        if (null == a || null == b) {
+            return false;
+        }
+        if (a.nextIDNeverYetAssigned != b.nextIDNeverYetAssigned ||
+            a.nextBucketOffset != b.nextBucketOffset ||
+            a.nextBucketId != b.nextBucketId ||
+            a.nextPartitionId != b.nextPartitionId ||
+            a.recycledIdsSize != b.recycledIdsSize) {
+            return false;
+        }
+        for (int i = 0; i < a.recycledIdsSize; i++) {
+            if (a.recycledIds[i] != b.recycledIds[i]) {
+                return false;
+            }
+        }
+        if (!Arrays.deepEquals(a.data, b.data) ||
+            !Arrays.deepEquals(a.dataOffsets, b.dataOffsets)) {
+            return false;
+        }
+        return true;
     }
 }

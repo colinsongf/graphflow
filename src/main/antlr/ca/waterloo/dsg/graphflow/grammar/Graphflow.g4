@@ -9,13 +9,16 @@ query : matchQuery
        | createQuery
        | deleteQuery
        | shortestPathQuery
+       | durabilityQuery
        ;
 
 matchQuery : MATCH whitespace matchPattern whitespace? returnClause? ;
-continuousMatchQuery : CONTINUOUS whitespace matchQuery whitespace userOperation whitespace operationLocation;
+continuousMatchQuery : CONTINUOUS whitespace matchQuery whitespace FILE whitespace SINGLE_QUOTE filePath SINGLE_QUOTE ;
 createQuery : CREATE whitespace (createEdgePattern | createVertexPattern) ;
 deleteQuery : DELETE whitespace deletePattern ;
 shortestPathQuery: SHORTEST whitespace PATH whitespace pathPattern ;
+durabilityQuery: ( LOAD whitespace FROM  | SAVE whitespace TO ) whitespace DIR whitespace
+                    SINGLE_QUOTE filePath SINGLE_QUOTE ;
 
 matchPattern: variableEdge ( whitespace? ',' whitespace? variableEdge )* ;
 deletePattern : digitsEdgeWithOptionalType ( whitespace? ',' whitespace? digitsEdgeWithOptionalType )* ;
@@ -23,8 +26,8 @@ createEdgePattern : digitsEdgeWithTypeAndProperties ( whitespace? ',' whitespace
 createVertexPattern : digitsVertexWithTypeAndProperties ( whitespace ? ',' whitespace? digitsVertexWithTypeAndProperties)* ;
 pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
 returnClause : RETURN whitespace (variable | variableWithProperty | aggregationPattern ) ( whitespace? ',' whitespace? (variable | variableWithProperty | aggregationPattern ) )* ;
-aggregationPattern : ( ( aggregationFunction '(' whitespace? ( variable | variableWithProperty ) whitespace? ')' ) 
-						| ( countStarPattern ) );
+aggregationPattern : ( aggregationFunction '(' whitespace? ( variable | variableWithProperty ) whitespace? ')' )
+                    | countStarPattern;
 aggregationFunction : ( AVG | MAX | MIN | SUM ) ;
 countStarPattern :  COUNT '(' whitespace? '*' whitespace? ')' ;
 
@@ -47,8 +50,7 @@ property : key whitespace? ':' whitespace? dataType whitespace? '=' whitespace? 
 key : variable ;
 value : ( Digits | Characters | UNDERSCORE | DASH | DOT )+ ;
 
-userOperation : FILE ;
-operationLocation: variable;
+filePath: ( Digits | Characters | UNDERSCORE | DASH | DOT | SLASH | SPACE )+ ;
 
 variableWithProperty : variable DOT variable;
 variable : ( Digits | Characters | UNDERSCORE | DASH )+ ;
@@ -86,6 +88,12 @@ MIN : M I N ;
 
 SUM : S U M ;
 
+LOAD: L O A D ;
+SAVE: S A V E ;
+FROM: F R O M ;
+TO: T O ;
+DIR: D I R ;
+
 whitespace : (WHITESPACE)+ ;
 
 Characters : ( [a-z] | [A-Z] )+ ;
@@ -104,20 +112,18 @@ Comment : ( '/*' ( Comment_0 | ( '*' Comment_1 ) )* '*/' )
         ;
 
 RIGHT_ARROWHEAD : '>' ;
-
 DASH : '-' ;
-
 UNDERSCORE : '_' ;
-
 DOT : '.' ;
+SPACE : [ ] ;
+SLASH : '/' ;
+SINGLE_QUOTE: '\'' ;
 
 fragment Comment_1 : [\u0000-.0-\uFFFF] ;
 
 fragment Comment_0 : [\u0000-)+-\uFFFF] ;
 
 fragment Comment_2 : [\u0000-\t\u000B-\f\u000E-\uFFFF] ;
-
-fragment SPACE : [ ] ;
 
 fragment TAB : [\t] ;
 

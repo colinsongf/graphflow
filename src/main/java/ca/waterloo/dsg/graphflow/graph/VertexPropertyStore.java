@@ -1,10 +1,16 @@
 package ca.waterloo.dsg.graphflow.graph;
 
+import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDeHelper;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -14,18 +20,19 @@ import java.util.NoSuchElementException;
  */
 public class VertexPropertyStore extends PropertyStore {
 
-    private static final VertexPropertyStore INSTANCE = new VertexPropertyStore();
+    private static VertexPropertyStore INSTANCE = new VertexPropertyStore();
 
+    private static final String SERDE_FILE_NAME_PREFIX = "vertex_property_store";
     private static final int INITIAL_CAPACITY = 2;
     @VisibleForTesting
-    byte[][] vertexProperties = null;
+    byte[][] vertexProperties;
 
     /**
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
      * class.
      */
     private VertexPropertyStore() {
-        reset();
+        vertexProperties = new byte[INITIAL_CAPACITY][];
     }
 
     /**
@@ -62,15 +69,18 @@ public class VertexPropertyStore extends PropertyStore {
         if (vertexId >= vertexProperties.length) {
             throw new NoSuchElementException("Vertex with ID " + vertexId + " does not exist.");
         }
-        Map<Short, Object> edgeProperties = new HashMap<>();
+        Map<Short, Object> properties = new HashMap<>();
         byte[] data = vertexProperties[vertexId];
+        if (null == data) {
+            return properties;
+        }
         propertyIterator.reset(data, 0, data.length);
         Pair<Short, Object> keyValue;
         while (propertyIterator.hasNext()) {
             keyValue = propertyIterator.next();
-            edgeProperties.put(keyValue.a, keyValue.b);
+            properties.put(keyValue.a, keyValue.b);
         }
-        return edgeProperties;
+        return properties;
     }
 
     /**
@@ -100,6 +110,40 @@ public class VertexPropertyStore extends PropertyStore {
         return null;
     }
 
+    @Override
+    public void serializeAll(String outputDirectoryPath) throws IOException {
+        MainFileSerDeHelper.serialize(this, outputDirectoryPath);
+    }
+
+    @Override
+    public void deserializeAll(String inputDirectoryPath) throws IOException,
+        ClassNotFoundException {
+        MainFileSerDeHelper.deserialize(this, inputDirectoryPath);
+    }
+
+    @Override
+    public void serializeMainFile(ObjectOutputStream objectOutputStream) throws IOException {
+        objectOutputStream.writeObject(vertexProperties);
+    }
+
+    @Override
+    public void deserializeMainFile(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        vertexProperties = (byte[][]) objectInputStream.readObject();
+    }
+
+    @Override
+    public String getMainFileNamePrefix() {
+        return SERDE_FILE_NAME_PREFIX;
+    }
+
+    /**
+     * Resets the {@link VertexPropertyStore} state by creating a new {@code INSTANCE}.
+     */
+    static void reset() {
+        INSTANCE = new VertexPropertyStore();
+    }
+
     /**
      * Returns the singleton instance {@link #INSTANCE}.
      */
@@ -107,8 +151,22 @@ public class VertexPropertyStore extends PropertyStore {
         return INSTANCE;
     }
 
-    @VisibleForTesting
-    public void reset() {
-        vertexProperties = new byte[INITIAL_CAPACITY][];
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
+     */
+    @UsedOnlyByTests
+    public static boolean isSameAs(VertexPropertyStore a, VertexPropertyStore b) {
+        if (a == b) {
+            return true;
+        }
+        if (null == a || null == b) {
+            return false;
+        }
+        return Arrays.deepEquals(a.vertexProperties, b.vertexProperties);
     }
 }

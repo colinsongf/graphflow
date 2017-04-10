@@ -10,8 +10,8 @@ import org.junit.Test;
 public class TypeAndPropertyKeyStoreTest {
 
     @BeforeClass
-    public static void setUpBeforeClass() {
-        TypeAndPropertyKeyStore.getInstance().reset();
+    public static void resetGraphDBState() {
+        GraphDBState.reset();
     }
 
     @Test

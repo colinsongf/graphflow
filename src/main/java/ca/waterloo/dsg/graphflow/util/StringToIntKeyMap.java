@@ -1,8 +1,12 @@
 package ca.waterloo.dsg.graphflow.util;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -26,7 +30,7 @@ public class StringToIntKeyMap {
         }
         return stringToIntMap.get(key);
     }
-    
+
     /**
      * @param stringKey The {@code String} key.
      * @return The {@code int} mapping of the given {@code String} key.
@@ -48,8 +52,9 @@ public class StringToIntKeyMap {
     /**
      * Adjusts other data structures that classes extending {@link StringToIntKeyMap} might have.
      * This is called when a new key is being inserted to the map.
-     * 
+     * <p>
      * Note: Should be implemented by classes extending {@link StringToIntKeyMap}.
+     *
      * @param newStringKey new String key being inserted.
      * @param newIntKey the new integer key that corresponds to the newStringKey.
      */
@@ -68,10 +73,45 @@ public class StringToIntKeyMap {
     }
 
     /**
-     * Resets the map.
+     * Serializes data to the given {@link ObjectOutputStream}.
+     *
+     * @param objectOutputStream The {@link ObjectOutputStream} to write serialized data to.
      */
-    public void reset() {
-        stringToIntMap = new HashMap<>();
-        nextKeyAsInt = 0;
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+        objectOutputStream.writeInt(nextKeyAsInt);
+        objectOutputStream.writeObject(stringToIntMap);
+    }
+
+    /**
+     * Deserializes data from the given {@link ObjectInputStream}.
+     *
+     * @param objectInputStream The {@link ObjectInputStream} to read serialized data from.
+     */
+    @SuppressWarnings("unchecked") // Ignore {@code HashMap<String, Integer>} cast warnings.
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        nextKeyAsInt = objectInputStream.readInt();
+        stringToIntMap = (HashMap<String, Integer>) objectInputStream.readObject();
+    }
+
+    /**
+     * Used during unit testing to check the equality of objects. This is used instead of
+     * overriding the standard {@code equals()} and {@code hashCode()} methods.
+     *
+     * @param a One of the objects.
+     * @param b The other object.
+     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
+     * values, {@code false} otherwise.
+     */
+    @UsedOnlyByTests
+    public static boolean isSameAs(StringToIntKeyMap a, StringToIntKeyMap b) {
+        if (a == b) {
+            return true;
+        }
+        if (null == a || null == b) {
+            return false;
+        }
+        return a.nextKeyAsInt == b.nextKeyAsInt &&
+            Objects.equals(a.stringToIntMap, b.stringToIntMap);
     }
 }

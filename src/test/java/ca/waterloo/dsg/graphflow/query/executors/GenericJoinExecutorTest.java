@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
@@ -20,7 +21,7 @@ public class GenericJoinExecutorTest {
 
     @Before
     public void setUp() throws Exception {
-        Graph.getInstance().reset();
+        GraphDBState.reset();
     }
 
     /**

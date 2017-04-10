@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,5 +46,13 @@ public class ContinuousMatchQueryExecutor {
      */
     public static ContinuousMatchQueryExecutor getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Deletes all the registered CONTINUOUS MATCH queries.
+     */
+    @UsedOnlyByTests
+    void reset() {
+        continuousMatchQueryPlans.clear();
     }
 }

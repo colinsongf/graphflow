@@ -3,9 +3,9 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import org.antlr.v4.runtime.misc.Pair;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -14,12 +14,15 @@ import java.util.Map;
  */
 public class VertexPropertyStoreTest {
 
+    @Before
+    public void resetGraphDB() {
+        GraphDBState.reset();
+    }
+
     @Test
     public void testSetAndGetMethods() {
         TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
-        typeAndPropertyKeyStore.reset();
         VertexPropertyStore vertexPropertyStore = VertexPropertyStore.getInstance();
-        vertexPropertyStore.reset();
 
         Map<String, Pair<String, String>> keysToAddToPropertyStore = new LinkedHashMap<>();
         keysToAddToPropertyStore.put("Team Name", new Pair<>("String", "Real Madrid C.F."));

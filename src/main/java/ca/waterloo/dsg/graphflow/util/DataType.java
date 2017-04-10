@@ -199,7 +199,7 @@ public enum DataType {
     private static void serializeInt(byte[] serializedBytes, String value) {
         int integerValue = Integer.parseInt(value);
         for (int i = Integer.BYTES; i >= 0; i--) {
-            serializedBytes[i + 1] = (byte)(integerValue & 0xFF);
+            serializedBytes[i + 1] = (byte) (integerValue & 0xFF);
             integerValue >>= Byte.SIZE;
         }
     }
@@ -207,7 +207,7 @@ public enum DataType {
     private static void serializeDouble(byte[] serializedBytes, String value) {
         long longValue = Double.doubleToLongBits(Double.parseDouble(value));
         for (int i = Double.BYTES; i >= 0; i--) {
-            serializedBytes[i + 1] = (byte)(longValue & 0xFF);
+            serializedBytes[i + 1] = (byte) (longValue & 0xFF);
             longValue >>= Byte.SIZE;
         }
     }
@@ -224,7 +224,7 @@ public enum DataType {
         byte[] valueAsBytes = value.getBytes(StandardCharsets.UTF_8);
         int length = valueAsBytes.length;
         for (int i = Integer.BYTES; i >= 0; i--) {
-            serializedBytes[i + 1] = (byte)(length & 0xFF);
+            serializedBytes[i + 1] = (byte) (length & 0xFF);
             length >>= Byte.SIZE;
         }
         System.arraycopy(valueAsBytes, 0, serializedBytes, 6, valueAsBytes.length);

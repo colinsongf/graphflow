@@ -7,6 +7,9 @@ import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -307,7 +310,7 @@ public class SortedAdjacencyList {
         i -= stepSize;
         stepSize >>= 1;
         while (stepSize > 0) {
-            if((i + stepSize) < size && (neighbourIds[i + stepSize] < neighbourId ||
+            if ((i + stepSize) < size && (neighbourIds[i + stepSize] < neighbourId ||
                 (neighbourIds[i + stepSize] == neighbourId && edgeTypes[i + stepSize] <
                     edgeTypeFilter))) {
                 i += stepSize;
@@ -317,7 +320,7 @@ public class SortedAdjacencyList {
         if (((i + 1) < size) && neighbourIds[i + 1] == neighbourId && (TypeAndPropertyKeyStore.ANY
             == edgeTypeFilter || edgeTypeFilter == edgeTypes[i + 1]) &&
             (null == edgePropertyEqualityFilters || EdgeStore.getInstance().checkEqualityFilters(
-            edgeIds[i + 1], edgePropertyEqualityFilters))) {
+                edgeIds[i + 1], edgePropertyEqualityFilters))) {
             return i + 1;
         }
         // If ({@code neighbourId},{@code edgeTypeFilter}) does not exist, return the negative value
@@ -365,13 +368,43 @@ public class SortedAdjacencyList {
     }
 
     /**
+     * See {@link GraphDBState#serialize(String)}.
+     */
+    public void serialize(ObjectOutputStream objectOutputStream) throws IOException {
+        objectOutputStream.writeInt(size);
+        objectOutputStream.writeInt(neighbourIds.length);
+        objectOutputStream.writeInt(edgeTypes.length);
+        objectOutputStream.writeInt(edgeIds.length);
+        for (int i = 0; i < size; i++) {
+            objectOutputStream.writeInt(neighbourIds[i]);
+            objectOutputStream.writeShort(edgeTypes[i]);
+            objectOutputStream.writeLong(edgeIds[i]);
+        }
+    }
+
+    /**
+     * See {@link GraphDBState#deserialize(String)}.
+     */
+    public void deserialize(ObjectInputStream objectInputStream) throws IOException,
+        ClassNotFoundException {
+        size = objectInputStream.readInt();
+        neighbourIds = new int[objectInputStream.readInt()];
+        edgeTypes = new short[objectInputStream.readInt()];
+        edgeIds = new long[objectInputStream.readInt()];
+        for (int i = 0; i < size; i++) {
+            neighbourIds[i] = objectInputStream.readInt();
+            edgeTypes[i] = objectInputStream.readShort();
+            edgeIds[i] = objectInputStream.readLong();
+        }
+    }
+
+    /**
      * Used during unit testing to check the equality of objects. This is used instead of
      * overriding the standard {@code equals()} and {@code hashCode()} methods.
      *
      * @param a One of the objects.
      * @param b The other object.
-     * @return {@code true} if the {@code a} object values are the same as the
-     * {@code b} object values, {@code false} otherwise.
+     * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests
     public static boolean isSameAs(SortedAdjacencyList a, SortedAdjacencyList b) {
@@ -386,7 +419,8 @@ public class SortedAdjacencyList {
         }
         for (int i = 0; i < a.size; i++) {
             if ((a.getNeighbourId(i) != b.getNeighbourId(i)) ||
-                (a.getEdgeType(i) != b.getEdgeType(i)) || (a.getEdgeId(i) != b.getEdgeId(i))) {
+                (a.getEdgeType(i) != b.getEdgeType(i)) ||
+                (a.getEdgeId(i) != b.getEdgeId(i))) {
                 return false;
             }
         }

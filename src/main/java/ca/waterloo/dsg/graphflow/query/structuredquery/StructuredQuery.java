@@ -18,7 +18,9 @@ public class StructuredQuery implements AbstractStructuredQuery {
         MATCH,
         DELETE,
         SHORTEST_PATH,
-        CONTINUOUS_MATCH
+        CONTINUOUS_MATCH,
+        LOAD_GRAPH,
+        SAVE_GRAPH
     }
 
     private List<QueryRelation> queryRelations = new ArrayList<>();
@@ -28,7 +30,7 @@ public class StructuredQuery implements AbstractStructuredQuery {
     private List<QueryAggregation> queryAggregations = new ArrayList<>();
     private QueryOperation queryOperation;
     private String continuousMatchAction;
-    private String continuousMatchOutputLocation;
+    private String filePath;
 
     /**
      * @return A read-only list of query relations.
@@ -98,12 +100,12 @@ public class StructuredQuery implements AbstractStructuredQuery {
         this.continuousMatchAction = continuousMatchAction;
     }
 
-    public String getContinuousMatchOutputLocation() {
-        return continuousMatchOutputLocation;
+    public String getFilePath() {
+        return filePath;
     }
 
-    public void setContinuousMatchOutputLocation(String continuousMatchOutputLocation) {
-        this.continuousMatchOutputLocation = continuousMatchOutputLocation;
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
     /**
@@ -125,7 +127,7 @@ public class StructuredQuery implements AbstractStructuredQuery {
         }
         if (!(a.queryOperation == b.queryOperation &&
             Objects.equals(a.continuousMatchAction, b.continuousMatchAction) &&
-            Objects.equals(a.continuousMatchOutputLocation, b.continuousMatchOutputLocation))) {
+            Objects.equals(a.filePath, b.filePath))) {
             return false;
         }
         if (a.queryVariables.size() != b.queryVariables.size()) {

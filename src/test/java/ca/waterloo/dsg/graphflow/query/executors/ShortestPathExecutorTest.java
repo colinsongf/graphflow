@@ -4,6 +4,7 @@ import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchVertexIDException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,12 +26,12 @@ public class ShortestPathExecutorTest {
 
     @Before
     public void setUp() throws Exception {
+        GraphDBState.reset();
         int[][] edges = {{0, 1}, {0, 2}, {1, 3}, {1, 4}, {2, 4}, {2, 5}, {3, 6}, {4, 6}, {4, 7},
             {5, 7}, {6, 8}, {6, 9}, {7, 9}, {7, 10}, {8, 11}, {9, 11}, {10, 11}};
         short[] edgeTypes = {2, 4, 6, 8, 8, 10, 12, 12, 14, 14, 16, 18, 18, 20, 22, 22, 22};
         short[][] vertexTypes = {{0, 1}, {0, 2}, {1, 3}, {1, 4}, {2, 4}, {2, 5}, {3, 6}, {4, 6},
             {4, 7}, {5, 7}, {6, 8}, {6, 9}, {7, 9}, {7, 10}, {8, 11}, {9, 11}, {10, 11}};
-        graph.reset();
         graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
         executor = ShortestPathExecutor.getInstance();
         if (!executor.isInitialized()) {

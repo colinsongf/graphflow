@@ -140,7 +140,7 @@ public class VertexPropertyStore extends PropertyStore {
     /**
      * Resets the {@link VertexPropertyStore} state by creating a new {@code INSTANCE}.
      */
-    void reset() {
+    static void reset() {
         INSTANCE = new VertexPropertyStore();
     }
 

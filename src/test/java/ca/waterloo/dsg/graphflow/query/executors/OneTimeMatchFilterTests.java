@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
@@ -29,71 +30,66 @@ public class OneTimeMatchFilterTests {
 
     @Before
     public void setUp() {
-        Graph.getInstance().reset();
+        GraphDBState.reset();
         constructGraph();
     }
 
     @Test
     public void testTwoVertexFilterQuery() {
-        String matchquery = "MATCH (a)-[d:FOLLOWS]->(b),(b)-[e:FOLLOWS]->(c),(c)-[:FOLLOWS]->(a) " +
-            "WHERE a.views > b.views RETURN a, b, c, a.views, b.views;";
-        Object[][] expectedResults = {{0, 1, 3, 120, 70}, {3, 0, 1, 250, 120}, {3, 4, 1, 250, 20},
-            {5, 4, 1, 120, 20}};
-        runTest(matchquery, expectedResults);
+        String matchQuery = "MATCH (v1)-[e1:FOLLOWS]->(v2),(v2)-[e2:FOLLOWS]->(v3),(v3)" +
+            "-[:FOLLOWS]->(v1) WHERE v1.views > v2.views RETURN v1, v2, v3;";
+        Object[][] expectedResults = {{0, 1, 3}, {3, 0, 1}, {3, 4, 1}, {5, 4, 1}};
+        runTest(matchQuery, expectedResults);
     }
 
     @Test
     public void testTwoEdgeFilterQuery() {
-        String matchquery = "MATCH (a)-[d:FOLLOWS]->(b),(b)-[e:FOLLOWS]->(c),(c)-[:FOLLOWS]->(a) " +
-            "WHERE d.views > e.views RETURN a, b, c, d.views, e.views;";
-        Object[][] expectedResults = {{0, 1, 3, 250, 40}, {1, 5, 4, 250, 35}, {3, 4, 1, 50, 45},
-            {4, 1, 3, 45, 40}};
-        runTest(matchquery, expectedResults);
+        String matchQuery = "MATCH (v1)-[e1:FOLLOWS]->(v2),(v2)-[e2:FOLLOWS]->(v3),(v3)" +
+            "-[:FOLLOWS]->(v1) WHERE e1.views > e2.views RETURN v1, v2, v3;";
+        Object[][] expectedResults = {{0, 1, 3}, {1, 5, 4}, {3, 4, 1}, {4, 1, 3}};
+        runTest(matchQuery, expectedResults);
     }
 
     @Test
     public void testVertexAndEdgeFilterQuery() {
-        String matchquery = "MATCH (a)-[d:FOLLOWS]->(b),(b)-[e:FOLLOWS]->(c),(c)-[:FOLLOWS]->(a) " +
-            "WHERE a.views > d.views RETURN a, b, c, a.views, d.views;";
-        Object[][] expectedResults = {{1, 3, 0, 70, 40}, {1, 3, 4, 70, 40}, {3, 0, 1, 250, 70},
-            {3, 4, 1, 250, 50}, {5, 4, 1, 120, 35}};
-        runTest(matchquery, expectedResults);
+        String matchQuery = "MATCH (v1)-[e1:FOLLOWS]->(v2),(v2)-[e2:FOLLOWS]->(v3),(v3)" +
+            "-[:FOLLOWS]->(v1) WHERE v1.views > e1.views RETURN v1, v2, v3;";
+        Object[][] expectedResults = {{1, 3, 0}, {1, 3, 4}, {3, 0, 1}, {3, 4, 1}, {5, 4, 1}};
+        runTest(matchQuery, expectedResults);
     }
 
     @Test
     public void testEdgeAndLiteralFilterQuery() {
-        String matchquery = "MATCH (a)-[d:FOLLOWS]->(b),(b)-[e:FOLLOWS]->(c),(c)-[:FOLLOWS]->(a) " +
-            "WHERE d.views > 50 RETURN a, b, c, d.views;";
-        Object[][] expectedResults = {{0, 1, 3, 250}, {1, 5, 4, 250}, {3, 0, 1, 70}};
-        runTest(matchquery, expectedResults);
+        String matchQuery = "MATCH (v1)-[e1:FOLLOWS]->(v2),(v2)-[e2:FOLLOWS]->(v3),(v3)" +
+            "-[:FOLLOWS]->(v1) WHERE e1.views > 50 RETURN v1, v2, v3;";
+        Object[][] expectedResults = {{0, 1, 3}, {1, 5, 4}, {3, 0, 1}};
+        runTest(matchQuery, expectedResults);
     }
 
     @Test
     public void testVertexAndLiteralFilterQuery() {
-        String matchquery = "MATCH (a)-[d:FOLLOWS]->(b),(b)-[e:FOLLOWS]->(c),(c)-[:FOLLOWS]->(a) " +
-            "WHERE a.views > 100 RETURN a, b, c, a.views;";
-        Object[][] expectedResults = {{0, 1, 3, 120}, {3, 0, 1, 250}, {3, 4, 1, 250}, {5, 4, 1,
-            120}};
-        runTest(matchquery, expectedResults);
+        String matchQuery = "MATCH (v1)-[e1:FOLLOWS]->(v2),(v2)-[e2:FOLLOWS]->(v3),(v3)" +
+            "-[:FOLLOWS]->(v1) WHERE v1.views > 100 RETURN v1, v2, v3;";
+        Object[][] expectedResults = {{0, 1, 3}, {3, 0, 1}, {3, 4, 1}, {5, 4, 1}};
+        runTest(matchQuery, expectedResults);
     }
 
     @Test
     public void testOneVariableExistsMultipleTimesInAFilter() {
-        String matchquery = "MATCH (a)-[d:FOLLOWS]->(b),(b)-[e:FOLLOWS]->(c),(c)-[:FOLLOWS]->(a) " +
-            "WHERE a.views > b.views AND a.views > c.views RETURN a, b, c, a.views, b.views, c" +
-            ".views;";
-        Object[][] expectedResults = {{0, 1, 3, 120, 70, 250}, {3, 0, 1, 250, 120, 70},
-            {3, 4, 1, 250, 20, 70}, {5, 4, 1, 120, 20, 70}};
-        runTest(matchquery, expectedResults);
+        String matchQuery = "MATCH (v1)-[e1:FOLLOWS]->(v2),(v2)-[e2:FOLLOWS]->(v3),(v3)" +
+            "-[:FOLLOWS]->(v1) WHERE v1.views > v2.views AND v1.views > v3.views RETURN v1, v2, " +
+            "v3;";
+        //Object[][] expectedResults = {{0, 1, 3}, {3, 0, 1}, {3, 4, 1}, {5, 4, 1}};
+        Object[][] expectedResults = {/*{0, 1, 3},*/ {3, 0, 1}, {3, 4, 1}, {5, 4, 1}};
+        runTest(matchQuery, expectedResults);
     }
 
     private void runTest(String query, Object[][] expectedResults) {
         InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
-        ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(new StructuredQueryParser().parse
-            (query),
-            inMemoryOutputSink).plan()).execute(Graph.getInstance());
-        InMemoryOutputSink expectedResultOutputSink = TestUtils.
-            getInMemoryOutputSinkForMotifs(expectedResults);
+        ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(new StructuredQueryParser().parse(
+            query), inMemoryOutputSink).plan()).execute(Graph.getInstance());
+        InMemoryOutputSink expectedResultOutputSink = TestUtils.getInMemoryOutputSinkForMotifs(
+            expectedResults);
         Assert.assertArrayEquals(expectedResultOutputSink.getResults().toArray(),
             inMemoryOutputSink.getResults().toArray());
     }

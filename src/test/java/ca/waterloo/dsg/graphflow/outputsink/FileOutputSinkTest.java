@@ -41,7 +41,7 @@ public class FileOutputSinkTest {
     public void testAppend() throws Exception {
         Object[] expectedResultArray = new Object[]{1, 2, 3, 4, 5, 6, "MATCHED"};
         StringJoiner joiner = new StringJoiner(" ");
-        for (Object element: expectedResultArray) {
+        for (Object element : expectedResultArray) {
             joiner.add(element.toString());
         }
         // Write the output.

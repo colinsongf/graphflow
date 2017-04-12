@@ -138,7 +138,7 @@ public class GenericJoinExecutor {
             IntArrayList extensions = this.graph.getSortedAdjacencyList(prefix[minCountRule.
                 getPrefixIndex()], minCountRule.getDirection(), minCountRule.getGraphVersion()).
                 getFilteredNeighbourIds(minCountRule.getToVertexTypeFilter(), minCountRule.
-                    getEdgeTypeFilter());
+                    getEdgeTypeFilter(), this.graph.getVertexTypes());
             if (null == extensions || extensions.getSize() == 0) {
                 // No extensions found for the current {@code prefix}.
                 continue;

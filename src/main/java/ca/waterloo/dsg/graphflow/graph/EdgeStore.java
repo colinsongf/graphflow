@@ -299,7 +299,7 @@ public class EdgeStore extends PropertyStore {
     /**
      * Resets {@link EdgeStore} by creating a new {@code INSTANCE}.
      */
-    void reset() {
+    static void reset() {
         INSTANCE = new EdgeStore();
     }
 

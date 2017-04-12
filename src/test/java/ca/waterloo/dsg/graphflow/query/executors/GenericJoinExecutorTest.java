@@ -16,7 +16,6 @@ import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringJoiner;
 
 /**
  * Tests {@code GenericJoinExecutor}.
@@ -109,16 +108,16 @@ public class GenericJoinExecutorTest {
         TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("LIKES");
         Map<String, Pair<String, String>> ageProperty = new HashMap<>();
         ageProperty.put("age", new Pair<>("int", null));
-        TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert
-            (ageProperty);
+        TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert(
+            ageProperty);
         Map<String, Pair<String, String>> viewsProperty = new HashMap<>();
         viewsProperty.put("views", new Pair<>("int", null));
-        TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert
-            (viewsProperty);
+        TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert(
+            viewsProperty);
         Map<String, Pair<String, String>> nameProperty = new HashMap<>();
         nameProperty.put("name", new Pair<>("string", null));
-        TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert
-            (nameProperty);
+        TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert(
+            nameProperty);
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)-[d:FOLLOWS]->(b),(b)->(c),(c)-[:FOLLOWS]->(a) " +
             "RETURN a.age, b.views, c.name, d.views;");
@@ -219,8 +218,8 @@ public class GenericJoinExecutorTest {
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new
             OneTimeMatchQueryPlanner(structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils
-            .getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
+            getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
 
         // Delete one of the edges.
         TestUtils.deleteEdgesPermanently(graph, "DELETE (4)->(1);");
@@ -230,8 +229,8 @@ public class GenericJoinExecutorTest {
         actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
             structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils
-            .getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
+            getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));
     }
 
     private void assertComplexMatchQueryOutput(StructuredQuery structuredQuery,

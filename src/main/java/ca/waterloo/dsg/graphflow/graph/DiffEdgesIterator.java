@@ -66,8 +66,9 @@ public class DiffEdgesIterator implements Iterator<int[]> {
             // edgeTypeFilter} and {@code e}'s properties match {@code edgePropertyEqualityFilters}.
             // If there is no such {@code e=(u, v)}, the {@code next} index is set to the size of
             // {@code diffEdges.size()}.
+            int[] diffEdge = diffEdges.get(next);
             if ((TypeAndPropertyKeyStore.ANY == fromVertexTypeFilter ||
-                vertexTypes.get(diffEdges.get(next)[0]) == fromVertexTypeFilter) &&
+                vertexTypes.get(diffEdge[0]) == fromVertexTypeFilter) &&
                 (TypeAndPropertyKeyStore.ANY == toVertexTypeFilter ||
                     vertexTypes.get(diffEdges.get(next)[1]) == toVertexTypeFilter) &&
                 (TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||

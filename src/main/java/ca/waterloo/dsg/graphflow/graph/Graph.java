@@ -4,7 +4,6 @@ import ca.waterloo.dsg.graphflow.graph.serde.GraphParallelSerDeUtils;
 import ca.waterloo.dsg.graphflow.graph.serde.GraphflowSerializable;
 import ca.waterloo.dsg.graphflow.graph.serde.MainFileSerDeHelper;
 import ca.waterloo.dsg.graphflow.graph.serde.ParallelArraySerDeUtils;
-import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.LongArrayList;
@@ -128,7 +127,6 @@ public class Graph implements GraphflowSerializable {
         Map<Short, Pair<DataType, String>> vertexProperties) {
         vertexTypes.set(vertexId, vertexType);
         VertexPropertyStore.getInstance().set(vertexId, vertexProperties);
-        // TODO(amine): Check these are correct.
         highestPermanentVertexId = Integer.max(highestPermanentVertexId, vertexId);
         highestMergedVertexId = Integer.max(highestMergedVertexId, vertexId);
         ensureCapacity(highestMergedVertexId + 1);
@@ -457,6 +455,14 @@ public class Graph implements GraphflowSerializable {
     }
 
     /**
+     * Returns the {@code vertexTypes} in the graph where the type of vertex i is in the ith
+     * position of the returned {@link ShortArrayList}.
+     */
+    public ShortArrayList getVertexTypes() {
+        return vertexTypes;
+    }
+
+    /**
      * Checks if the permanent capacity exceeds {@code minCapacity} and increases the capacity if it
      * doesn't.
      *
@@ -607,14 +613,8 @@ public class Graph implements GraphflowSerializable {
     /**
      * Resets the {@link Graph} state by creating a new {@code INSTANCE}.
      */
-    @UsedOnlyByTests
-    public static void reset() {
+    static void reset() {
         INSTANCE = new Graph();
-        // Also reset other classes that the Graph class depends on
-        EdgeStore.getInstance().reset();
-        VertexPropertyStore.getInstance().reset();
-        TypeAndPropertyKeyStore.getInstance().reset();
-        ContinuousMatchQueryExecutor.getInstance().reset();
     }
 
     /**

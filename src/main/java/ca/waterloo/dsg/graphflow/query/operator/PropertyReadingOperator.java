@@ -61,7 +61,7 @@ public abstract class PropertyReadingOperator extends AbstractDBOperator {
             stringBuilder.append(getPropertyOrId(matchQueryOutput, propertyDescriptor));
         }
     }
-    
+
     /**
      * Reads a value from the given {@link MatchQueryOutput} according to the given
      * {@link EdgeOrVertexPropertyDescriptor}. Either returns a property of an edge or a vertex

@@ -1,10 +1,9 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
-import ca.waterloo.dsg.graphflow.exceptions.IncorrectTypeException;
+import ca.waterloo.dsg.graphflow.exceptions.IncorrectVertexTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.MalformedMatchQueryException;
 import ca.waterloo.dsg.graphflow.exceptions.MalformedReturnClauseException;
-import ca.waterloo.dsg.graphflow.exceptions.MalformedWhereClauseException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
@@ -29,7 +28,7 @@ import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryAggregation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryGraph;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
-import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.PredicateType;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
@@ -67,7 +66,8 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         AbstractDBOperator outputSink) {
         super(structuredQuery);
         this.outputSink = outputSink;
-        checkQueryVariableTypesAreConsistent();
+        Map<String, String> variableTypeMap = checkQueryVariableTypesAreConsistent();
+        setMissingVariableTypes(variableTypeMap);
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortAndAssertTypeExists(
                 queryRelation.getRelationType());
@@ -79,7 +79,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         }
         checkReturnVariablesAndPropertiesAreWellFormed();
         checkEdgeVariablesAreDistinctFromVertexVariables();
-        checkPredicateVariablesAndPropertiesAreWellFormedAndSetPredicateTypes();
+        checkPredicateVariablesAndPropertiesAreWellFormed();
     }
 
     private void checkEdgeVariablesAreDistinctFromVertexVariables() {
@@ -126,39 +126,32 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         }
     }
 
-    private void checkPredicateVariablesAndPropertiesAreWellFormedAndSetPredicateTypes() {
-        OperandType leftOperandType = null;
-        OperandType rightOperandType = null;
+    private void checkPredicateVariablesAndPropertiesAreWellFormed() {
         Pair<Short, DataType> leftOperandKeyAndDataType, rightOperandKeyAndDataType;
+        // GraphflowVisitor ensures that the leftOperand is always a variableWithProperty and not
+        // a literal.
         for (QueryPropertyPredicate predicate : structuredQuery.getQueryPropertyPredicates()) {
-            if (null == predicate.getPredicateType()) {
-                leftOperandType = getOperandType(predicate.getVariable1());
-            }
+            checkVariableIsDefined(predicate.getVariable1().a);
             leftOperandKeyAndDataType = getKeyAndDataTypePair(predicate.getVariable1().b);
-            if (null == predicate.getVariable2()) {
-                rightOperandType = OperandType.LITERAL;
-                DataType.assertValueCanBeCastToDataType(leftOperandKeyAndDataType.b.toString(),
-                    predicate.getLiteral());
-            } else {
-                if (null == predicate.getPredicateType()) {
-                    rightOperandType = getOperandType(predicate.getVariable2());
-                }
+            if (PredicateType.TWO_VARIABLES == predicate.getPredicateType()) {
+                checkVariableIsDefined(predicate.getVariable2().a);
                 rightOperandKeyAndDataType = getKeyAndDataTypePair(predicate.getVariable2().b);
                 if (leftOperandKeyAndDataType.b != rightOperandKeyAndDataType.b) {
-                    throw new IncorrectDataTypeException("DataType Mismatch - The left operand " +
-                        predicate.getVariable1().a + "." + predicate.getVariable1().b + " is of " +
-                        "data type " + leftOperandKeyAndDataType.b + " and the right operand " +
-                        predicate.getVariable2().a + "." + predicate.getVariable2().b +
-                        " is of data type " + rightOperandKeyAndDataType.b);
+                    throw new IncorrectDataTypeException("DataType Mismatch - The left " +
+                        "operand " + predicate.getVariable1().a + "." + predicate.
+                        getVariable1().b + " is of data type " + leftOperandKeyAndDataType.b +
+                        " and the right operand " + predicate.getVariable2().a + "." +
+                        predicate.getVariable2().b + " is of data type " +
+                        rightOperandKeyAndDataType.b + ".");
                 }
-            }
-            if (null == predicate.getPredicateType()) {
-                predicate.setPredicateType(leftOperandType, rightOperandType);
+            } else {
+                DataType.assertValueCanBeCastToDataType(leftOperandKeyAndDataType.b, predicate.
+                    getLiteral());
             }
         }
     }
 
-    private void checkQueryVariableTypesAreConsistent() {
+    private Map<String, String> checkQueryVariableTypesAreConsistent() {
         Map<String, String> variableTypeMap = new HashMap<>();
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
             QueryVariable fromQueryVariable = queryRelation.getFromQueryVariable();
@@ -168,6 +161,10 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             assetQueryVariableTypeIsConsistent(toQueryVariable.getVariableName(),
                 toQueryVariable.getVariableType(), variableTypeMap);
         }
+        return variableTypeMap;
+    }
+
+    private void setMissingVariableTypes(Map<String, String> variableTypeMap) {
         for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
             String fromQueryVariable = queryRelation.getFromQueryVariable().getVariableName();
             String toQueryVariable = queryRelation.getToQueryVariable().getVariableName();
@@ -185,29 +182,19 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             variableTypeMap.put(variableName, variableType);
         } else if (null != variableType &&
             !variableType.equals(variableTypeMap.get(variableName))) {
-            throw new IncorrectTypeException("Incorrect type usage - The query variable '" +
+            throw new IncorrectVertexTypeException("Incorrect type usage - The query variable '" +
                 variableName + "' in the MATCH clause is used with two different types: '" +
                 variableType + "' and '" + variableTypeMap.get(variableName) + "'.");
         }
     }
 
-    private OperandType getOperandType(Pair<String, String> variable) {
-        if (queryGraph.getAllVariableNames().contains(variable.a)) {
-            return OperandType.VERTEX;
-        } else if (queryGraph.getAllRelationNames().contains(variable.a)) {
-            return OperandType.EDGE;
-        } else {
-            throw new MalformedWhereClauseException("WHERE " + UNDEFINED_VARIABLE_ERROR_MESSAGE);
-        }
-    }
-
     private Pair<Short, DataType> getKeyAndDataTypePair(String key) {
-        Short leftOperandKey = typeAndPropertyKeyStore.mapStringPropertyKeyToShort(key);
-        if (null == leftOperandKey) {
+        Short operandKey = typeAndPropertyKeyStore.mapStringPropertyKeyToShort(key);
+        if (null == operandKey) {
             throw new NoSuchPropertyKeyException(key);
         }
-        DataType leftOperandDataType = typeAndPropertyKeyStore.getPropertyDataType(leftOperandKey);
-        return new Pair<>(leftOperandKey, leftOperandDataType);
+        DataType leftOperandDataType = typeAndPropertyKeyStore.getPropertyDataType(operandKey);
+        return new Pair<>(operandKey, leftOperandDataType);
     }
 
     /**
@@ -339,15 +326,13 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
      * {@link EdgeIdResolver} is only added when the WHERE or RETURN clauses contain edge variables.
      *
      * <ul>
-     * <li> {@link PropertyResolver}->{@link #outputSink}. (when no RETURN statement is specified).
+     * <li> {@link PropertyResolver}->{@link #outputSink}.
      * <li> {@link Filter}->{@link PropertyResolver}->{@link #outputSink}.
      * <li> {@link Projection}->({@link PropertyResolver} OR {@link GroupByAndAggregate})->
      * {@link #outputSink}.
-     * <li> ({@link EdgeIdResolver}->){@link Filter}->{@link Projection}->({@link PropertyResolver}
-     * OR {@link GroupByAndAggregate})->{@link #outputSink}.
      * <li> {@link EdgeIdResolver}->{@link Projection}->({@link PropertyResolver} OR
      * {@link GroupByAndAggregate})->{@link #outputSink}.
-     * <li> ({@link EdgeIdResolver}->){{@link Filter}->{@link Projection}->({@link PropertyResolver}
+     * <li> ({@link EdgeIdResolver}->){@link Filter}->{@link Projection}->({@link PropertyResolver}
      * OR {@link GroupByAndAggregate})->{@link #outputSink}.
      * </ul>
      */
@@ -355,7 +340,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         List<String> orderedVertexVariablesBeforeProjection) {
         AbstractDBOperator nextOperator;
         List<String> orderedEdgeVariablesAfterProjection = new ArrayList<>();
-        Map<String, Integer> orderedVariableIndexMap =
+        Map<String, Integer> orderedVariableIndexMapBeforeProjection =
             getOrderedVariableIndexMap(orderedVertexVariablesBeforeProjection);
         List<String> orderedEdgeVariablesForFiltersAndProjection = new ArrayList<>();
         // If there is no RETURN clause specified, we append a PropertyResolver->OutputSink to
@@ -381,7 +366,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
 
             // First construct the PropertyResolver or GroupByAndAggregate which will be the
             // operator following Projection
-            AbstractDBOperator projectionsNextOperator = null;
+            AbstractDBOperator projectionsNextOperator;
             Map<String, Integer> vertexVariableOrderIndexMapAfterProjection =
                 getOrderedVariableIndexMap(orderedVertexVariablesAfterProjection);
             Map<String, Integer> edgeVariableOrderIndexMap = getOrderedVariableIndexMap(
@@ -400,7 +385,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             logger.info("Appending Projection->PropertyResolver->OutputSink.");
             List<Integer> vertexIndicesToProject = new ArrayList<>();
             for (String returnVariable : orderedVertexVariablesAfterProjection) {
-                vertexIndicesToProject.add(orderedVariableIndexMap.get(
+                vertexIndicesToProject.add(orderedVariableIndexMapBeforeProjection.get(
                     returnVariable));
             }
             nextOperator = new Projection(projectionsNextOperator, vertexIndicesToProject);
@@ -410,19 +395,19 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         if (!structuredQuery.getQueryPropertyPredicates().isEmpty()) {
             orderedEdgeVariablesForFiltersAndProjection =
                 getOrderedEdgeVariablesInFiltersAndProjections(orderedEdgeVariablesAfterProjection);
-            Map<String, Integer> orderedEdgeIndexMap = getOrderedVariableIndexMap
-                (orderedEdgeVariablesForFiltersAndProjection);
-            nextOperator = constructFilter(orderedVariableIndexMap, orderedEdgeIndexMap,
-                nextOperator);
+            Map<String, Integer> orderedEdgeIndexMap = getOrderedVariableIndexMap(
+                orderedEdgeVariablesForFiltersAndProjection);
+            nextOperator = constructFilter(orderedVariableIndexMapBeforeProjection,
+                orderedEdgeIndexMap, nextOperator);
         }
 
         // Finally construct the EdgeIdResolver if needed. Uses the ordered edgeId variables used
-        // by {@code Filter} and {@code Projection}/{@code GroupByAndAggregate}.
+        // by {@code Filter} and/or {@code Projection}/{@code GroupByAndAggregate}.
         if (orderedEdgeVariablesForFiltersAndProjection.isEmpty()) {
             return nextOperator;
         } else {
             return constructEdgeIdResolver(orderedEdgeVariablesForFiltersAndProjection,
-                orderedVariableIndexMap, nextOperator);
+                orderedVariableIndexMapBeforeProjection, nextOperator);
         }
     }
 
@@ -438,29 +423,34 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         for (QueryPropertyPredicate queryPropertyPredicate : structuredQuery.
             getQueryPropertyPredicates()) {
             Pair<String, String> variable1 = queryPropertyPredicate.getVariable1();
-            if (descriptorIndexMap.get(variable1.a) == null) {
-                descriptorIndexMap.put(variable1.a, edgeOrVertexPropertyDescriptors.size());
+            if (null == descriptorIndexMap.get(variable1.a + '.' + variable1.b)) {
+                descriptorIndexMap.put(variable1.a + '.' + variable1.b,
+                    edgeOrVertexPropertyDescriptors.size());
                 edgeOrVertexPropertyDescriptors.add(getEdgeOrVertexPropertyDescriptor(
                     vertexVariableOrderIndexMapBeforeProjection, edgeVariableOrderIndexMap,
                     variable1.a, typeAndPropertyKeyStore.mapStringPropertyKeyToShort(variable1.b)));
             }
             Pair<String, String> variable2 = queryPropertyPredicate.getVariable2();
-            if (variable2 != null && descriptorIndexMap.get(variable2.a) == null) {
-                descriptorIndexMap.put(variable2.a, edgeOrVertexPropertyDescriptors.size());
+            if (null != variable2 && null == descriptorIndexMap.get(variable2.a + '.' +
+                variable2.b)) {
+                descriptorIndexMap.put(variable2.a + '.' + variable2.b,
+                    edgeOrVertexPropertyDescriptors.size());
                 edgeOrVertexPropertyDescriptors.add(getEdgeOrVertexPropertyDescriptor(
                     vertexVariableOrderIndexMapBeforeProjection, edgeVariableOrderIndexMap,
                     variable2.a, typeAndPropertyKeyStore.mapStringPropertyKeyToShort(variable2.b)));
             }
-            int variable2Index = (variable2 != null) ? descriptorIndexMap.get(variable2.a) : -1;
-            if (predicate == null) {
+            int variable2Index = (variable2 != null) ? descriptorIndexMap.get(variable2.a + '.' +
+                variable2.b) : -1;
+            if (null == predicate) {
                 // Assign the first predicate to {@code Predicate}.
                 predicate = FilterPredicateFactory.getFilterPredicate(queryPropertyPredicate,
-                    descriptorIndexMap.get(variable1.a), variable2Index);
+                    descriptorIndexMap.get(variable1.a + '.' + variable1.b), variable2Index);
             } else {
                 // Create a composite {@link Predicate} with subsequent predicates by calling
                 // {@code and} on the existing {@code predicate}.
-                predicate.and(FilterPredicateFactory.getFilterPredicate(queryPropertyPredicate,
-                    descriptorIndexMap.get(variable1.a), variable2Index));
+                predicate = predicate.and(FilterPredicateFactory.getFilterPredicate(
+                    queryPropertyPredicate, descriptorIndexMap.get(variable1.a + '.' + variable1.b),
+                    variable2Index));
             }
         }
         return new Filter(nextOperator, predicate, new ArrayList<>(edgeOrVertexPropertyDescriptors),
@@ -470,26 +460,29 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
     private List<String> getOrderedEdgeVariablesInFiltersAndProjections(List<String>
         orderedEdgesFromProjection) {
         Set<String> resolvedEdges = new HashSet<>();
-        List<String> orderedEdgeVariablesInFiltersAndProjections = new ArrayList<>();
-        orderedEdgeVariablesInFiltersAndProjections.addAll(orderedEdgesFromProjection);
+        List<String> orderedEdgeVariablesInFiltersAndProjections = new ArrayList<>(
+            orderedEdgesFromProjection);
         resolvedEdges.addAll(orderedEdgesFromProjection);
         for (QueryPropertyPredicate queryPropertyPredicate : structuredQuery.
             getQueryPropertyPredicates()) {
             String operandVariable1 = queryPropertyPredicate.getVariable1().a;
-            if (!queryGraph.getAllVariableNames().contains(operandVariable1)
-                && !resolvedEdges.contains(operandVariable1)) {
-                resolvedEdges.add(operandVariable1);
-                orderedEdgeVariablesInFiltersAndProjections.add(operandVariable1);
-            }
             String operandVariable2 = queryPropertyPredicate.getVariable2() != null ?
                 queryPropertyPredicate.getVariable2().a : null;
-            if (operandVariable2 != null && !queryGraph.getAllVariableNames()
-                .contains(operandVariable2) && !resolvedEdges.contains(operandVariable2)) {
-                orderedEdgeVariablesInFiltersAndProjections.add(operandVariable2);
-                resolvedEdges.add(operandVariable2);
-            }
+            checkIfEdgeVariableNeedsToBeResolved(operandVariable1, resolvedEdges,
+                orderedEdgeVariablesInFiltersAndProjections);
+            checkIfEdgeVariableNeedsToBeResolved(operandVariable2, resolvedEdges,
+                orderedEdgeVariablesInFiltersAndProjections);
         }
         return orderedEdgeVariablesInFiltersAndProjections;
+    }
+
+    private void checkIfEdgeVariableNeedsToBeResolved(String operandVariable, Set<String>
+        resolvedEdges, List<String> orderedEdgeVariablesInFiltersAndProjections) {
+        if (null != operandVariable && queryGraph.getAllRelationNames().contains(operandVariable) &&
+            !resolvedEdges.contains(operandVariable)) {
+            resolvedEdges.add(operandVariable);
+            orderedEdgeVariablesInFiltersAndProjections.add(operandVariable);
+        }
     }
 
     private AbstractDBOperator constructGroupByAndAggregate(
@@ -519,10 +512,9 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     aggregator = new Sum();
                     break;
                 default:
-                    logger.warn("Unknown aggregation function:"
-                        + queryAggregation.getAggregationFunction() + ". This should have been " +
-                        "caught"
-                        + " and handled when parsing the query.");
+                    logger.warn("Unknown aggregation function:" + queryAggregation.
+                        getAggregationFunction() + ". This should have been caught and handled " +
+                        "when parsing the query.");
                     throw new IllegalArgumentException("Unknown aggregation function:"
                         + queryAggregation.getAggregationFunction());
             }

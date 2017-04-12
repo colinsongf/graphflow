@@ -4,13 +4,12 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
-import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
-import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType;
+import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.PredicateType;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
@@ -134,8 +133,8 @@ public class TestUtils {
     }
 
     /**
-     * Initializes the {@link Graph} with the given given {@code createQuery}.
-     * @param createQuery an {@code String} representing a CREATE query which will be parsed and
+     * Initializes the {@link Graph} with the given {@code createQuery}.
+     * @param createQuery a {@code String} representing a CREATE query which will be parsed and
      * used to initialize the {@link Graph}.
      */
     public static void initializeGraphPermanentlyWithProperties(String createQuery) {
@@ -146,32 +145,31 @@ public class TestUtils {
     }
 
     /**
-     * Creates an {@link QueryPropertyPredicate} using the given parameters.
+     * Creates a {@link QueryPropertyPredicate} using the given parameters.
      *
-     * @param variable1 a {@link Pair<String, Short>} which will be left operand in the
+     * @param variable1 A {@code Pair<String, Short>} which will be the left operand in the
      * {@link QueryPropertyPredicate} to be created.
-     * @param variable2 a {@link Pair<String, Short>} which will be right operand in the
-     * {@link QueryPropertyPredicate} to be created. Mutually exclusive with {@code constant}.
-     * @param constant a {@code String} which will be right operand in the
+     * @param variable2 A {@code Pair<String, Short>} which will be the right operand in the
+     * {@link QueryPropertyPredicate} to be created. Mutually exclusive with {@code literal}.
+     * @param literal A {@code String} which will be the right operand in the
      * {@link QueryPropertyPredicate} to be created. Mutually exclusive with {@code variable1}.
-     * @param comparisonOperator a {@link ComparisonOperator} specifying the comparison operator
+     * @param comparisonOperator A {@link ComparisonOperator} specifying the comparison operator
      * of the {@link QueryPropertyPredicate} to be created.
-     * @param leftOperandType a {@link OperandType} specifying the type of the left operand the
-     * the {@link QueryPropertyPredicate}.
-     * @param rightOperandType a {@link OperandType} specifying the type of the right operand the
-     * the {@link QueryPropertyPredicate}.
-     * @return a {@link QueryPropertyPredicate} created using the given parameters.
+     * @return A {@link QueryPropertyPredicate} created using the given parameters.
      */
     public static QueryPropertyPredicate createQueryPropertyPredicate(
-        Pair<String, String> variable1, Pair<String, String> variable2, String constant,
-        ComparisonOperator comparisonOperator, OperandType leftOperandType,
-        OperandType rightOperandType) {
+        Pair<String, String> variable1, Pair<String, String> variable2, String literal,
+        ComparisonOperator comparisonOperator) {
         QueryPropertyPredicate queryPropertyPredicate = new QueryPropertyPredicate();
         queryPropertyPredicate.setVariable1(variable1);
         queryPropertyPredicate.setVariable2(variable2);
-        queryPropertyPredicate.setLiteral(constant);
+        queryPropertyPredicate.setLiteral(literal);
         queryPropertyPredicate.setComparisonOperator(comparisonOperator);
-        queryPropertyPredicate.setPredicateType(leftOperandType, rightOperandType);
+        if (null == queryPropertyPredicate.getLiteral()) {
+            queryPropertyPredicate.setPredicateType(PredicateType.TWO_VARIABLES);
+        } else {
+            queryPropertyPredicate.setPredicateType(PredicateType.VARIABLE_AND_LITERAL);
+        }
         return queryPropertyPredicate;
     }
 
@@ -186,6 +184,7 @@ public class TestUtils {
 
     /**
      * Creates an {@link InMemoryOutputSink} containing the results given in {@code results}.
+     *
      * @param results a {@code Object[][]} where the outer array is a list of {@code Object[]}
      * result records.
      * @param matchQueryResultTypes an array of {@link MatchQueryResultType}s that will be

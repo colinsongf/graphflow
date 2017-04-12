@@ -42,6 +42,7 @@ public class RuntimeTypeBasedComparator {
      * If they are not comparable, throws an {@link IllegalArgumentException}.
      * eg 1: Runtime types Integer and Double are comparable.
      * eg 2: Runtime types String and Integer are not comparable.
+     *
      * @param operand1 an {@link Object} operand for {@code comparisonOperator} with a runtime
      * type of {@link Integer}, {@link Double}, {@link Boolean} or {@link String}.
      * @param operand2 an {@link Object} operand for {@code comparisonOperator} with a runtime
@@ -74,19 +75,22 @@ public class RuntimeTypeBasedComparator {
         ComparisonOperator
             comparisonOperator) {
         int result = operand1.compareTo(operand2);
-        if (result > 0 && (comparisonOperator == ComparisonOperator.GREATER_THAN ||
-            comparisonOperator == ComparisonOperator.GREATER_THAN_OR_EQUAL || comparisonOperator ==
-            ComparisonOperator.NOT_EQUALS)) {
-            return true;
-        } else if (result == 0 && (comparisonOperator == ComparisonOperator.EQUALS ||
-            comparisonOperator == ComparisonOperator.GREATER_THAN_OR_EQUAL || comparisonOperator ==
-            ComparisonOperator.LESS_THAN_OR_EQUAL)) {
-            return true;
-        } else if (result < 0 && (comparisonOperator == ComparisonOperator.LESS_THAN ||
-            comparisonOperator == ComparisonOperator.LESS_THAN_OR_EQUAL || comparisonOperator ==
-            ComparisonOperator.NOT_EQUALS)) {
-            return true;
+        switch (comparisonOperator) {
+            case EQUALS:
+                return result == 0;
+            case NOT_EQUALS:
+                return result != 0;
+            case LESS_THAN:
+                return result < 0;
+            case GREATER_THAN:
+                return result > 0;
+            case LESS_THAN_OR_EQUAL:
+                return result <= 0;
+            case GREATER_THAN_OR_EQUAL:
+                return result >= 0;
+            default:
+                throw new IllegalArgumentException("The comparison operator " + comparisonOperator +
+                    " is not supported.");
         }
-        return false;
     }
 }

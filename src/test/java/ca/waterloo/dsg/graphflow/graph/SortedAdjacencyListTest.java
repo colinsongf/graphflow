@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
+import ca.waterloo.dsg.graphflow.util.ShortArrayList;
 import org.antlr.v4.runtime.misc.Pair;
 import org.junit.Assert;
 import org.junit.Before;
@@ -301,16 +302,37 @@ public class SortedAdjacencyListTest {
         int[] neighbourIds = {1, 9, 14, 23, 34, 54, 89};
         short[] edgeTypes = {1, 1, 2, 3, 2, 1, 1};
         long[] edgeIds = {0, 1, 2, 3, 4, 5, 6};
+
+        ShortArrayList vertexTypes = new ShortArrayList();
+        for (int i = 0; i < neighbourIds.length; ++i) {
+            if (neighbourIds[i] % 2 == 0) {
+                vertexTypes.set(neighbourIds[i], (short) 0);
+            } else {
+                vertexTypes.set(neighbourIds[i], (short) 1);
+            }
+        }
+
         SortedAdjacencyList adjacencyList = getPopulatedAdjacencyList(neighbourIds, edgeTypes,
             edgeIds);
 
-        IntArrayList filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds((short) 1,
-            TypeAndPropertyKeyStore.ANY);
-        int[] expectedFilteredNeighbourIds = {1, 9, 54, 89};
-        Assert.assertArrayEquals(expectedFilteredNeighbourIds, filteredNeighbourIds.toArray());
+        IntArrayList filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds(
+            TypeAndPropertyKeyStore.ANY, TypeAndPropertyKeyStore.ANY, null /* no vertexTypes*/);
+        Assert.assertArrayEquals(neighbourIds, filteredNeighbourIds.toArray());
 
         filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds(TypeAndPropertyKeyStore.ANY,
-            TypeAndPropertyKeyStore.ANY);
-        Assert.assertArrayEquals(neighbourIds, filteredNeighbourIds.toArray());
+            (short) 1, null /* no vertexTypes*/);
+        Assert.assertArrayEquals(new int[] {1, 9, 54, 89}, filteredNeighbourIds.toArray());
+
+        filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds((short) 0,
+            TypeAndPropertyKeyStore.ANY, vertexTypes);
+        Assert.assertArrayEquals(new int[] {14, 34, 54}, filteredNeighbourIds.toArray());
+
+        filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds((short) 3,
+            TypeAndPropertyKeyStore.ANY, vertexTypes);
+        Assert.assertArrayEquals(new int[] {}, filteredNeighbourIds.toArray());
+
+        filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds((short) 0, (short) 1,
+            vertexTypes);
+        Assert.assertArrayEquals(new int[] {54}, filteredNeighbourIds.toArray());
     }
 }

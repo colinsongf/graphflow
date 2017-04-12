@@ -91,7 +91,7 @@ public class ContinuousMatchQueryExecutorTest {
         while ((line = br.readLine()) != null) {
             actualOutput.add(line);
         }
-        Assert.assertEquals(actualOutput.toString(), TestUtils.getInMemoryOutputSinkForMotifs
-            (expectedMotifs, expectedMatchQueryResultTypes).toString());
+        Assert.assertEquals(actualOutput.toString(), TestUtils.getInMemoryOutputSinkForMotifs(
+            expectedMotifs, expectedMatchQueryResultTypes).toString());
     }
 }

@@ -237,7 +237,7 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
     /**
      * Resets the {@link TypeAndPropertyKeyStore} state by creating a new {@code INSTANCE}.
      */
-    void reset() {
+    static void reset() {
         INSTANCE = new TypeAndPropertyKeyStore();
     }
 

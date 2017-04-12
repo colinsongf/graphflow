@@ -12,7 +12,7 @@ query : matchQuery
        | durabilityQuery
        ;
 
-matchQuery : MATCH whitespace matchPattern (whitespace returnAndWhereClauses)? ;
+matchQuery : MATCH whitespace matchPattern (whitespace whereClause)? (whitespace returnClause)?;
 continuousMatchQuery : CONTINUOUS whitespace MATCH whitespace matchPattern (whitespace whereClause)? whitespace FILE whitespace SINGLE_QUOTE filePath SINGLE_QUOTE ;
 createQuery : CREATE whitespace (createEdgePattern | createVertexPattern) ;
 deleteQuery : DELETE whitespace deletePattern ;
@@ -26,7 +26,6 @@ createEdgePattern : digitsEdgeWithTypeAndProperties ( whitespace? ',' whitespace
 createVertexPattern : digitsVertexWithTypeAndProperties ( whitespace? ',' whitespace? digitsVertexWithTypeAndProperties)* ;
 pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
 
-returnAndWhereClauses : ( returnClause (whitespace whereClause)? ) | ( whereClause (whitespace returnClause)? ) ;
 returnClause : RETURN whitespace (variable | variableWithProperty | aggregationPattern ) ( whitespace? ',' whitespace? (variable | variableWithProperty | aggregationPattern ) )* ;
 aggregationPattern : ( aggregationFunction '(' whitespace? ( variable | variableWithProperty ) whitespace? ')' )
                     | countStarPattern;
@@ -34,8 +33,8 @@ aggregationFunction : ( AVG | MAX | MIN | SUM ) ;
 countStarPattern :  COUNT '(' whitespace? '*' whitespace? ')' ;
 whereClause : WHERE whitespace predicates ;
 predicates : predicate ( whitespace AND whitespace predicate )* ;
-predicate : variableWithProperty whitespace operator whitespace (literal | variableWithProperty) ;
-
+predicate : operand whitespace? operator whitespace? operand ;
+operand : literal | variableWithProperty ;
 variableEdge : variableVertex (DASH edgeVariable)? DASH RIGHT_ARROWHEAD variableVertex ;
 digitsEdgeWithOptionalType : digitsVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD digitsVertex ;
 digitsEdgeWithTypeAndProperties : digitsVertexWithTypeAndProperties (DASH edgeTypeAndOptionalProperties) DASH RIGHT_ARROWHEAD digitsVertexWithTypeAndProperties ;

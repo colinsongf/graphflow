@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.query;
 
 import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
-import ca.waterloo.dsg.graphflow.exceptions.IncorrectTypeException;
+import ca.waterloo.dsg.graphflow.exceptions.IncorrectVertexTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.MalformedMatchQueryException;
 import ca.waterloo.dsg.graphflow.exceptions.MalformedReturnClauseException;
 import ca.waterloo.dsg.graphflow.exceptions.MalformedWhereClauseException;
@@ -138,11 +138,10 @@ public class QueryProcessor {
         try {
             ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink).
             plan()).execute(Graph.getInstance());
-        } catch (IncorrectDataTypeException | IncorrectTypeException| NoSuchPropertyKeyException |
+        } catch (IncorrectDataTypeException | IncorrectVertexTypeException | NoSuchPropertyKeyException |
             NoSuchTypeException | MalformedMatchQueryException | MalformedReturnClauseException |
             MalformedWhereClauseException | NoSuchVertexIDException e) {
             logger.debug(e.getMessage());
-            outputSink.append("{}");
             outputSink.append("ERROR: " + e.getMessage());
         }
         return (outputSink.toString().isEmpty()) ? "{}" : outputSink.toString();
@@ -161,7 +160,7 @@ public class QueryProcessor {
             ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
                 (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
                     outputSink).plan());
-        } catch (IncorrectDataTypeException | IncorrectTypeException | NoSuchPropertyKeyException |
+        } catch (IncorrectDataTypeException | IncorrectVertexTypeException | NoSuchPropertyKeyException |
             NoSuchTypeException | MalformedMatchQueryException | MalformedWhereClauseException e) {
             logger.debug(e.getMessage());
             return "ERROR: The CONTINUOUS MATCH query could not be registered. " + e.getMessage();

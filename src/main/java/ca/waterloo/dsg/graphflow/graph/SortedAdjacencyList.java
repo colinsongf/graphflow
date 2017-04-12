@@ -3,6 +3,7 @@ package ca.waterloo.dsg.graphflow.graph;
 import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
+import ca.waterloo.dsg.graphflow.util.ShortArrayList;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 import org.antlr.v4.runtime.misc.Pair;
@@ -147,10 +148,11 @@ public class SortedAdjacencyList {
      *
      * @param toVertexTypeFilter The to vertex type for filtering.
      * @param edgeTypeFilter The edge type for filtering.
-     * @return IntArrayList The subset of neighbour IDs matching {@code toVertexTypeFilter} and {@code
-     * edgeTypeFilter}
+     * @return IntArrayList The subset of neighbour IDs matching {@code toVertexTypeFilter} and
+     * {@code edgeTypeFilter}
      */
-    public IntArrayList getFilteredNeighbourIds(short toVertexTypeFilter, short edgeTypeFilter) {
+    public IntArrayList getFilteredNeighbourIds(short toVertexTypeFilter, short edgeTypeFilter,
+        ShortArrayList vertexTypes) {
         IntArrayList filteredList = new IntArrayList(size);
         if (TypeAndPropertyKeyStore.ANY == edgeTypeFilter &&
             TypeAndPropertyKeyStore.ANY == toVertexTypeFilter) {
@@ -158,9 +160,9 @@ public class SortedAdjacencyList {
         } else {
             for (int i = 0; i < size; i++) {
                 if ((TypeAndPropertyKeyStore.ANY == toVertexTypeFilter ||
-                    edgeTypes[i] == toVertexTypeFilter) &&
+                    vertexTypes.get(neighbourIds[i]) == toVertexTypeFilter) &&
                     (TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
-                    edgeTypes[i] == edgeTypeFilter)) {
+                        edgeTypes[i] == edgeTypeFilter)) {
                     filteredList.add(neighbourIds[i]);
                 }
             }

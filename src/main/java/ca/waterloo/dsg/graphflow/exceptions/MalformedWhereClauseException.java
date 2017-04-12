@@ -1,7 +1,7 @@
 package ca.waterloo.dsg.graphflow.exceptions;
 
 /**
- * Thrown to indicate that the WHERE statement contains variables that are not defined in the query.
+ * Thrown to indicate that the WHERE clause contains syntax and/or semantic errors.
  */
 public class MalformedWhereClauseException extends IllegalArgumentException {
 

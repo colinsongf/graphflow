@@ -4,12 +4,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
-import org.antlr.v4.runtime.misc.Pair;
-
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Represents a Generic Join rule. A Generic Join rule consists of the following: (1) A {@code
@@ -32,8 +27,8 @@ public class GenericJoinIntersectionRule {
 
     /**
      * Constructor for extending prefixes in the {@code graphVersion} by filtering edges that
-     * do not match the given {@code fromVertexTypeFilter}, {@code toVertexTypeFilter}, {@code
-     * edgeTypeFilter}, and {@code edgePropertyEqualityFilters}.
+     * do not match the given {@code fromVertexTypeFilter}, {@code toVertexTypeFilter}, and {@code
+     * edgeTypeFilter}.
      *
      * @see #GenericJoinIntersectionRule(int, Direction, GraphVersion, short, short, short)
      */
@@ -45,21 +40,22 @@ public class GenericJoinIntersectionRule {
 
     /**
      * Constructor for extending prefixes in the {@code graphVersion} by filtering edges that
-     * do not match the given {@code fromVertexTypeFilter}, {@code toVertexTypeFilter}, {@code
-     * edgeTypeFilter} and {@code edgePropertyEqualityFilters}.
+     * do not match the given {@code fromVertexTypeFilter}, {@code toVertexTypeFilter}, and {@code
+     * edgeTypeFilter}. Each prefix has an index indicating the vertex {@code v} from which the
+     * rule extends.
      *
-     * @param prefixIndex The index of the prefix indicating the vertex {@code u} from which this
+     * @param prefixIndex The index of the prefix indicating the vertex {@code v} from which this
      * rule will extend.
      * @param direction The direction of extension. Either {@link Graph.Direction#FORWARD} from
-     * {@code u} or {@link Graph.Direction#BACKWARD} towards {@code u}.
+     * {@code v} or {@link Graph.Direction#BACKWARD} towards {@code v}.
      * @param graphVersion The version of the graph to be used for this rule.
-     * @param fromVertexTypeFilter Filters {@code u}'s edges that do not have the given from vertex
+     * @param fromVertexTypeFilter Filters {@code v}'s edges that do not have the given from vertex
      * type. If the value of {@code fromVertexTypeFilter} is {@link TypeAndPropertyKeyStore#ANY},
      * this parameter is ignored.
-     * @param toVertexTypeFilter Filters {@code u}'s edges that do not have the given to vertex
+     * @param toVertexTypeFilter Filters {@code v}'s edges that do not have the given to vertex
      * type. If the value of {@code fromVertexTypeFilter} is {@link TypeAndPropertyKeyStore#ANY},
      * this parameter is ignored.
-     * @param edgeTypeFilter Filters {@code u}'s edges that do not have the given type. If the
+     * @param edgeTypeFilter Filters {@code v}'s edges that do not have the given type. If the
      * value of {@code edgeTypeFilter} is {@link TypeAndPropertyKeyStore#ANY}, this parameter is
      * ignored.
      */

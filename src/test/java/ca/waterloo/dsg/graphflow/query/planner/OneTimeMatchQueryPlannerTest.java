@@ -1,8 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
-import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
@@ -33,7 +33,7 @@ public class OneTimeMatchQueryPlannerTest {
 
     @Before
     public void setUp() throws Exception {
-        Graph.getInstance().reset();
+        GraphDBState.reset();
         String createQuery = "CREATE (0:Person{name:string='name0', age:int=20, views:int=120})" +
             "-[:FOLLOWS{isRelated:boolean=true, views:int=100}]->(1:Person{name:string='name1', " +
             "age:int=10, views:int=50}),(0:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->" +
@@ -52,7 +52,7 @@ public class OneTimeMatchQueryPlannerTest {
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)->(b),(b)->(c),(c)->(a)");
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan)
-            new OneTimeMatchQueryPlanner(triangleStructuredQuery, null).plan();
+            new OneTimeMatchQueryPlanner(triangleStructuredQuery, null /* no outputSink */).plan();
 
         // Create the query plan manually. Ordering of the variables is "abc".
         OneTimeMatchQueryPlan expectedOneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
@@ -91,7 +91,7 @@ public class OneTimeMatchQueryPlannerTest {
             "(a)-[:FOLLOWS]->(b),(a)-[:LIKES]->(b),(b)-[:LIKES]->(a),(b)->(c),(c)->(b)," +
             "(c)-[:FOLLOWS]->(a)");
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan)
-            new OneTimeMatchQueryPlanner(triangleStructuredQuery, null).plan();
+            new OneTimeMatchQueryPlanner(triangleStructuredQuery, null /* no outputSink */).plan();
 
         // Create the query plan manually. Ordering of the variables is "bac".
         OneTimeMatchQueryPlan expectedOneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
@@ -130,7 +130,7 @@ public class OneTimeMatchQueryPlannerTest {
         StructuredQuery complexStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)->(b),(a)->(e),(c)->(b),(c)->(d),(d)->(b),(e)->(b),(f)->(c)");
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan)
-            new OneTimeMatchQueryPlanner(complexStructuredQuery, null).plan();
+            new OneTimeMatchQueryPlanner(complexStructuredQuery, null /* no outputSink */).plan();
 
         // Create the query plan manually. Ordering of the variables is "bcdaef".
         OneTimeMatchQueryPlan expectedOneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
@@ -173,11 +173,11 @@ public class OneTimeMatchQueryPlannerTest {
     public void testGetIdentityPropertyResolverAsNextOperator() {
         StructuredQuery structuredQueryWithoutReturn = new StructuredQueryParser().parse("MATCH " +
             "(a)-[:FOLLOWS]->(b), (b)-[:FOLLOWS]->(c), (c)-[:FOLLOWS]->(a)");
-        OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner
-            (structuredQueryWithoutReturn, new InMemoryOutputSink());
+        OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner(
+            structuredQueryWithoutReturn, new InMemoryOutputSink());
         String[] orderedVertexVariables = {"a", "b", "c"};
-        AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList
-            (orderedVertexVariables));
+        AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList(
+            orderedVertexVariables));
         Assert.assertTrue(nextOperator instanceof PropertyResolver);
         Assert.assertTrue(nextOperator.nextOperator instanceof InMemoryOutputSink);
     }
@@ -187,11 +187,11 @@ public class OneTimeMatchQueryPlannerTest {
         StructuredQuery structuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)-[:FOLLOWS]->(b), (b)-[:FOLLOWS]->(c), (c)-[:FOLLOWS]->(a) RETURN a.name, b" +
             ".views, b.age, c");
-        OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner
-            (structuredQuery, new InMemoryOutputSink());
+        OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner(
+            structuredQuery, new InMemoryOutputSink());
         String[] orderedVertexVariables = {"a", "b", "c"};
-        AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList
-            (orderedVertexVariables));
+        AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList(
+            orderedVertexVariables));
         Assert.assertTrue(nextOperator instanceof Projection);
         Assert.assertTrue(nextOperator.nextOperator instanceof PropertyResolver);
         Assert.assertTrue(nextOperator.nextOperator.nextOperator instanceof InMemoryOutputSink);
@@ -202,11 +202,11 @@ public class OneTimeMatchQueryPlannerTest {
         StructuredQuery structuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)-[d:FOLLOWS]->(b), (b)-[e:FOLLOWS]->(c), (c)-[f:FOLLOWS]->(a) RETURN a.name, b" +
             ".views, d.views, c, e");
-        OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner
-            (structuredQuery, new InMemoryOutputSink());
+        OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner(
+            structuredQuery, new InMemoryOutputSink());
         String[] orderedVertexVariables = {"a", "b", "c"};
-        AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList
-            (orderedVertexVariables));
+        AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList(
+            orderedVertexVariables));
         Assert.assertTrue(nextOperator instanceof EdgeIdResolver);
         Assert.assertTrue(nextOperator.nextOperator instanceof Projection);
         Assert.assertTrue(nextOperator.nextOperator.nextOperator instanceof PropertyResolver);
@@ -219,18 +219,16 @@ public class OneTimeMatchQueryPlannerTest {
         StructuredQuery structuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)-[d:FOLLOWS]->(b), (b)-[e:FOLLOWS]->(c), (c)-[f:FOLLOWS]->(a);");
         List<QueryPropertyPredicate> queryPropertyPredicates = new ArrayList<>();
-        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("a",
-                "views"), new Pair<>("d", "views"), null, ComparisonOperator.GREATER_THAN,
-            OperandType.EDGE, OperandType.VERTEX));
-        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("d",
-                "views"), new Pair<>("e", "views"), null, ComparisonOperator.EQUALS,
-            OperandType.EDGE, OperandType.EDGE));
+        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("a", "views"),
+            new Pair<>("d", "views"), null /* no literal */, ComparisonOperator.GREATER_THAN));
+        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("d", "views"),
+            new Pair<>("e", "views"), null /* no literal */, ComparisonOperator.EQUALS));
         structuredQuery.setQueryPropertyPredicates(queryPropertyPredicates);
         OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner(
             structuredQuery, new InMemoryOutputSink());
         String[] orderedVertexVariables = {"a", "b", "c"};
-        AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList
-            (orderedVertexVariables));
+        AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList(
+            orderedVertexVariables));
         Assert.assertTrue(nextOperator instanceof EdgeIdResolver);
         Assert.assertTrue(nextOperator.nextOperator instanceof Filter);
         Assert.assertTrue(nextOperator.nextOperator.nextOperator instanceof PropertyResolver);
@@ -244,25 +242,22 @@ public class OneTimeMatchQueryPlannerTest {
             "(a)-[d:FOLLOWS]->(b), (b)-[e:FOLLOWS]->(c), (c)-[f:FOLLOWS]->(a) RETURN a.name, b" +
             ".views, d.views, c, e;");
         List<QueryPropertyPredicate> queryPropertyPredicates = new ArrayList<>();
-        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("a",
-                "views"), new Pair<>("d", "views"), null, ComparisonOperator.GREATER_THAN,
-            OperandType.EDGE, OperandType.VERTEX));
-        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("d",
-                "views"), new Pair<>("e", "views"), null, ComparisonOperator.EQUALS, OperandType.
-            EDGE, OperandType.EDGE));
+        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("a", "views"),
+            new Pair<>("d", "views"), null /* no literal */, ComparisonOperator.GREATER_THAN));
+        queryPropertyPredicates.add(TestUtils.createQueryPropertyPredicate(new Pair<>("d", "views"),
+            new Pair<>("e", "views"), null /* no literal */, ComparisonOperator.EQUALS));
         structuredQuery.setQueryPropertyPredicates(queryPropertyPredicates);
-        OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner
-            (structuredQuery, new InMemoryOutputSink());
+        OneTimeMatchQueryPlanner oneTimeMatchQueryPlanner = new OneTimeMatchQueryPlanner(
+            structuredQuery, new InMemoryOutputSink());
         String[] orderedVertexVariables = {"a", "b", "c"};
-        AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList
-            (orderedVertexVariables));
+        AbstractDBOperator nextOperator = oneTimeMatchQueryPlanner.getNextOperator(Arrays.asList(
+            orderedVertexVariables));
         Assert.assertTrue(nextOperator instanceof EdgeIdResolver);
         Assert.assertTrue(nextOperator.nextOperator instanceof Filter);
         Assert.assertTrue(nextOperator.nextOperator.nextOperator instanceof Projection);
         Assert.assertTrue(nextOperator.nextOperator.nextOperator.nextOperator instanceof
             PropertyResolver);
         Assert.assertTrue(nextOperator.nextOperator.nextOperator.nextOperator.nextOperator
-            instanceof
-            InMemoryOutputSink);
+            instanceof InMemoryOutputSink);
     }
 }

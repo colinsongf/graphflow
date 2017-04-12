@@ -66,10 +66,9 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
      * next edge of the graph.
      */
     private void setIndicesToNextEdge() {
-        int fromVertexId, toVertexId;
+        int toVertexId;
         while (nextFromVertexId <= lastVertexId) {
             nextFromVertexAdjListIndex++;
-            fromVertexId = nextFromVertexId;
             if (GraphVersion.MERGED == graphVersion && mergedAdjLists.
                 containsKey(nextFromVertexId)) {
                 // {@code nextFromVertexId} matches the given {@link #fromVertexType} and is
@@ -81,11 +80,11 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
                     SortedAdjacencyList fromVertexMergedAdjList = mergedAdjLists.get(
                         nextFromVertexId);
                     if ((TypeAndPropertyKeyStore.ANY == fromVertexTypeFilter ||
-                        vertexTypes.get(fromVertexId) == fromVertexTypeFilter) &&
-                    (TypeAndPropertyKeyStore.ANY == toVertexTypeFilter ||
-                        vertexTypes.get(toVertexId) == toVertexTypeFilter) &&
-                    (TypeAndPropertyKeyStore.ANY == edgeTypeFilter || fromVertexMergedAdjList.
-                        getEdgeType(nextFromVertexAdjListIndex) == edgeTypeFilter)) {
+                        vertexTypes.get(nextFromVertexId) == fromVertexTypeFilter) &&
+                        (TypeAndPropertyKeyStore.ANY == toVertexTypeFilter ||
+                            vertexTypes.get(toVertexId) == toVertexTypeFilter) &&
+                        (TypeAndPropertyKeyStore.ANY == edgeTypeFilter || fromVertexMergedAdjList.
+                            getEdgeType(nextFromVertexAdjListIndex) == edgeTypeFilter)) {
                         return;
                     }
                     nextFromVertexAdjListIndex++;
@@ -98,11 +97,11 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
                     SortedAdjacencyList fromVertexPermanentAdjList = permanentAdjacencyLists[
                         nextFromVertexId];
                     if ((TypeAndPropertyKeyStore.ANY == fromVertexTypeFilter ||
-                        vertexTypes.get(fromVertexId) == fromVertexTypeFilter) &&
-                    (TypeAndPropertyKeyStore.ANY == toVertexTypeFilter ||
-                        vertexTypes.get(toVertexId) == toVertexTypeFilter) &&
-                    (TypeAndPropertyKeyStore.ANY == edgeTypeFilter || fromVertexPermanentAdjList.
-                        getEdgeType(nextFromVertexAdjListIndex) == edgeTypeFilter)) {
+                        vertexTypes.get(nextFromVertexId) == fromVertexTypeFilter) &&
+                        (TypeAndPropertyKeyStore.ANY == toVertexTypeFilter ||
+                            vertexTypes.get(toVertexId) == toVertexTypeFilter) &&
+                        (TypeAndPropertyKeyStore.ANY == edgeTypeFilter || fromVertexPermanentAdjList
+                            .getEdgeType(nextFromVertexAdjListIndex) == edgeTypeFilter)) {
                         return;
                     }
                     nextFromVertexAdjListIndex++;

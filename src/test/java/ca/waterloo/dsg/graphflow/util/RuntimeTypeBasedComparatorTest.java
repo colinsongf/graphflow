@@ -5,9 +5,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * A class for testing the static methods of {@link RuntimeTypeBasedComparator} with each
- * supported comparison operator and operands with runtime types of {@code Integer}, {@code
- * Double}, {@code String}, and {@code Boolean}.
+ * Tests the static methods of {@link RuntimeTypeBasedComparator} with each supported comparison
+ * operator and operands with runtime types of {@code Integer}, {@code Double}, {@code String},
+ * and {@code Boolean}.
  */
 public class RuntimeTypeBasedComparatorTest {
 

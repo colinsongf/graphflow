@@ -7,29 +7,24 @@ import java.util.function.Predicate;
 
 /**
  * A class representing a filter on the results of a MATCH query. Consists of two operands (a, b)
- * and a comparison operator(*) where the operands are variables used in specifying the subgraph
- * pattern of the MATCH query. The results of the MATCH query will be forced to satisfy an
- * {@link Predicate} encapsulating the comparison operation (a * b).
+ * and a comparison operator(op) where the operands are variables used in specifying the subgraph
+ * pattern of the MATCH query. The results of the MATCH query will be forced to satisfy a
+ * {@link Predicate} encapsulating the predicate (a op b).
  */
 public class QueryPropertyPredicate {
 
     /**
-     * An enum whose constants specify types of comparison predicates based on the types
-     * of the operand variables of comparison. The types of an operand variable is determined by
-     * whether they represent a vertex, or an edge in a MATCH query, or a constant.
+     * An enum whose constants specify types of predicates based on the types of the operand
+     * variables of comparison. The types of an operand variable is determined by whether they
+     * represent a vertex, or an edge in a MATCH query, or a constant.
      */
     public enum PredicateType {
-        TWO_VERTEX,
-        TWO_EDGE,
-        EDGE_AND_VERTEX,
-        VERTEX_AND_EDGE,
-        EDGE_AND_LITERAL,
-        VERTEX_AND_LITERAL
+        TWO_VARIABLES,
+        VARIABLE_AND_LITERAL
     }
 
     public enum OperandType {
-        EDGE,
-        VERTEX,
+        VARIABLE,
         LITERAL
     }
 
@@ -41,72 +36,60 @@ public class QueryPropertyPredicate {
 
     public QueryPropertyPredicate() { }
 
-    /**
-     * Constructs a {@code QueryPropertyPredicate}.
-     *
-     * @param variable1 The vertexId and Property key as left operand.
-     * @param literal The literal as right operand.
-     * @param comparisonOperator The {@link ComparisonOperator} of the predicate.
-     * @param predicateType The {@link PredicateType} of the predicate.
-     */
-    public QueryPropertyPredicate(Pair<String, String> variable1, String literal,
-        ComparisonOperator comparisonOperator, PredicateType predicateType) {
-        this.variable1 = variable1;
-        this.literal = literal;
-        this.comparisonOperator = comparisonOperator;
-        this.predicateType = predicateType;
-    }
-
     public Pair<String, String> getVariable1() {
         return variable1;
-    }
-
-    public Pair<String, String> getVariable2() {
-        return variable2;
-    }
-
-    public String getLiteral() {
-        return literal;
-    }
-
-    public ComparisonOperator getComparisonOperator() {
-        return comparisonOperator;
-    }
-
-    public PredicateType getPredicateType() {
-        return predicateType;
     }
 
     public void setVariable1(Pair<String, String> variable1) {
         this.variable1 = variable1;
     }
 
+    public Pair<String, String> getVariable2() {
+        return variable2;
+    }
+
     public void setVariable2(Pair<String, String> variable2) {
         this.variable2 = variable2;
+    }
+
+    public String getLiteral() {
+        return literal;
     }
 
     public void setLiteral(String constant) {
         this.literal = constant;
     }
 
+    public ComparisonOperator getComparisonOperator() {
+        return comparisonOperator;
+    }
+
     public void setComparisonOperator(ComparisonOperator comparisonOperator) {
         this.comparisonOperator = comparisonOperator;
     }
 
-    public void setPredicateType(OperandType leftOperandType, OperandType rightOperandType) {
-        if (leftOperandType == OperandType.VERTEX && rightOperandType == OperandType.VERTEX) {
-            this.predicateType = PredicateType.TWO_VERTEX;
-        } else if (leftOperandType == OperandType.EDGE && rightOperandType == OperandType.EDGE) {
-            this.predicateType = PredicateType.TWO_EDGE;
-        } else if (leftOperandType == OperandType.VERTEX && rightOperandType == OperandType.EDGE) {
-            this.predicateType = PredicateType.VERTEX_AND_EDGE;
-        } else if (leftOperandType == OperandType.EDGE && rightOperandType == OperandType.VERTEX) {
-            this.predicateType = PredicateType.EDGE_AND_VERTEX;
-        } else if (leftOperandType == OperandType.VERTEX &&
-            rightOperandType == OperandType.LITERAL) {
-            this.predicateType = PredicateType.VERTEX_AND_LITERAL;
-        } else if (leftOperandType == OperandType.EDGE && rightOperandType == OperandType.LITERAL) {
-            this.predicateType = PredicateType.EDGE_AND_LITERAL;
+    public PredicateType getPredicateType() {
+        return predicateType;
+    }
+
+    public void setPredicateType(PredicateType predicateType) {
+        this.predicateType = predicateType;
+    }
+
+    public void invertComparisonOperator() {
+        switch(comparisonOperator) {
+            case GREATER_THAN:
+                comparisonOperator = ComparisonOperator.LESS_THAN;
+                break;
+            case LESS_THAN:
+                comparisonOperator = ComparisonOperator.GREATER_THAN;
+                break;
+            case GREATER_THAN_OR_EQUAL:
+                comparisonOperator = ComparisonOperator.LESS_THAN_OR_EQUAL;
+                break;
+            case LESS_THAN_OR_EQUAL:
+                comparisonOperator = ComparisonOperator.GREATER_THAN_OR_EQUAL;
+                break;
         }
     }
 

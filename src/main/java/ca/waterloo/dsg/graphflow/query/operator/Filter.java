@@ -1,7 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
-import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,10 +18,9 @@ import java.util.function.Predicate;
 public class Filter extends PropertyReadingOperator {
 
     private static final Logger logger = LogManager.getLogger(Filter.class);
-
+    private static final String FILTER_DELIMITER = "%%";
     private final Predicate<String[]> filterPredicate;
     private final List<QueryPropertyPredicate> queryPropertyPredicates;
-    private static final String FILTER_DELIMITER = "%%";
 
     /**
      * Default constructor.

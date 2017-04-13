@@ -41,16 +41,16 @@ public class ContinuousMatchQueryExecutor {
     }
 
     /**
-     * Returns the singleton instance {@link #INSTANCE} of {@link ContinuousMatchQueryExecutor}.
-     */
-    public static ContinuousMatchQueryExecutor getInstance() {
-        return INSTANCE;
-    }
-
-    /**
      * Deletes all the registered CONTINUOUS MATCH queries.
      */
     public void reset() {
         continuousMatchQueryPlans.clear();
+    }
+
+    /**
+     * Returns the singleton instance {@link #INSTANCE} of {@link ContinuousMatchQueryExecutor}.
+     */
+    public static ContinuousMatchQueryExecutor getInstance() {
+        return INSTANCE;
     }
 }

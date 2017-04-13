@@ -15,15 +15,15 @@ import org.junit.Test;
  * End-to-end tests of the different types of filter queries. Each query matches a triangle
  * pattern against the following graph.
  * <ul>
- *     <li>Vertex IDs: 0, 1, 3, 4 , 5</li>
- *     <li>Each vertex is of type PERSON and has properties name(string), age(int), views(int).</li>
- *     <li>Each vertex is of type FOLLOWS and has the property views(int).</li>
+ * <li>Vertex IDs: 0, 1, 3, 4 , 5</li>
+ * <li>Each vertex is of type PERSON and has properties name(string), age(int), views(int).</li>
+ * <li>Each vertex is of type FOLLOWS and has the property views(int).</li>
  * </ul>
  * Edges: Form 3 interconnected triangles
  * <ul>
- *     <li>0 -> 1, 1 -> 3, 3 -> 0</li>
- *     <li>3 -> 4, 4 -> 1, 1 -> 3</li>
- *     <li>4 -> 1, 1 -> 5, 5 -> 4</li>
+ * <li>0 -> 1, 1 -> 3, 3 -> 0</li>
+ * <li>3 -> 4, 4 -> 1, 1 -> 3</li>
+ * <li>4 -> 1, 1 -> 5, 5 -> 4</li>
  * </ul>
  */
 public class OneTimeMatchFilterTests {
@@ -77,10 +77,9 @@ public class OneTimeMatchFilterTests {
     @Test
     public void testOneVariableExistsMultipleTimesInAFilter() {
         String matchQuery = "MATCH (v1)-[e1:FOLLOWS]->(v2),(v2)-[e2:FOLLOWS]->(v3),(v3)" +
-            "-[:FOLLOWS]->(v1) WHERE v1.views > v2.views AND v1.views > v3.views RETURN v1, v2, " +
-            "v3;";
-        //Object[][] expectedResults = {{0, 1, 3}, {3, 0, 1}, {3, 4, 1}, {5, 4, 1}};
-        Object[][] expectedResults = {/*{0, 1, 3},*/ {3, 0, 1}, {3, 4, 1}, {5, 4, 1}};
+            "-[:FOLLOWS]->(v1) WHERE v1.views > v2.views AND v1.views > v3.views " +
+            "RETURN v1, v2, v3;";
+        Object[][] expectedResults = {{3, 0, 1}, {3, 4, 1}, {5, 4, 1}};
         runTest(matchQuery, expectedResults);
     }
 
@@ -96,13 +95,18 @@ public class OneTimeMatchFilterTests {
 
     private void constructGraph() {
         TestUtils.initializeGraphPermanentlyWithProperties("CREATE " +
-            "(0:Person{name:string='name0', age:int=20, views:int=120})-[:FOLLOWS{views:int=250,is_friends:boolean=true}]->(1:Person{name:string='name1', age:int=25, views:int=70})," +
+            "(0:Person{name:string='name0', age:int=20, views:int=120})" +
+            "-[:FOLLOWS{views:int=250,is_friends:boolean=true}]->" +
+            "(1:Person{name:string='name1', age:int=25, views:int=70})," +
             "(1:Person)-[:FOLLOWS{views:int=12, is_friends:boolean=true}]->(0:Person)," +
-            "(1:Person)-[:FOLLOWS{views:int=40, is_friends:boolean=false}]->(3:Person{name:string='name3', age:int=22, views:int=250})," +
+            "(1:Person)-[:FOLLOWS{views:int=40, is_friends:boolean=false}]->" +
+            "(3:Person{name:string='name3', age:int=22, views:int=250})," +
             "(3:Person)-[:FOLLOWS{views:int=70, is_friends:boolean=true}]->(0:Person), " +
-            "(4:Person{name:string='name4', age:int=40, views:int=20})-[:FOLLOWS{views:int=45, is_friends:boolean=true}]->(1:Person)," +
+            "(4:Person{name:string='name4', age:int=40, views:int=20})-" +
+            "[:FOLLOWS{views:int=45, is_friends:boolean=true}]->(1:Person)," +
             "(3:Person)-[:FOLLOWS{views:int=50, is_friends:boolean=true}]->(4:Person)," +
-            "(5:Person{name:string='name5', age:int=30, views:int=120})-[:FOLLOWS{views:int=35, is_friends:boolean=true}]->(4:Person)," +
+            "(5:Person{name:string='name5', age:int=30, views:int=120})-" +
+            "[:FOLLOWS{views:int=35, is_friends:boolean=true}]->(4:Person)," +
             "(1:Person)-[:FOLLOWS{views:int=250, is_friends:boolean=false}]->(5:Person);");
     }
 }

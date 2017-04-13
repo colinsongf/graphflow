@@ -294,6 +294,20 @@ public class ShortestPathExecutor {
         }
     }
 
+    /**
+     * Checks whether the given vertexID is stored in the graph and throws an error if it is not
+     * present.
+     *
+     * @param vertexId The vertexID to be checked.
+     * @throws NoSuchVertexIDException
+     */
+    private void assertVertexIDExists(int vertexId) throws NoSuchVertexIDException {
+        if (vertexId >= graph.getVertexCount()) {
+            throw new NoSuchVertexIDException("The specified vertexID " + vertexId + " does not " +
+                "exist.");
+        }
+    }
+
     @VisibleForTesting
     static String getStringOutput(Map<Integer, Set<Integer>> results) {
         StringJoiner stringJoiner = new StringJoiner(", ");
@@ -308,19 +322,5 @@ public class ShortestPathExecutor {
      */
     public static ShortestPathExecutor getInstance() {
         return INSTANCE;
-    }
-
-    /**
-     * Checks whether the given vertexID is stored in the graph and throws an error if it is not
-     * present.
-     *
-     * @param vertexId The vertexID to be checked.
-     * @throws NoSuchVertexIDException
-     */
-    private void assertVertexIDExists(int vertexId) throws NoSuchVertexIDException {
-        if (vertexId >= graph.getVertexCount()) {
-            throw new NoSuchVertexIDException("The specified vertexID " + vertexId + " does not " +
-                "exist.");
-        }
     }
 }

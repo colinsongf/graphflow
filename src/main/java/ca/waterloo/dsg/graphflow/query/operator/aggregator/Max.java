@@ -9,7 +9,7 @@ public class Max extends AbstractLongDoubleAggregator {
 
     @Override
     protected void aggregateInt(int index, int intValue) {
-        this.longValues = ArrayUtils.resizeIfNecessary(longValues, index + 1, 
+        this.longValues = ArrayUtils.resizeIfNecessary(longValues, index + 1,
             Long.MIN_VALUE /* value to fill new cells if resizing */);
         this.longValues[index] = Long.max(this.longValues[index], intValue);
     }
@@ -17,7 +17,7 @@ public class Max extends AbstractLongDoubleAggregator {
     @Override
     protected void aggregateDouble(int index, double doubleValue) {
         this.doubleValues = ArrayUtils.resizeIfNecessary(doubleValues, index + 1,
-            -1*Double.MAX_VALUE /* value to fill new cells if resizing */);
+            -1 * Double.MAX_VALUE /* value to fill new cells if resizing */);
         this.doubleValues[index] = Double.max(this.doubleValues[index], doubleValue);
     }
 }

@@ -14,7 +14,6 @@ import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
-import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.OperandType;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
 import org.antlr.v4.runtime.misc.Pair;
@@ -111,7 +110,7 @@ public class OneTimeMatchQueryPlannerTest {
             ANY, TypeAndPropertyKeyStore.ANY, TypeAndPropertyKeyStore.ANY));
         stage.add(new GenericJoinIntersectionRule(0, Direction.BACKWARD, TypeAndPropertyKeyStore.
             ANY, TypeAndPropertyKeyStore.ANY, TypeAndPropertyKeyStore.ANY));
-        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD,TypeAndPropertyKeyStore.
+        stage.add(new GenericJoinIntersectionRule(1, Direction.BACKWARD, TypeAndPropertyKeyStore.
             ANY, TypeAndPropertyKeyStore.ANY, FOLLOWS_TYPE_ID));
         expectedOneTimeMatchQueryPlan.addStage(stage);
 

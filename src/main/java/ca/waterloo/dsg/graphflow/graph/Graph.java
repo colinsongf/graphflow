@@ -314,7 +314,8 @@ public class Graph implements GraphflowSerializable {
      *
      * @param graphVersion The {@code GraphVersion} for which list of edges is required.
      * @param direction The {@code Direction} of the edges.
-     * @param fromVertexTypeFilter The type of the from vertex of the edge returned by the iterator.
+     * @param fromVertexTypeFilter The type of the from vertex of the edge returned by the
+     * iterator.
      * @param toVertexTypeFilter The type of the to vertex of the edge returned by the iterator.
      * @param edgeTypeFilter The type of the edges returned by the iterator.
      * @return An iterator to the list of edges for the given {@code graphVersion} and

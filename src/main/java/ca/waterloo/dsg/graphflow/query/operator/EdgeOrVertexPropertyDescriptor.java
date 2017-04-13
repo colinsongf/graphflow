@@ -22,16 +22,16 @@ public class EdgeOrVertexPropertyDescriptor {
         COUNT_STAR_PLACEHOLDER,
     }
 
-    public DescriptorType descriptorType;
-    public int index;
-    public short key;
-
     /**
      * This dummy instance is intended for using in {@link GroupByAndAggregate} when aggregating
      * {@link CountStar}, which does not need to ready any edge or vertex property.
      */
-    public static EdgeOrVertexPropertyDescriptor COUNTSTAR_DUMMY_DESCRIPTOR =
+    public static final EdgeOrVertexPropertyDescriptor COUNTSTAR_DUMMY_DESCRIPTOR =
         new EdgeOrVertexPropertyDescriptor(DescriptorType.COUNT_STAR_PLACEHOLDER, -1, (short) -1);
+
+    public DescriptorType descriptorType;
+    public int index;
+    public short key;
 
     /**
      * Default constructor that sets the following fields.

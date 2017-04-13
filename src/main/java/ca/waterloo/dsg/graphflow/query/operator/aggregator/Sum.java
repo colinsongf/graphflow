@@ -9,7 +9,7 @@ public class Sum extends AbstractLongDoubleAggregator {
 
     @Override
     protected void aggregateInt(int index, int intValue) {
-        this.longValues = ArrayUtils.resizeIfNecessary(longValues, index + 1, 
+        this.longValues = ArrayUtils.resizeIfNecessary(longValues, index + 1,
             0 /* value to fill new cells if resizing */);
         this.longValues[index] += intValue;
     }

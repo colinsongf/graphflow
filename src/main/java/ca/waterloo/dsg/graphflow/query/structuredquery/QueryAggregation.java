@@ -1,8 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.structuredquery;
 
-import java.util.Objects;
-
 import org.antlr.v4.runtime.misc.Pair;
+
+import java.util.Objects;
 
 /**
  * Represents an aggregation function specified in the RETURN statement. This class is used by
@@ -47,7 +47,7 @@ public class QueryAggregation {
         this.variable = variable;
         this.variablePropertyPair = null;
     }
-    
+
     /**
      * Constructor used for aggregation functions that aggregate a vertex or edge variable
      * property.
@@ -73,7 +73,7 @@ public class QueryAggregation {
     public Pair<String, String> getVariablePropertyPair() {
         return variablePropertyPair;
     }
-    
+
     @Override
     public String toString() {
         if (COUNT_STAR == this) {
@@ -102,7 +102,7 @@ public class QueryAggregation {
             return false;
         }
 
-        return Objects.equals(a.aggregationFunction, b.aggregationFunction) && 
+        return Objects.equals(a.aggregationFunction, b.aggregationFunction) &&
             Objects.equals(a.variable, b.variable) &&
             Objects.equals(a.variablePropertyPair, b.variablePropertyPair);
     }

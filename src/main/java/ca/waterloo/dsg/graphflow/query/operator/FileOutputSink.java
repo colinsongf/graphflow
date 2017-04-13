@@ -1,8 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
-import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
-import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;

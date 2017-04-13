@@ -11,18 +11,19 @@ import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver.SourceDestinationIndexAndType;
+import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor;
+import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor.DescriptorType;
+import ca.waterloo.dsg.graphflow.query.operator.Filter;
+import ca.waterloo.dsg.graphflow.query.operator.GroupByAndAggregate;
+import ca.waterloo.dsg.graphflow.query.operator.Projection;
+import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.AbstractAggregator;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.Average;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.CountStar;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.Max;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.Min;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.Sum;
-import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor;
-import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor.DescriptorType;
-import ca.waterloo.dsg.graphflow.query.operator.GroupByAndAggregate;
-import ca.waterloo.dsg.graphflow.query.operator.Projection;
-import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver;
-import ca.waterloo.dsg.graphflow.query.operator.Filter;
+import ca.waterloo.dsg.graphflow.query.operator.filter.FilterPredicateFactory;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryAggregation;
@@ -32,7 +33,6 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate.Pr
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import ca.waterloo.dsg.graphflow.query.operator.filter.FilterPredicateFactory;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import org.antlr.v4.runtime.misc.Pair;
 import org.apache.logging.log4j.LogManager;
@@ -324,7 +324,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
      * Adds to {@link OneTimeMatchQueryPlan} the next plan which can be one of the following. The
      * op1->op2 below indicates that operator op1 appends results to operator op2.
      * {@link EdgeIdResolver} is only added when the WHERE or RETURN clauses contain edge variables.
-     *
+     * <p>
      * <ul>
      * <li> {@link PropertyResolver}->{@link #outputSink}.
      * <li> {@link Filter}->{@link PropertyResolver}->{@link #outputSink}.
@@ -525,8 +525,8 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                 EdgeOrVertexPropertyDescriptor.COUNTSTAR_DUMMY_DESCRIPTOR;
             if (null != queryAggregation.getVariable()) {
                 getEdgeOrVertexPropertyDescriptor(vertexVariableOrderIndexMapAfterProjection,
-                  edgeVariableOrderIndexMap, queryAggregation.getVariable(),
-                  (short) -1 /* No property key. Use the vertex or edge ID. */);
+                    edgeVariableOrderIndexMap, queryAggregation.getVariable(),
+                    (short) -1 /* No property key. Use the vertex or edge ID. */);
             } else if (null != queryAggregation.getVariablePropertyPair()) {
                 Pair<String, String> variablePropertyPair =
                     queryAggregation.getVariablePropertyPair();
@@ -605,7 +605,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
     }
 
     private Pair<List<String>, List<String>>
-        getOrderedVertexVariablesAfterProjectionAndOrderedEdgeVariables() {
+    getOrderedVertexVariablesAfterProjectionAndOrderedEdgeVariables() {
         List<String> orderedVertexVariablesAfterProjection = new ArrayList<>();
         Set<String> variablesToProjectSet = new HashSet<>();
         List<String> orderedEdgeVariables = new ArrayList<>();

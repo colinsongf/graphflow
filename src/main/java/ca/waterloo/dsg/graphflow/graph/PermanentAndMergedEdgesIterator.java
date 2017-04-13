@@ -2,9 +2,7 @@ package ca.waterloo.dsg.graphflow.graph;
 
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
-import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
-import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -40,7 +38,8 @@ public class PermanentAndMergedEdgesIterator implements Iterator<int[]> {
      * @param mergedAdjLists The adjacency lists for the merged version of the graph in the {@link
      * Direction#FORWARD} or {@link Direction#BACKWARD} directions.
      * @param vertexTypes The types of the graph vertices.
-     * @param fromVertexTypeFilter The type of the from vertex which the iterated edges should have.
+     * @param fromVertexTypeFilter The type of the from vertex which the iterated edges should
+     * have.
      * @param toVertexTypeFilter The type of the to vertex which the iterated edges should have.
      * @param edgeTypeFilter The type which the iterated edges should have.
      * @param lastVertexId The vertex with the highest ID for the given graph version.

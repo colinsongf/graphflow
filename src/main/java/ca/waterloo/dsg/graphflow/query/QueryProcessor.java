@@ -7,8 +7,8 @@ import ca.waterloo.dsg.graphflow.exceptions.MalformedReturnClauseException;
 import ca.waterloo.dsg.graphflow.exceptions.MalformedWhereClauseException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
-import ca.waterloo.dsg.graphflow.exceptions.SerializationDeserializationException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchVertexIDException;
+import ca.waterloo.dsg.graphflow.exceptions.SerializationDeserializationException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
@@ -44,7 +44,7 @@ public class QueryProcessor {
 
     private static final Logger logger = LogManager.getLogger(QueryProcessor.class);
 
-    private static String TMP_DIRECTORY = "/tmp/";
+    private static final String TMP_DIRECTORY = "/tmp/";
 
     /**
      * Executes a string query by converting it into a {@link StructuredQuery}, creating the
@@ -137,10 +137,11 @@ public class QueryProcessor {
         AbstractDBOperator outputSink = new InMemoryOutputSink();
         try {
             ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink).
-            plan()).execute(Graph.getInstance());
-        } catch (IncorrectDataTypeException | IncorrectVertexTypeException | NoSuchPropertyKeyException |
-            NoSuchTypeException | MalformedMatchQueryException | MalformedReturnClauseException |
-            MalformedWhereClauseException | NoSuchVertexIDException e) {
+                plan()).execute(Graph.getInstance());
+        } catch (IncorrectDataTypeException | IncorrectVertexTypeException |
+            NoSuchPropertyKeyException | NoSuchTypeException | MalformedMatchQueryException |
+            MalformedReturnClauseException | MalformedWhereClauseException |
+            NoSuchVertexIDException e) {
             logger.debug(e.getMessage());
             outputSink.append("ERROR: " + e.getMessage());
         }
@@ -160,8 +161,9 @@ public class QueryProcessor {
             ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
                 (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
                     outputSink).plan());
-        } catch (IncorrectDataTypeException | IncorrectVertexTypeException | NoSuchPropertyKeyException |
-            NoSuchTypeException | MalformedMatchQueryException | MalformedWhereClauseException e) {
+        } catch (IncorrectDataTypeException | IncorrectVertexTypeException |
+            NoSuchPropertyKeyException | NoSuchTypeException | MalformedMatchQueryException |
+            MalformedWhereClauseException e) {
             logger.debug(e.getMessage());
             return "ERROR: The CONTINUOUS MATCH query could not be registered. " + e.getMessage();
         }

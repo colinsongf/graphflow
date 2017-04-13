@@ -3,11 +3,10 @@ package ca.waterloo.dsg.graphflow.query.operator;
 import ca.waterloo.dsg.graphflow.graph.EdgeStore;
 import ca.waterloo.dsg.graphflow.graph.VertexPropertyStore;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
-
-import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.List;
 
 /**
  * Base class for operators that need to possibly read properties of vertices and edges. Contains
@@ -40,7 +39,7 @@ public abstract class PropertyReadingOperator extends AbstractDBOperator {
      * that appends the values corresponding to the {@link #propertyDescriptors} in the given
      * {@link MatchQueryOutput}. Uses the delimiter to separate each value read from
      * {@link MatchQueryOutput}.
-     * 
+     *
      * @param matchQueryOutput {@link MatchQueryOutput} to read values from.
      * @param delimiter delimiter to use when appending the values read from the given
      * {@link MatchQueryOutput}.
@@ -78,20 +77,20 @@ public abstract class PropertyReadingOperator extends AbstractDBOperator {
         int index = propertyDescriptor.index;
         short key = propertyDescriptor.key;
         switch (propertyDescriptor.descriptorType) {
-        case EDGE_ID:
-            return matchQueryOutput.edgeIds[index];
-        case EDGE_PROPERTY:
-            return EdgeStore.getInstance().getProperty(matchQueryOutput.edgeIds[index], key);
-        case VERTEX_ID:
-            return matchQueryOutput.vertexIds[index];
-        case VERTEX_PROPERTY:
-            return  VertexPropertyStore.getInstance().getProperty(
-                matchQueryOutput.vertexIds[index], key);
-        default:
-            logger.warn("Trying to read the property or id of a MatchQueryOutput using an"
-                + " EdgeOrVertexPropertyDescriptor with descriptorType: "
-                + propertyDescriptor.descriptorType + ". Returning -1.");
-            return -1;
+            case EDGE_ID:
+                return matchQueryOutput.edgeIds[index];
+            case EDGE_PROPERTY:
+                return EdgeStore.getInstance().getProperty(matchQueryOutput.edgeIds[index], key);
+            case VERTEX_ID:
+                return matchQueryOutput.vertexIds[index];
+            case VERTEX_PROPERTY:
+                return VertexPropertyStore.getInstance().getProperty(
+                    matchQueryOutput.vertexIds[index], key);
+            default:
+                logger.warn("Trying to read the property or id of a MatchQueryOutput using an"
+                    + " EdgeOrVertexPropertyDescriptor with descriptorType: "
+                    + propertyDescriptor.descriptorType + ". Returning -1.");
+                return -1;
         }
     }
 }

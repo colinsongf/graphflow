@@ -9,11 +9,6 @@ import org.junit.Test;
  */
 public class TypeAndPropertyKeyStoreTest {
 
-    @BeforeClass
-    public static void resetGraphDBState() {
-        GraphDBState.reset();
-    }
-
     @Test
     public void testMapStringTypeToShortOnEmptyAndNullKeys() {
         Assert.assertEquals(new Short(TypeAndPropertyKeyStore.ANY), TypeAndPropertyKeyStore.
@@ -84,5 +79,10 @@ public class TypeAndPropertyKeyStoreTest {
             mapShortKeyToString((short) 0));
         Assert.assertEquals("Num Likes", TypeAndPropertyKeyStore.getInstance().propertyKeyStore.
             mapShortKeyToString((short) 1));
+    }
+
+    @BeforeClass
+    public static void resetGraphDBState() {
+        GraphDBState.reset();
     }
 }

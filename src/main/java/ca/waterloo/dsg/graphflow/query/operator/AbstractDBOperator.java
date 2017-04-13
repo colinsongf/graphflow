@@ -39,12 +39,12 @@ public abstract class AbstractDBOperator {
     public void setNextOperator(AbstractDBOperator nextOperator) {
         this.nextOperator = nextOperator;
     }
-    
+
     /**
      * This method is called when the operator appending outputs to this operator will not append
      * any more outputs.
      */
-    public void done() { 
+    public void done() {
         if (null != nextOperator) {
             nextOperator.done();
         }
@@ -52,7 +52,7 @@ public abstract class AbstractDBOperator {
 
     /**
      * Appends a new {@link MatchQueryOutput} output to this operator.
-     * 
+     *
      * @param matchQueryOutput a {@link MatchQueryOutput}.
      */
     public void append(MatchQueryOutput matchQueryOutput) {
@@ -62,7 +62,7 @@ public abstract class AbstractDBOperator {
 
     /**
      * Appends a new {@link String} output to this operator.
-     * 
+     *
      * @param stringQueryOutput a {@link String} output.
      */
     public void append(String stringQueryOutput) {
@@ -92,6 +92,24 @@ public abstract class AbstractDBOperator {
     }
 
     /**
+     * @param numTabsToIndent the number of tab indentations to have.
+     * @return a String that indents each line of the given unindented String by
+     * {@code numTabsToIndent} tabs.
+     */
+    private String getIndentedString(String unindentedString, int numTabsToIndent) {
+        String indentation = "";
+        for (int i = 0; i < numTabsToIndent; ++i) {
+            indentation += "\t";
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        String[] lines = unindentedString.split("\n");
+        for (String line : lines) {
+            stringBuilder.append(indentation).append(line).append("\n");
+        }
+        return stringBuilder.toString();
+    }
+
+    /**
      * This method first converts a list of objects to a comma separated String that is: (1)
      * prefixed with a tab and the given prefix string and ends with a new line. Then it appends
      * the string to the given {@link StringBuilder}.
@@ -109,23 +127,5 @@ public abstract class AbstractDBOperator {
             }
         }
         stringBuilder.append(" }\n");
-    }
-
-    /**
-     * @param numTabsToIndent the number of tab indentations to have.
-     * @return a String that indents each line of the given unindented String by
-     * {@code numTabsToIndent} tabs.
-     */
-    protected String getIndentedString(String unindentedString, int numTabsToIndent) {
-        String indentation = "";
-        for (int i = 0; i < numTabsToIndent; ++i) {
-            indentation += "\t";
-        }
-        StringBuilder stringBuilder = new StringBuilder();
-        String[] lines = unindentedString.split("\n");
-        for (String line : lines) {
-            stringBuilder.append(indentation).append(line).append("\n");
-        }
-        return stringBuilder.toString();
     }
 }

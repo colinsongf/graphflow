@@ -27,11 +27,11 @@ public abstract class AbstractAggregator {
      */
     public void aggregate(int index, Object value) {
         if (null == value) {
-            throw new IllegalArgumentException("Cannot aggregate null value. index: " + index  +
+            throw new IllegalArgumentException("Cannot aggregate null value. index: " + index +
                 " object: null");
         }
         if (value instanceof Double) {
-            aggregateDouble(index, (double) value);            
+            aggregateDouble(index, (double) value);
         } else if (value instanceof Integer) {
             aggregateInt(index, (int) value);
         } else {
@@ -72,7 +72,7 @@ public abstract class AbstractAggregator {
     public String getStringValue(int index) {
         return "" + longValues[index];
     }
-    
+
     @Override
     public String toString() {
         return this.getClass().getName();

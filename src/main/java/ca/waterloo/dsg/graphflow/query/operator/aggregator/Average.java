@@ -8,7 +8,7 @@ import ca.waterloo.dsg.graphflow.util.ArrayUtils;
 public class Average extends AbstractLongDoubleAggregator {
 
     protected long[] counts;
-    
+
     /**
      * Default constructor.
      */
@@ -22,7 +22,7 @@ public class Average extends AbstractLongDoubleAggregator {
         System.out.println("Average Aggregator. aggregating index: " + index + " intValue: "
             + intValue);
         adjustSizeAndIncrementCount(index);
-        this.longValues = ArrayUtils.resizeIfNecessary(this.longValues, index + 1, 
+        this.longValues = ArrayUtils.resizeIfNecessary(this.longValues, index + 1,
             0 /* value to fill new cells if resizing */);
         this.longValues[index] += intValue;
     }

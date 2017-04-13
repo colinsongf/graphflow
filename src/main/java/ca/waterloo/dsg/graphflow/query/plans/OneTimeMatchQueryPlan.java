@@ -39,6 +39,19 @@ public class OneTimeMatchQueryPlan extends AbstractDBOperator implements QueryPl
         new GenericJoinExecutor(stages, nextOperator, graph).execute();
     }
 
+    @Override
+    protected String getHumanReadableOperator() {
+        StringBuilder stringBuilder = new StringBuilder("OneTimeMatchQueryPlan: \n");
+        for (int i = 0; i < stages.size(); ++i) {
+            List<GenericJoinIntersectionRule> stage = stages.get(i);
+            stringBuilder.append("\tStage " + i + "\n");
+            for (GenericJoinIntersectionRule intersectionRule : stage) {
+                stringBuilder.append("\t\t" + intersectionRule.toString() + "\n");
+            }
+        }
+        return stringBuilder.toString();
+    }
+
     /**
      * Used during unit testing to check the equality of objects. This is used instead of
      * overriding the standard {@code equals()} and {@code hashCode()} methods.
@@ -71,18 +84,5 @@ public class OneTimeMatchQueryPlan extends AbstractDBOperator implements QueryPl
             }
         }
         return true;
-    }
-
-    @Override
-    protected String getHumanReadableOperator() {
-        StringBuilder stringBuilder = new StringBuilder("OneTimeMatchQueryPlan: \n");
-        for (int i = 0; i < stages.size(); ++i) {
-            List<GenericJoinIntersectionRule> stage = stages.get(i);
-            stringBuilder.append("\tStage " + i + "\n");
-            for (GenericJoinIntersectionRule intersectionRule : stage) {
-                stringBuilder.append("\t\t" + intersectionRule.toString() + "\n");
-            }
-        }
-        return stringBuilder.toString();
     }
 }

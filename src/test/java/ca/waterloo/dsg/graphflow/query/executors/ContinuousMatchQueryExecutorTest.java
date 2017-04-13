@@ -5,8 +5,6 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
-import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
-import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
@@ -36,14 +34,6 @@ public class ContinuousMatchQueryExecutorTest {
     @Before
     public void setUp() {
         GraphDBState.reset();
-    }
-
-    /**
-     * Removes all registered Continuous Match queries after the
-     */
-    @AfterClass
-    public static void resetContinuousMatchQueries() {
-        ContinuousMatchQueryExecutor.getInstance().reset();
     }
 
     /**
@@ -93,5 +83,13 @@ public class ContinuousMatchQueryExecutorTest {
         }
         Assert.assertEquals(actualOutput.toString(), TestUtils.getInMemoryOutputSinkForMotifs(
             expectedMotifs, expectedMatchQueryResultTypes).toString());
+    }
+
+    /**
+     * Removes all registered Continuous Match queries after the
+     */
+    @AfterClass
+    public static void resetContinuousMatchQueries() {
+        ContinuousMatchQueryExecutor.getInstance().reset();
     }
 }

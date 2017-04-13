@@ -134,6 +134,7 @@ public class TestUtils {
 
     /**
      * Initializes the {@link Graph} with the given {@code createQuery}.
+     *
      * @param createQuery a {@code String} representing a CREATE query which will be parsed and
      * used to initialize the {@link Graph}.
      */

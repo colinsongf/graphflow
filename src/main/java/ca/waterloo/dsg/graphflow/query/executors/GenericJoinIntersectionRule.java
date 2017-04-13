@@ -94,6 +94,16 @@ public class GenericJoinIntersectionRule {
         return graphVersion;
     }
 
+    @Override
+    public String toString() {
+        return ("prefixIndex: " + prefixIndex) +
+            ", direction: " + direction.name() +
+            ", graph-version: " + graphVersion.name() +
+            ", fromVertexTypeFilter: " + fromVertexTypeFilter +
+            ", toVertexTypeFilter: " + toVertexTypeFilter +
+            ", edgeTypeFilter: " + edgeTypeFilter;
+    }
+
     /**
      * Used during unit testing to check the equality of objects. This is used instead of
      * overriding the standard {@code equals()} and {@code hashCode()} methods.
@@ -113,17 +123,5 @@ public class GenericJoinIntersectionRule {
         }
         return a.prefixIndex == b.prefixIndex && a.direction == b.direction &&
             a.graphVersion == b.graphVersion && a.edgeTypeFilter == b.edgeTypeFilter;
-    }
-
-    @Override
-    public String toString() {
-        return new StringBuilder()
-            .append("prefixIndex: " + prefixIndex)
-            .append(", direction: " + direction.name())
-            .append(", graph-version: " + graphVersion.name())
-            .append(", fromVertexTypeFilter: " + fromVertexTypeFilter)
-            .append(", toVertexTypeFilter: " + toVertexTypeFilter)
-            .append(", edgeTypeFilter: " + edgeTypeFilter)
-            .toString();
     }
 }

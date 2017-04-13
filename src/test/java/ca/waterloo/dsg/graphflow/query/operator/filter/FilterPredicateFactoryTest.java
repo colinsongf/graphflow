@@ -4,11 +4,11 @@ import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
-
 import org.antlr.v4.runtime.misc.Pair;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.util.function.Predicate;
 
 /**

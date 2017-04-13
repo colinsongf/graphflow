@@ -1,9 +1,6 @@
 package ca.waterloo.dsg.graphflow.outputsink;
 
-import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
 import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
-import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
-import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;

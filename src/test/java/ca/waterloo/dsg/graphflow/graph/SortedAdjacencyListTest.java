@@ -1,16 +1,12 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.IntArrayList;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
-import org.antlr.v4.runtime.misc.Pair;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Tests {@link SortedAdjacencyList}.
@@ -321,18 +317,18 @@ public class SortedAdjacencyListTest {
 
         filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds(TypeAndPropertyKeyStore.ANY,
             (short) 1, null /* no vertexTypes*/);
-        Assert.assertArrayEquals(new int[] {1, 9, 54, 89}, filteredNeighbourIds.toArray());
+        Assert.assertArrayEquals(new int[]{1, 9, 54, 89}, filteredNeighbourIds.toArray());
 
         filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds((short) 0,
             TypeAndPropertyKeyStore.ANY, vertexTypes);
-        Assert.assertArrayEquals(new int[] {14, 34, 54}, filteredNeighbourIds.toArray());
+        Assert.assertArrayEquals(new int[]{14, 34, 54}, filteredNeighbourIds.toArray());
 
         filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds((short) 3,
             TypeAndPropertyKeyStore.ANY, vertexTypes);
-        Assert.assertArrayEquals(new int[] {}, filteredNeighbourIds.toArray());
+        Assert.assertArrayEquals(new int[]{}, filteredNeighbourIds.toArray());
 
         filteredNeighbourIds = adjacencyList.getFilteredNeighbourIds((short) 0, (short) 1,
             vertexTypes);
-        Assert.assertArrayEquals(new int[] {54}, filteredNeighbourIds.toArray());
+        Assert.assertArrayEquals(new int[]{54}, filteredNeighbourIds.toArray());
     }
 }

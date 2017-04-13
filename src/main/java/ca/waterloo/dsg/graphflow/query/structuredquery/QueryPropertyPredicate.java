@@ -77,7 +77,7 @@ public class QueryPropertyPredicate {
     }
 
     public void invertComparisonOperator() {
-        switch(comparisonOperator) {
+        switch (comparisonOperator) {
             case GREATER_THAN:
                 comparisonOperator = ComparisonOperator.LESS_THAN;
                 break;
@@ -102,7 +102,7 @@ public class QueryPropertyPredicate {
         if (variable2 != null) {
             stringBuilder.append(variable2.a + "." + variable2.b + "}");
         } else {
-            stringBuilder.append(literal+ "}");
+            stringBuilder.append(literal + "}");
         }
         return stringBuilder.toString();
     }

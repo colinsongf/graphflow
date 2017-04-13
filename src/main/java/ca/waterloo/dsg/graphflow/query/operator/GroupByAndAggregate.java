@@ -1,14 +1,13 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
-import java.util.List;
-import java.util.Map.Entry;
-
-import org.antlr.v4.runtime.misc.Pair;
-
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.AbstractAggregator;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.CountStar;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.util.StringToIntKeyMap;
+import org.antlr.v4.runtime.misc.Pair;
+
+import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * Operator for grouping MATCH query outputs by zero more keys and aggregating each group by one
@@ -17,7 +16,7 @@ import ca.waterloo.dsg.graphflow.util.StringToIntKeyMap;
 public class GroupByAndAggregate extends PropertyReadingOperator {
 
     private static String GROUP_BY_KEY_DELIMETER = "-";
-    
+
     private List<EdgeOrVertexPropertyDescriptor> valuesToGroupBy;
     private List<Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator>> valueAggregatorPairs;
     private StringToIntKeyMap groupByKeys;
@@ -58,7 +57,7 @@ public class GroupByAndAggregate extends PropertyReadingOperator {
             valueAggregatorPair.b.aggregate(index, propertyOrId);
         }
     }
-    
+
     @Override
     public void done() {
         for (Entry<String, Integer> groupByKeyAndIndex : groupByKeys.entrySet()) {
@@ -82,5 +81,5 @@ public class GroupByAndAggregate extends PropertyReadingOperator {
         appendListAsCommaSeparatedString(stringBuilder, valueAggregatorPairs,
             "valueAggregatorPairs");
         return stringBuilder.toString();
-    }    
+    }
 }

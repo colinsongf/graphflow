@@ -3,7 +3,7 @@ package ca.waterloo.dsg.graphflow.query.parser;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowLexer;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -14,7 +14,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 public class StructuredQueryParser {
 
     public StructuredQuery parse(String query) throws ParseCancellationException {
-        GraphflowLexer lexer = new GraphflowLexer(new ANTLRInputStream(query));
+        GraphflowLexer lexer = new GraphflowLexer(CharStreams.fromString(query));
         lexer.removeErrorListeners();   // Remove default listeners first.
         lexer.addErrorListener(ErrorListener.INSTANCE);
 

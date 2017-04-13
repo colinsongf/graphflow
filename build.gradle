@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    antlr "org.antlr:antlr4:4.6"
+    antlr "org.antlr:antlr4:4.7"
 
     compile 'io.grpc:grpc-netty:1.2.0'
     compile 'io.grpc:grpc-protobuf:1.2.0'

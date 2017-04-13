@@ -7,7 +7,7 @@ import java.util.Arrays;
  * Represents the possible data types of property values.
  */
 public enum DataType {
-    INT,
+    INTEGER,
     DOUBLE,
     BOOLEAN,
     STRING;
@@ -23,13 +23,13 @@ public enum DataType {
      */
     public static DataType mapStringToDataType(String stringDataType) {
         stringDataType = stringDataType.toUpperCase();
-        if (INT.name().matches(stringDataType)) {
-            return INT;
-        } else if (DOUBLE.name().matches(stringDataType)) {
+        if (INTEGER.toString().equals(stringDataType)) {
+            return INTEGER;
+        } else if (DOUBLE.toString().equals(stringDataType)) {
             return DOUBLE;
-        } else if (BOOLEAN.name().matches(stringDataType)) {
+        } else if (BOOLEAN.toString().equals(stringDataType)) {
             return BOOLEAN;
-        } else if (STRING.name().matches(stringDataType)) {
+        } else if (STRING.toString().equals(stringDataType)) {
             return STRING;
         }
 
@@ -57,9 +57,7 @@ public enum DataType {
                 "parsed as BOOLEAN. It has to be equal to true or false ignoring case.");
         }
         try {
-            if (INT == dataType) {
-                Integer.parseInt(stringValue);
-            } else if (DOUBLE == dataType) {
+            if(INTEGER == dataType || DOUBLE == dataType) {
                 Double.parseDouble(stringValue);
             }
         } catch (NumberFormatException e) {
@@ -81,7 +79,7 @@ public enum DataType {
         }
 
         try {
-            if (INT == dataType) {
+            if (INTEGER == dataType) {
                 return (int) thisValue == Integer.parseInt(thatValue);
             } else if (DOUBLE == dataType) {
                 return (double) thisValue == Double.parseDouble(thatValue);
@@ -108,7 +106,7 @@ public enum DataType {
     public static int getLength(DataType dataType) {
         if (BOOLEAN == dataType) {
             return Byte.BYTES;
-        } else if (INT == dataType) {
+        } else if (INTEGER == dataType) {
             return Integer.BYTES;
         } else if (DOUBLE == dataType) {
             return Double.BYTES;
@@ -139,7 +137,7 @@ public enum DataType {
 
         byte[] serializedBytes;
         try {
-            if (INT == dataType) {
+            if (INTEGER == dataType) {
                 serializedBytes = new byte[6]; // 2 for data type + 4 for an int.
                 serializeInt(serializedBytes, value);
             } else if (DOUBLE == dataType) {
@@ -175,7 +173,7 @@ public enum DataType {
      * enum values.
      */
     public static Object deserialize(DataType dataType, byte[] data, int startIndex, int length) {
-        if (INT == dataType) {
+        if (INTEGER == dataType) {
             int value = 0;
             for (int i = 0; i < Integer.BYTES; i++) {
                 value <<= Byte.SIZE;
@@ -202,7 +200,7 @@ public enum DataType {
 
     public static Object parseDataType(DataType dataType, String value) {
         assertValueCanBeCastToDataType(dataType, value);
-        if (INT == dataType) {
+        if (INTEGER == dataType) {
             return Integer.parseInt(value);
         } else if (DOUBLE == dataType) {
             return Double.parseDouble(value);

@@ -7,6 +7,7 @@ import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
 import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator;
+import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
 
 import java.util.function.Predicate;
 
@@ -36,13 +37,15 @@ public class FilterPredicateFactory {
     public static Predicate<String[]> getFilterPredicate(QueryPropertyPredicate
         queryPropertyPredicate, int variable1IndexInPropertyResults,
         int variable2IndexInPropertyResults) {
+        DataType dataType = getDataTypeToCastOperandsTo(queryPropertyPredicate);
+        ComparisonOperator operator = queryPropertyPredicate.getComparisonOperator();
         switch (queryPropertyPredicate.getPredicateType()) {
             case TWO_VARIABLES:
-                return getTwoVariablesPredicate(queryPropertyPredicate,
-                    variable1IndexInPropertyResults, variable2IndexInPropertyResults);
+                return getTwoVariablesPredicate(variable1IndexInPropertyResults,
+                    variable2IndexInPropertyResults, dataType, operator);
             case VARIABLE_AND_LITERAL:
-                return getVariableAndLiteralPredicate(queryPropertyPredicate,
-                    variable1IndexInPropertyResults);
+                return getVariableAndLiteralPredicate(variable1IndexInPropertyResults,
+                    queryPropertyPredicate.getLiteral(), dataType, operator);
             default:
                 // Should never execute. Every predicate type introduced should be supported.
                 throw new IllegalArgumentException("The predicate type " + queryPropertyPredicate.
@@ -50,32 +53,37 @@ public class FilterPredicateFactory {
         }
     }
 
-    private static Predicate<String[]> getTwoVariablesPredicate(
-        QueryPropertyPredicate queryPropertyPredicate, int variable1IndexInPropertyResults,
-        int variable2IndexInPropertyResults) {
-        short variable1PropertyKey = TypeAndPropertyKeyStore.getInstance().
-            mapStringPropertyKeyToShort(queryPropertyPredicate.getVariable1().b);
-        short variable2PropertyKey = TypeAndPropertyKeyStore.getInstance().
-            mapStringPropertyKeyToShort(queryPropertyPredicate.getVariable2().b);
-        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(resolveConstant(
-            p[variable1IndexInPropertyResults], variable1PropertyKey), resolveConstant(
-            p[variable2IndexInPropertyResults], variable2PropertyKey), queryPropertyPredicate.
-            getComparisonOperator());
+    private static Predicate<String[]> getTwoVariablesPredicate(int variable1IndexInPropertyResults,
+        int variable2IndexInPropertyResults, DataType dataType, ComparisonOperator operator) {
+        return predicate -> RuntimeTypeBasedComparator.resolveTypesAndCompare(DataType.
+            parseDataType(dataType, predicate[variable1IndexInPropertyResults]), DataType.
+            parseDataType(dataType, predicate[variable2IndexInPropertyResults]), operator);
     }
 
     private static Predicate<String[]> getVariableAndLiteralPredicate(
-        QueryPropertyPredicate queryPropertyPredicate, int variableIndexInPropertyResults) {
-        short variablePropertyKey = TypeAndPropertyKeyStore.getInstance().
-            mapStringPropertyKeyToShort(queryPropertyPredicate.getVariable1().b);
-
-        return p -> RuntimeTypeBasedComparator.resolveTypesAndCompare(resolveConstant(
-            p[variableIndexInPropertyResults], variablePropertyKey), resolveConstant(
-            queryPropertyPredicate.getLiteral(), variablePropertyKey), queryPropertyPredicate.
-            getComparisonOperator());
+        int variableIndexInPropertyResults, String literal, DataType dataType,
+        ComparisonOperator operator) {
+        return predicate -> RuntimeTypeBasedComparator.resolveTypesAndCompare(DataType.
+            parseDataType(dataType, predicate[variableIndexInPropertyResults]), DataType.
+            parseDataType(dataType, literal), operator);
     }
 
-    private static Object resolveConstant(String constant, short propertyKey) {
-        DataType dataType = TypeAndPropertyKeyStore.getInstance().getPropertyDataType(propertyKey);
-        return DataType.parseDataType(dataType, constant);
+    private static DataType getDataTypeToCastOperandsTo(QueryPropertyPredicate predicate) {
+        DataType leftOperandDataType = TypeAndPropertyKeyStore.getInstance().getPropertyDataType(
+            predicate.getVariable1().b);
+        if (leftOperandDataType == DataType.BOOLEAN || leftOperandDataType == DataType.STRING ||
+            leftOperandDataType == DataType.DOUBLE) {
+            return leftOperandDataType;
+        }
+
+        DataType rightOperandDataType = DataType.INTEGER;
+        if (null != predicate.getVariable2()) {
+            rightOperandDataType = TypeAndPropertyKeyStore.getInstance().getPropertyDataType(
+                predicate.getVariable2().b);
+        } else if (predicate.getLiteral().contains(".")) {
+            // The numerical literal was written as a floating-point.
+            rightOperandDataType = DataType.DOUBLE;
+        }
+        return rightOperandDataType;
     }
 }

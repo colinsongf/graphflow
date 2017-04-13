@@ -55,33 +55,33 @@ public class OneTimeMatchQueryGroupByTests {
 
     private void constructTestGraph() {
         String[] verticesInQuery = {
-            "(0:VType0{strVP:string='strVPValueE', intVP:int=0, doubleVP:double=0.0})",
-            "(1:VType1{strVP:string='strVPValueO', intVP:int=1, doubleVP:double=1.0})",
-            "(2:VType2{strVP:string='strVPValueE', intVP:int=2, doubleVP:double=2.0})",
-            "(3:VType3{strVP:string='strVPValueO', intVP:int=3, doubleVP:double=3.0})",
-            "(4:VType4{strVP:string='strVPValueE', intVP:int=4, doubleVP:double=4.0})",
-            "(5:VType5{strVP:string='strVPValueO', intVP:int=5, doubleVP:double=5.0})"};
+            "(0:VType0{strVP: 'strVPValueE', intVP: 0, doubleVP: 0.0})",
+            "(1:VType1{strVP: 'strVPValueO', intVP: 1, doubleVP: 1.0})",
+            "(2:VType2{strVP: 'strVPValueE', intVP: 2, doubleVP: 2.0})",
+            "(3:VType3{strVP: 'strVPValueO', intVP: 3, doubleVP: 3.0})",
+            "(4:VType4{strVP: 'strVPValueE', intVP: 4, doubleVP: 4.0})",
+            "(5:VType5{strVP: 'strVPValueO', intVP: 5, doubleVP: 5.0})"};
 
         String createQuery = "CREATE " +
-            verticesInQuery[0] + "-[:StarEdge{strEP:string='strEPValueO', intEP:int=1, " +
-            "doubleEP:double=1.0}]->" + verticesInQuery[1] + "," + verticesInQuery[0] +
-            "-[:StarEdge{strEP:string='strEPValueE', intEP:int=2, doubleEP:double=2.0}]->" +
+            verticesInQuery[0] + "-[:StarEdge { strEP: 'strEPValueO', intEP: 1, " +
+            "doubleEP: 1.0}]->" + verticesInQuery[1] + "," + verticesInQuery[0] +
+            "-[:StarEdge{strEP: 'strEPValueE', intEP: 2, doubleEP: 2.0}]->" +
             verticesInQuery[2] + "," + verticesInQuery[0] +
-            "-[:StarEdge{strEP:string='strEPValueO', intEP:int=3, doubleEP:double=3.0}]->" +
+            "-[:StarEdge{strEP: 'strEPValueO', intEP: 3, doubleEP: 3.0}]->" +
             verticesInQuery[3] + "," + verticesInQuery[0] +
-            "-[:StarEdge{strEP:string='strEPValueE', intEP:int=4, doubleEP:double=4.0}]->" +
+            "-[:StarEdge{strEP: 'strEPValueE', intEP: 4, doubleEP: 4.0}]->" +
             verticesInQuery[4] + "," + verticesInQuery[0] +
-            "-[:StarEdge{strEP:string='strEPValueO', intEP:int=5, doubleEP:double=5.0}]->" +
+            "-[:StarEdge{strEP: 'strEPValueO', intEP: 5, doubleEP: 5.0}]->" +
             verticesInQuery[5] + "," + verticesInQuery[1] +
-            "-[:CycleEdge{strEP:string='strEPValueO', intEP:int=3, doubleEP:double=3.0}]->" +
+            "-[:CycleEdge{strEP: 'strEPValueO', intEP: 3, doubleEP: 3.0}]->" +
             verticesInQuery[2] + "," + verticesInQuery[2] +
-            "-[:CycleEdge{strEP:string='strEPValueO', intEP:int=5, doubleEP:double=5.0}]->" +
+            "-[:CycleEdge{strEP: 'strEPValueO', intEP: 5, doubleEP: 5.0}]->" +
             verticesInQuery[3] + "," + verticesInQuery[3] +
-            "-[:CycleEdge{strEP:string='strEPValueO', intEP:int=7, doubleEP:double=7.0}]->" +
+            "-[:CycleEdge{strEP: 'strEPValueO', intEP: 7, doubleEP: 7.0}]->" +
             verticesInQuery[4] + "," + verticesInQuery[4] +
-            "-[:CycleEdge{strEP:string='strEPValueO', intEP:int=9, doubleEP:double=9.0}]->" +
+            "-[:CycleEdge{strEP: 'strEPValueO', intEP: 9, doubleEP: 9.0}]->" +
             verticesInQuery[5] + "," + verticesInQuery[5] +
-            "-[:CycleEdge{strEP:string='strEPValueE', intEP:int=6, doubleEP:double=6.0}]->" +
+            "-[:CycleEdge{strEP: 'strEPValueE', intEP: 6, doubleEP: 6.0}]->" +
             verticesInQuery[1];
         TestUtils.initializeGraphPermanentlyWithProperties(createQuery);
     }

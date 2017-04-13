@@ -33,11 +33,11 @@ public class OneTimeMatchQueryPlannerTest {
     @Before
     public void setUp() throws Exception {
         GraphDBState.reset();
-        String createQuery = "CREATE (0:Person{name:string='name0', age:int=20, views:int=120})" +
-            "-[:FOLLOWS{isRelated:boolean=true, views:int=100}]->(1:Person{name:string='name1', " +
-            "age:int=10, views:int=50}),(0:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->" +
-            "(0:Person),(1:Person)-[:TAGGED]->(3:Person),(3:Person)-[:LIKES{rating:double=4.1, " +
-            "views:int=300}]->(1:Person);";
+        String createQuery = "CREATE (0:Person { name: 'name0', age: 20, views: 120 })" +
+            "-[:FOLLOWS { isRelated: true, views: 100 }]->(1:Person { name: 'name1', " +
+            "age: 10, views: 50 }),(0:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->" +
+            "(0:Person),(1:Person)-[:TAGGED]->(3:Person),(3:Person)-[:LIKES { rating: 4.1, " +
+            "views: 300 }]->(1:Person);";
         TestUtils.initializeGraphPermanentlyWithProperties(createQuery);
     }
 

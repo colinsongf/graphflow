@@ -33,7 +33,6 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
     // then the property key certainly has a DataType associated with it.
     @VisibleForTesting
     StringToShortKeyStore propertyKeyStore = new StringToShortKeyStore();
-
     @VisibleForTesting
     Map<Short, DataType> propertyDataTypeStore = new HashMap<>();
 
@@ -135,6 +134,19 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
             throw new NoSuchPropertyKeyException(key);
         }
         return dataType;
+    }
+
+    /**
+     * @param key The {@code String} property key.
+     * @return The data type of the property with the given key.
+     * @throws NoSuchPropertyKeyException if the {@code key} passed is not present in the store.
+     */
+    public DataType getPropertyDataType(String key) {
+        Short shortKey = mapStringPropertyKeyToShort(key);
+        if (null == shortKey) {
+            throw new NoSuchPropertyKeyException(key);
+        }
+        return propertyDataTypeStore.get(shortKey);
     }
 
     /**

@@ -45,18 +45,16 @@ digitsEdgeWithTypeAndProperties : digitsVertexWithTypeAndProperties (DASH edgeTy
 
 digitsVertex : '(' whitespace? Digits whitespace? ')' ;
 digitsVertexWithTypeAndProperties : '(' whitespace? Digits whitespace? ':' type whitespace? properties? whitespace? ')' ;
-variableVertex : '(' whitespace? variable (whitespace? ':' type)? (whitespace? propertyFilters)? whitespace? ')' ;
+variableVertex : '(' whitespace? variable (whitespace? ':' type)? (whitespace? properties)? whitespace? ')' ;
 
 edgeType : '[' whitespace? ':' type whitespace? ']' ;
 edgeTypeAndOptionalProperties : '[' whitespace? ':' type whitespace? properties? whitespace? ']' ;
-edgeVariable : '[' whitespace? variable (whitespace? ':' type)? whitespace? propertyFilters whitespace? ']' |
+edgeVariable : '[' whitespace? variable (whitespace? ':' type)? whitespace? properties whitespace? ']' |
                '[' whitespace? variable? (whitespace? ':' type)? whitespace? ']' ;
 
 type : variable ;
-propertyFilters : '{' whitespace? ( propertyFilter ( whitespace? ',' whitespace? propertyFilter )* )? whitespace? '}' ;
-propertyFilter : key whitespace? equalTo whitespace? literal ;
 properties : '{' whitespace? ( property ( whitespace? ',' whitespace? property )* )? whitespace? '}' ;
-property : key whitespace? ':' whitespace? dataType whitespace? equalTo whitespace? literal ;
+property : key whitespace? ':' whitespace? literal ;
 key : ( Characters | UNDERSCORE ) ( Digits | Characters | UNDERSCORE )* ;
 literal : integerLiteral | doubleLiteral | booleanLiteral | stringLiteral  ;
 
@@ -81,7 +79,6 @@ greaterThanOrEqualTo : '>=' ;
 
 variableWithProperty : variable DOT key;
 variable : ( Characters | UNDERSCORE | DASH ) ( Digits | Characters | UNDERSCORE | DASH )* ;
-dataType : ( INT | DOUBLE | BOOLEAN | STRING ) ;
 
 MATCH : M A T C H ;
 CONTINUOUSLY : C O N T I N U O U S L Y ;
@@ -110,11 +107,6 @@ SAVE: S A V E ;
 FROM: F R O M ;
 TO: T O ;
 DIR: D I R ;
-
-INT: I N T ;
-DOUBLE: D O U B L E ;
-BOOLEAN: B O O L E A N ;
-STRING: S T R I N G;
 
 TRUE : T R U E ;
 FALSE : F A L S E ;

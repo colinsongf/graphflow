@@ -72,8 +72,7 @@ public class RuntimeTypeBasedComparator {
     }
 
     private static <T extends Comparable<T>> boolean compare(T operand1, T operand2,
-        ComparisonOperator
-            comparisonOperator) {
+        ComparisonOperator comparisonOperator) {
         int result = operand1.compareTo(operand2);
         switch (comparisonOperator) {
             case EQUALS:

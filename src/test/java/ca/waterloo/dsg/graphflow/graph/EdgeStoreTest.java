@@ -30,7 +30,7 @@ public class EdgeStoreTest {
                 STRING);
         }
         for (short i = 3; i < 5; ++i) {
-            TypeAndPropertyKeyStore.getInstance().propertyDataTypeStore.put(keys[i], DataType.INT);
+            TypeAndPropertyKeyStore.getInstance().propertyDataTypeStore.put(keys[i], DataType.INTEGER);
         }
         TypeAndPropertyKeyStore.getInstance().propertyDataTypeStore.put(keys[5], DataType.BOOLEAN);
         TypeAndPropertyKeyStore.getInstance().propertyDataTypeStore.put(keys[6], DataType.DOUBLE);
@@ -114,7 +114,7 @@ public class EdgeStoreTest {
             propertiesOfEdgeToAdd.put(keys[i], new Pair<>(DataType.STRING, values[i]));
         }
         for (short i = 3; i < 5; ++i) {
-            propertiesOfEdgeToAdd.put(keys[i], new Pair<>(DataType.INT, values[i]));
+            propertiesOfEdgeToAdd.put(keys[i], new Pair<>(DataType.INTEGER, values[i]));
         }
         propertiesOfEdgeToAdd.put(keys[5], new Pair<>(DataType.BOOLEAN, values[5]));
         propertiesOfEdgeToAdd.put(keys[6], new Pair<>(DataType.DOUBLE, values[6]));

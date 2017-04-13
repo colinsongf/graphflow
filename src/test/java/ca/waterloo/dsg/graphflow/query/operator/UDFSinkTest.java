@@ -53,7 +53,7 @@ public class UDFSinkTest {
                 plan());
 
         // Create through the TestUtils does not load any of the properties.
-        TestUtils.createEdgesTemporarily(Graph.getInstance(), "CREATE (0:t{age:int=4})-[:te]->" +
+        TestUtils.createEdgesTemporarily(Graph.getInstance(), "CREATE (0:t{age: 4})-[:te]->" +
             "(1:t),(1:t)-[:t]->(2:t);");
 
         ContinuousMatchQueryExecutor.getInstance().execute(Graph.getInstance());

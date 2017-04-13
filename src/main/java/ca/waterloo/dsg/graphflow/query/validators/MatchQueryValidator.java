@@ -108,7 +108,9 @@ public class MatchQueryValidator {
             if (PredicateType.TWO_VARIABLES == predicate.getPredicateType()) {
                 checkVariableIsDefined(predicate.getVariable2().a);
                 rightOperandKeyAndDataType = getKeyAndDataTypePair(predicate.getVariable2().b);
-                if (leftOperandKeyAndDataType.b != rightOperandKeyAndDataType.b) {
+                if ((!isNumeric(leftOperandKeyAndDataType.b) ||
+                    !isNumeric(rightOperandKeyAndDataType.b)) &&
+                    leftOperandKeyAndDataType.b != rightOperandKeyAndDataType.b) {
                     throw new IncorrectDataTypeException("DataType Mismatch - The left " +
                         "operand " + predicate.getVariable1().a + "." + predicate.
                         getVariable1().b + " is of data type " + leftOperandKeyAndDataType.b +
@@ -121,6 +123,10 @@ public class MatchQueryValidator {
                     getLiteral());
             }
         }
+    }
+
+    private boolean isNumeric(DataType operandDataType) {
+        return (operandDataType == DataType.INTEGER || operandDataType == DataType.DOUBLE);
     }
 
     private Map<String, String> checkQueryVariableTypesAreConsistent() {

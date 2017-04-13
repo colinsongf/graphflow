@@ -6,11 +6,11 @@ import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -79,7 +79,7 @@ public class ContinuousMatchQueryExecutorTest {
         // Execute the registered CONTINUOUS MATCH query.
         ContinuousMatchQueryExecutor.getInstance().execute(graph);
 
-        int[][] expectedMotifs = {{2, 0, 1}, {3, 4, 1}, {3, 4, 1}, {3, 4, 1}, {1, 2, 0}};
+        Object[][] expectedMotifs = {{2, 0, 1}, {3, 4, 1}, {3, 4, 1}, {3, 4, 1}, {1, 2, 0}};
         MatchQueryResultType[] expectedMatchQueryResultTypes = {MatchQueryResultType.EMERGED,
             MatchQueryResultType.DELETED, MatchQueryResultType.DELETED,
             MatchQueryResultType.DELETED, MatchQueryResultType.DELETED};
@@ -91,17 +91,7 @@ public class ContinuousMatchQueryExecutorTest {
         while ((line = br.readLine()) != null) {
             actualOutput.add(line);
         }
-        Assert.assertEquals(actualOutput.toString(), getInMemoryOutputSinkForMotifs(expectedMotifs,
-            expectedMatchQueryResultTypes).toString());
-    }
-
-    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs,
-        MatchQueryResultType[] matchQueryResultTypes) {
-        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
-        for (int i = 0; i < motifs.length; i++) {
-            inMemoryOutputSink.append(QueryOutputUtils.getStringMatchQueryOutput(motifs[i],
-                matchQueryResultTypes[i]));
-        }
-        return inMemoryOutputSink;
+        Assert.assertEquals(actualOutput.toString(), TestUtils.getInMemoryOutputSinkForMotifs(
+            expectedMotifs, expectedMatchQueryResultTypes).toString());
     }
 }

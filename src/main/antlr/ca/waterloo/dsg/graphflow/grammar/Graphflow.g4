@@ -12,8 +12,8 @@ query : matchQuery
        | durabilityQuery
        ;
 
-matchQuery : MATCH whitespace matchPattern whitespace? returnClause? ;
-continuousMatchQuery : CONTINUOUS whitespace matchQuery whitespace FILE whitespace SINGLE_QUOTE filePath SINGLE_QUOTE ;
+matchQuery : MATCH whitespace matchPattern (whitespace whereClause)? (whitespace returnClause)?;
+continuousMatchQuery : CONTINUOUS whitespace MATCH whitespace matchPattern (whitespace whereClause)? whitespace FILE whitespace SINGLE_QUOTE filePath SINGLE_QUOTE ;
 createQuery : CREATE whitespace (createEdgePattern | createVertexPattern) ;
 deleteQuery : DELETE whitespace deletePattern ;
 shortestPathQuery: SHORTEST whitespace PATH whitespace pathPattern ;
@@ -23,69 +23,72 @@ durabilityQuery: ( LOAD whitespace FROM  | SAVE whitespace TO ) whitespace DIR w
 matchPattern: variableEdge ( whitespace? ',' whitespace? variableEdge )* ;
 deletePattern : digitsEdgeWithOptionalType ( whitespace? ',' whitespace? digitsEdgeWithOptionalType )* ;
 createEdgePattern : digitsEdgeWithTypeAndProperties ( whitespace? ',' whitespace? digitsEdgeWithTypeAndProperties )* ;
-createVertexPattern : digitsVertexWithTypeAndProperties ( whitespace ? ',' whitespace? digitsVertexWithTypeAndProperties)* ;
+createVertexPattern : digitsVertexWithTypeAndProperties ( whitespace? ',' whitespace? digitsVertexWithTypeAndProperties)* ;
 pathPattern: '(' whitespace? Digits whitespace? ',' whitespace? Digits whitespace? ')' ;
+
 returnClause : RETURN whitespace (variable | variableWithProperty | aggregationPattern ) ( whitespace? ',' whitespace? (variable | variableWithProperty | aggregationPattern ) )* ;
 aggregationPattern : ( aggregationFunction '(' whitespace? ( variable | variableWithProperty ) whitespace? ')' )
                     | countStarPattern;
 aggregationFunction : ( AVG | MAX | MIN | SUM ) ;
 countStarPattern :  COUNT '(' whitespace? '*' whitespace? ')' ;
-
-variableEdge : variableVertex (DASH edgeOptionalTypeAndOptionalProperties)? DASH RIGHT_ARROWHEAD variableVertex ;
+whereClause : WHERE whitespace predicates ;
+predicates : predicate ( whitespace AND whitespace predicate )* ;
+predicate : operand whitespace? operator whitespace? operand ;
+operand : literal | variableWithProperty ;
+variableEdge : variableVertex (DASH edgeVariable)? DASH RIGHT_ARROWHEAD variableVertex ;
 digitsEdgeWithOptionalType : digitsVertex (DASH edgeType)? DASH RIGHT_ARROWHEAD digitsVertex ;
-digitsEdgeWithTypeAndProperties : digitsVertexWithTypeAndProperties (DASH edgeTypeAndOptionalProperties) DASH RIGHT_ARROWHEAD
-                                  digitsVertexWithTypeAndProperties ;
+digitsEdgeWithTypeAndProperties : digitsVertexWithTypeAndProperties (DASH edgeTypeAndOptionalProperties) DASH RIGHT_ARROWHEAD digitsVertexWithTypeAndProperties ;
 
 digitsVertex : '(' whitespace? Digits whitespace? ')' ;
-digitsVertexWithTypeAndProperties : '(' whitespace? Digits whitespace? ':' type whitespace? properties? whitespace? ')';
-variableVertex : '(' whitespace? variable whitespace? ')' ;
+digitsVertexWithTypeAndProperties : '(' whitespace? Digits whitespace? ':' type whitespace? properties? whitespace? ')' ;
+variableVertex : '(' whitespace? variable (whitespace? ':' type)? (whitespace? propertyFilters)? whitespace? ')' ;
 
 edgeType : '[' whitespace? ':' type whitespace? ']' ;
 edgeTypeAndOptionalProperties : '[' whitespace? ':' type whitespace? properties? whitespace? ']' ;
-edgeOptionalTypeAndOptionalProperties : '[' whitespace? variable? (':' type)? whitespace? properties? whitespace? ']' ;
+edgeVariable : '[' whitespace? variable (whitespace? ':' type)? whitespace? propertyFilters whitespace? ']' |
+               '[' whitespace? variable? (whitespace? ':' type)? whitespace? ']' ;
 
 type : variable ;
+propertyFilters : '{' whitespace? ( propertyFilter ( whitespace? ',' whitespace? propertyFilter )* )? whitespace? '}' ;
+propertyFilter : key whitespace? equalTo whitespace? literal ;
 properties : '{' whitespace? ( property ( whitespace? ',' whitespace? property )* )? whitespace? '}' ;
-property : key whitespace? ':' whitespace? dataType whitespace? '=' whitespace? value ;
-key : variable ;
+property : key whitespace? ':' whitespace? dataType whitespace? equalTo whitespace? literal ;
+key : ( Characters | UNDERSCORE ) ( Digits | Characters | UNDERSCORE )* ;
+literal : integerLiteral | doubleLiteral | booleanLiteral | stringLiteral  ;
+
+integerLiteral : Digits ;
+doubleLiteral : Digits DOT Digits ;
+booleanLiteral : TRUE | FALSE ;
+stringLiteral : '\'' value '\'';
 value : ( Digits | Characters | UNDERSCORE | DASH | DOT )+ ;
 
 filePath: ( Digits | Characters | UNDERSCORE | DASH | DOT | SLASH | SPACE )+ ;
 
-variableWithProperty : variable DOT variable;
-variable : ( Digits | Characters | UNDERSCORE | DASH )+ ;
+operator : (equalTo | notEqualTo | lessThan | lessThanOrEqualTo | greaterThan | greaterThanOrEqualTo) ;
+equalTo : '=' ;
+notEqualTo : '<>' ;
+lessThan : '<' ;
+greaterThan : '>' ;
+lessThanOrEqualTo : '<=' ;
+greaterThanOrEqualTo : '>=' ;
+
+variableWithProperty : variable DOT key;
+variable : ( Characters | UNDERSCORE | DASH ) ( Digits | Characters | UNDERSCORE | DASH )* ;
 dataType : ( INT | DOUBLE | BOOLEAN | STRING ) ;
 
-INT: I N T ;
-DOUBLE: D O U B L E ;
-BOOLEAN: B O O L E A N ;
-STRING: S T R I N G;
-
-Digits : (Digit)+ ;
-
 MATCH : M A T C H ;
-
 CONTINUOUS : C O N T I N U O U S ;
-
-FILE : F I L E ;
-
 CREATE : C R E A T E ;
-
 DELETE : D E L E T E;
-
-SHORTEST: S H O R T E S T ;
-PATH: P A T H ;
-
+SHORTEST : S H O R T E S T ;
+PATH : P A T H ;
+WHERE : W H E R E ;
 RETURN : R E T U R N ;
 
 COUNT : C O U N T;
-
 AVG : A V G ;
-
 MAX : M A X ;
-
 MIN : M I N ;
-
 SUM : S U M ;
 
 LOAD: L O A D ;
@@ -94,7 +97,22 @@ FROM: F R O M ;
 TO: T O ;
 DIR: D I R ;
 
+INT: I N T ;
+DOUBLE: D O U B L E ;
+BOOLEAN: B O O L E A N ;
+STRING: S T R I N G;
+
+TRUE : T R U E ;
+FALSE : F A L S E ;
+
+AND : A N D ;
+OR : O R ;
+
+FILE : F I L E ;
+
 whitespace : (WHITESPACE)+ ;
+
+Digits : (Digit)+ ;
 
 Characters : ( [a-z] | [A-Z] )+ ;
 

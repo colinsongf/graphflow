@@ -4,12 +4,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.util.DataType;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
-import org.antlr.v4.runtime.misc.Pair;
-
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Represents a Generic Join rule. A Generic Join rule consists of the following: (1) A {@code
@@ -26,53 +21,65 @@ public class GenericJoinIntersectionRule {
     private int prefixIndex;
     private Direction direction;
     private GraphVersion graphVersion;
+    private short fromVertexTypeFilter;
+    private short toVertexTypeFilter;
     private short edgeTypeFilter;
-    private Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters;
 
     /**
      * Constructor for extending prefixes in the {@code graphVersion} by filtering edges that
-     * do not match the given {@code edgeTypeFilter} and {@code edgePropertyEqualityFilters}.
+     * do not match the given {@code fromVertexTypeFilter}, {@code toVertexTypeFilter}, and {@code
+     * edgeTypeFilter}.
      *
-     * @see #GenericJoinIntersectionRule(int, Direction, GraphVersion, short, Map)
+     * @see #GenericJoinIntersectionRule(int, Direction, GraphVersion, short, short, short)
      */
-    public GenericJoinIntersectionRule(int prefixIndex, Direction direction, short edgeTypeFilter,
-        Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters) {
-        this(prefixIndex, direction, GraphVersion.PERMANENT, edgeTypeFilter,
-            edgePropertyEqualityFilters);
+    public GenericJoinIntersectionRule(int prefixIndex, Direction direction,
+        short fromVertexTypeFilter, short toVertexTypeFilter, short edgeTypeFilter) {
+        this(prefixIndex, direction, GraphVersion.PERMANENT, fromVertexTypeFilter,
+            toVertexTypeFilter, edgeTypeFilter);
     }
 
     /**
      * Constructor for extending prefixes in the {@code graphVersion} by filtering edges that
-     * do not match the given {@code edgeTypeFilter} and {@code edgePropertyEqualityFilters}.
+     * do not match the given {@code fromVertexTypeFilter}, {@code toVertexTypeFilter}, and {@code
+     * edgeTypeFilter}. Each prefix has an index indicating the vertex {@code v} from which the
+     * rule extends.
      *
-     * @param prefixIndex The index of the prefix indicating the vertex {@code u} from which this
+     * @param prefixIndex The index of the prefix indicating the vertex {@code v} from which this
      * rule will extend.
      * @param direction The direction of extension. Either {@link Graph.Direction#FORWARD} from
-     * {@code u} or {@link Graph.Direction#BACKWARD} towards {@code u}.
+     * {@code v} or {@link Graph.Direction#BACKWARD} towards {@code v}.
      * @param graphVersion The version of the graph to be used for this rule.
-     * @param edgeTypeFilter Filters {@code u}'s edges that do not have the given type. If the
+     * @param fromVertexTypeFilter Filters {@code v}'s edges that do not have the given from vertex
+     * type. If the value of {@code fromVertexTypeFilter} is {@link TypeAndPropertyKeyStore#ANY},
+     * this parameter is ignored.
+     * @param toVertexTypeFilter Filters {@code v}'s edges that do not have the given to vertex
+     * type. If the value of {@code fromVertexTypeFilter} is {@link TypeAndPropertyKeyStore#ANY},
+     * this parameter is ignored.
+     * @param edgeTypeFilter Filters {@code v}'s edges that do not have the given type. If the
      * value of {@code edgeTypeFilter} is {@link TypeAndPropertyKeyStore#ANY}, this parameter is
      * ignored.
-     * @param edgePropertyEqualityFilters Filters {@code u}'s edges that do not contain these
-     * properties. If the {@code propertyEqualityFilters} is {at code null} or empty, this
-     * parameter is ignored.
      */
     public GenericJoinIntersectionRule(int prefixIndex, Direction direction,
-        GraphVersion graphVersion, short edgeTypeFilter,
-        Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters) {
+        GraphVersion graphVersion, short fromVertexTypeFilter, short toVertexTypeFilter,
+        short edgeTypeFilter) {
         this.prefixIndex = prefixIndex;
         this.direction = direction;
         this.graphVersion = graphVersion;
+        this.fromVertexTypeFilter = fromVertexTypeFilter;
+        this.toVertexTypeFilter = toVertexTypeFilter;
         this.edgeTypeFilter = edgeTypeFilter;
-        this.edgePropertyEqualityFilters = edgePropertyEqualityFilters;
+    }
+
+    public short getFromVertexTypeFilter() {
+        return fromVertexTypeFilter;
+    }
+
+    public short getToVertexTypeFilter() {
+        return toVertexTypeFilter;
     }
 
     public short getEdgeTypeFilter() {
         return edgeTypeFilter;
-    }
-
-    public Map<Short, Pair<DataType, String>> getEdgePropertyEqualityFilters() {
-        return edgePropertyEqualityFilters;
     }
 
     public int getPrefixIndex() {
@@ -104,58 +111,19 @@ public class GenericJoinIntersectionRule {
         if (null == a || null == b) {
             return false;
         }
-        if (a.prefixIndex != b.prefixIndex || a.direction != b.direction ||
-            a.graphVersion != b.graphVersion || a.edgeTypeFilter != b.edgeTypeFilter) {
-            return false;
-        }
-        if ((null != a.edgePropertyEqualityFilters && null == b.edgePropertyEqualityFilters) ||
-            (null == a.edgePropertyEqualityFilters && null != b.edgePropertyEqualityFilters)) {
-            return false;
-        }
-        if (null == a.edgePropertyEqualityFilters) {
-            return true;
-        }
-        if (a.edgePropertyEqualityFilters.size() != b.edgePropertyEqualityFilters.size()) {
-            return false;
-        }
-        Pair<DataType, String> aDataTypeStringPair;
-        Pair<DataType, String> bDataTypeStringPair;
-        for (Short key : a.edgePropertyEqualityFilters.keySet()) {
-            aDataTypeStringPair = a.edgePropertyEqualityFilters.get(key);
-            bDataTypeStringPair = b.edgePropertyEqualityFilters.get(key);
-            if (null == bDataTypeStringPair || aDataTypeStringPair.a != bDataTypeStringPair.a ||
-                !aDataTypeStringPair.b.equals(bDataTypeStringPair.b)) {
-                return false;
-            }
-        }
-        return true;
+        return a.prefixIndex == b.prefixIndex && a.direction == b.direction &&
+            a.graphVersion == b.graphVersion && a.edgeTypeFilter == b.edgeTypeFilter;
     }
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("prefixIndex: " + prefixIndex);
-        stringBuilder.append(", direction: " + direction.name());
-        stringBuilder.append(", graph-version: " + graphVersion.name());
-        stringBuilder.append(", edgeTypeFilter: " + edgeTypeFilter);
-        stringBuilder.append(", edgePropertyEqualityFilters: {");
-        boolean isFirst = true;
-        if (null != edgePropertyEqualityFilters) {
-            for (Entry<Short, Pair<DataType, String>> equalityFilter
-                : edgePropertyEqualityFilters.entrySet()) {
-                if (!isFirst) {
-                    stringBuilder.append(",");
-                } else {
-                    isFirst = false;
-                }
-                Short key = equalityFilter.getKey();
-                DataType dataType = equalityFilter.getValue().a;
-                String value = equalityFilter.getValue().b;
-                stringBuilder.append("(key: " + key + ", dataType: " + (null == dataType ? "null"
-                    : dataType.name()) + ", value: " + value + ")");
-            }
-        }
-        stringBuilder.append("}");
-        return stringBuilder.toString();
+        return new StringBuilder()
+            .append("prefixIndex: " + prefixIndex)
+            .append(", direction: " + direction.name())
+            .append(", graph-version: " + graphVersion.name())
+            .append(", fromVertexTypeFilter: " + fromVertexTypeFilter)
+            .append(", toVertexTypeFilter: " + toVertexTypeFilter)
+            .append(", edgeTypeFilter: " + edgeTypeFilter)
+            .toString();
     }
 }

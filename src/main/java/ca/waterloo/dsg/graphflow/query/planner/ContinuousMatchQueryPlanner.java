@@ -44,6 +44,8 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         // deleted edges). We refer to this relation as the diffRelation below; (3) n-i relations
         // that use the {@code PERMANENT} version of the graph.
         Set<QueryRelation> mergedRelations = new HashSet<>();
+        OneTimeMatchQueryPlan queryPlan;
+        AbstractDBOperator nextOperator;
         Set<QueryRelation> permanentRelations = new HashSet<>(structuredQuery.getQueryRelations());
         for (QueryRelation diffRelation : structuredQuery.getQueryRelations()) {
             // The first two variables considered in each round will be the variables from the
@@ -54,12 +56,18 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             orderedVariables.add(diffRelation.getToQueryVariable().getVariableName());
             super.orderRemainingVariables(orderedVariables);
             // Create the query plan using the ordering determined above.
-            continuousMatchQueryPlan.addOneTimeMatchQueryPlan(addSingleQueryPlan(
+
+            nextOperator = super.getNextOperator(orderedVariables);
+            queryPlan = addSingleQueryPlan(
                 GraphVersion.DIFF_PLUS, orderedVariables, diffRelation, permanentRelations,
-                mergedRelations));
-            continuousMatchQueryPlan.addOneTimeMatchQueryPlan(addSingleQueryPlan(
+                mergedRelations);
+            queryPlan.setNextOperator(nextOperator);
+            continuousMatchQueryPlan.addOneTimeMatchQueryPlan(queryPlan);
+            queryPlan = addSingleQueryPlan(
                 GraphVersion.DIFF_MINUS, orderedVariables, diffRelation, permanentRelations,
-                mergedRelations));
+                mergedRelations);
+            queryPlan.setNextOperator(nextOperator);
+            continuousMatchQueryPlan.addOneTimeMatchQueryPlan(queryPlan);
             mergedRelations.add(diffRelation);
         }
         return continuousMatchQueryPlan;
@@ -88,8 +96,11 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
 
         stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, graphVersion,
             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(diffRelation.
-                getRelationType()), TypeAndPropertyKeyStore.getInstance().
-            mapStringPropertiesToShortAndDataType((diffRelation.getRelationProperties()))));
+                getFromQueryVariable().getVariableType()),
+            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(diffRelation.
+                getToQueryVariable().getVariableType()),
+            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(diffRelation.
+                getRelationType())));
         oneTimeMatchQueryPlan.addStage(stage);
         // Add the other relations that are present between the diffRelation's
         // {@code fromVariable} to {@code toVariable}.
@@ -170,8 +181,11 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         }
         stage.add(new GenericJoinIntersectionRule(prefixIndex, direction, version,
             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(newRelation.
-                getRelationType()), TypeAndPropertyKeyStore.getInstance().
-            mapStringPropertiesToShortAndDataType(newRelation.getRelationProperties())));
+                getFromQueryVariable().getVariableType()),
+            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(newRelation.
+                getToQueryVariable().getVariableType()),
+            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(newRelation.
+                getRelationType())));
     }
 
     /**

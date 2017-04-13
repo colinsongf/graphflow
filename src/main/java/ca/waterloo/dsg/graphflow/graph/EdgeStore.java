@@ -182,37 +182,6 @@ public class EdgeStore extends PropertyStore {
     }
 
     /**
-     * Returns true if the properties of the edge {@code e} with the given edge ID match all of
-     * the given edge equality filters. Specifically, checks whether for each property P in the
-     * given equality filters, there is a property P' of e where P' has the same key and value as P.
-     *
-     * @param edgeId The ID of the edge.
-     * @param propertyEqualityFilters The property filters to match in the edge.
-     * @return true if the edge with the given {code edgeId} matches all of the given {@code
-     * propertyEqualityFilters}.
-     * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
-     */
-    public boolean checkEqualityFilters(long edgeId,
-        Map<Short, Pair<DataType, String>> propertyEqualityFilters) {
-        if (edgeId >= nextIDNeverYetAssigned) {
-            throw new NoSuchElementException("Edge with ID " + edgeId + " does not exist.");
-        }
-
-        if (null == propertyEqualityFilters || propertyEqualityFilters.isEmpty()) {
-            return true;
-        }
-
-        Map<Short, Object> edgeProperties = getProperties(edgeId);
-        for (Short key : propertyEqualityFilters.keySet()) {
-            if (!DataType.equals(propertyEqualityFilters.get(key).a, edgeProperties.get(key),
-                propertyEqualityFilters.get(key).b)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
      * Deletes the edge with the given ID.
      * Warning: Internally adds the given ID to the recycled IDs array.
      *

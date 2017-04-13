@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinExecutor;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
+import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
 
 import java.util.List;
 
@@ -18,7 +19,8 @@ import java.util.List;
  */
 public abstract class AbstractDBOperator {
 
-    protected AbstractDBOperator nextOperator;
+    @VisibleForTesting
+    public AbstractDBOperator nextOperator;
 
     /**
      * Default constructor.

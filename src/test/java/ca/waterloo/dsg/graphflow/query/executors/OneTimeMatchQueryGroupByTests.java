@@ -1,21 +1,21 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
-import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.graph.GraphDBState;
-import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
-import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
-import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
-import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
-import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
-import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
-import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import ca.waterloo.dsg.graphflow.TestUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import ca.waterloo.dsg.graphflow.graph.Graph;
+import ca.waterloo.dsg.graphflow.graph.GraphDBState;
+import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
+import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
+import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 
 import static org.junit.Assert.assertArrayEquals;
 
@@ -58,27 +58,25 @@ public class OneTimeMatchQueryGroupByTests {
 
     private void constructTestGraph() {
         String[] verticesInQuery = {
-            "(0:VType0{strVP:string=strVPValueE, intVP:int=0, doubleVP:double=0.0})",
-            "(1:VType1{strVP:string=strVPValueO, intVP:int=1, doubleVP:double=1.0})",
-            "(2:VType2{strVP:string=strVPValueE, intVP:int=2, doubleVP:double=2.0})",
-            "(3:VType3{strVP:string=strVPValueO, intVP:int=3, doubleVP:double=3.0})",
-            "(4:VType4{strVP:string=strVPValueE, intVP:int=4, doubleVP:double=4.0})",
-            "(5:VType5{strVP:string=strVPValueO, intVP:int=5, doubleVP:double=5.0})"};
-        StructuredQuery createQuery = new StructuredQueryParser().parse("CREATE " +
-           verticesInQuery[0] + "-[:StarEdge{strEP:string=strEPValueO, intEP:int=1, doubleEP:double=1.0}]->"  + verticesInQuery[1] +
-           "," + verticesInQuery[0] + "-[:StarEdge{strEP:string=strEPValueE, intEP:int=2, doubleEP:double=2.0}]->" + verticesInQuery[2] +
-           "," + verticesInQuery[0] + "-[:StarEdge{strEP:string=strEPValueO, intEP:int=3, doubleEP:double=3.0}]->" + verticesInQuery[3] +
-           "," + verticesInQuery[0] + "-[:StarEdge{strEP:string=strEPValueE, intEP:int=4, doubleEP:double=4.0}]->" + verticesInQuery[4] +
-           "," + verticesInQuery[0] + "-[:StarEdge{strEP:string=strEPValueO, intEP:int=5, doubleEP:double=5.0}]->" + verticesInQuery[5] +
-           "," + verticesInQuery[1] + "-[:CycleEdge{strEP:string=strEPValueO, intEP:int=3, doubleEP:double=3.0}]->" + verticesInQuery[2] +
-           "," + verticesInQuery[2] + "-[:CycleEdge{strEP:string=strEPValueO, intEP:int=5, doubleEP:double=5.0}]->" + verticesInQuery[3] +
-           "," + verticesInQuery[3] + "-[:CycleEdge{strEP:string=strEPValueO, intEP:int=7, doubleEP:double=7.0}]->" + verticesInQuery[4] +
-           "," + verticesInQuery[4] + "-[:CycleEdge{strEP:string=strEPValueO, intEP:int=9, doubleEP:double=9.0}]->" + verticesInQuery[5] +
-           "," + verticesInQuery[5] + "-[:CycleEdge{strEP:string=strEPValueE, intEP:int=6, doubleEP:double=6.0}]->" + verticesInQuery[1]
-           );
+            "(0:VType0{strVP:string='strVPValueE', intVP:int=0, doubleVP:double=0.0})",
+            "(1:VType1{strVP:string='strVPValueO', intVP:int=1, doubleVP:double=1.0})",
+            "(2:VType2{strVP:string='strVPValueE', intVP:int=2, doubleVP:double=2.0})",
+            "(3:VType3{strVP:string='strVPValueO', intVP:int=3, doubleVP:double=3.0})",
+            "(4:VType4{strVP:string='strVPValueE', intVP:int=4, doubleVP:double=4.0})",
+            "(5:VType5{strVP:string='strVPValueO', intVP:int=5, doubleVP:double=5.0})"};
 
-        ((CreateQueryPlan) new CreateQueryPlanner(createQuery).plan()).execute(
-            Graph.getInstance(), new InMemoryOutputSink());
+        String createQuery = "CREATE " +
+           verticesInQuery[0] + "-[:StarEdge{strEP:string='strEPValueO', intEP:int=1, doubleEP:double=1.0}]->"  + verticesInQuery[1] +
+           "," + verticesInQuery[0] + "-[:StarEdge{strEP:string='strEPValueE', intEP:int=2, doubleEP:double=2.0}]->" + verticesInQuery[2] +
+           "," + verticesInQuery[0] + "-[:StarEdge{strEP:string='strEPValueO', intEP:int=3, doubleEP:double=3.0}]->" + verticesInQuery[3] +
+           "," + verticesInQuery[0] + "-[:StarEdge{strEP:string='strEPValueE', intEP:int=4, doubleEP:double=4.0}]->" + verticesInQuery[4] +
+           "," + verticesInQuery[0] + "-[:StarEdge{strEP:string='strEPValueO', intEP:int=5, doubleEP:double=5.0}]->" + verticesInQuery[5] +
+           "," + verticesInQuery[1] + "-[:CycleEdge{strEP:string='strEPValueO', intEP:int=3, doubleEP:double=3.0}]->" + verticesInQuery[2] +
+           "," + verticesInQuery[2] + "-[:CycleEdge{strEP:string='strEPValueO', intEP:int=5, doubleEP:double=5.0}]->" + verticesInQuery[3] +
+           "," + verticesInQuery[3] + "-[:CycleEdge{strEP:string='strEPValueO', intEP:int=7, doubleEP:double=7.0}]->" + verticesInQuery[4] +
+           "," + verticesInQuery[4] + "-[:CycleEdge{strEP:string='strEPValueO', intEP:int=9, doubleEP:double=9.0}]->" + verticesInQuery[5] +
+           "," + verticesInQuery[5] + "-[:CycleEdge{strEP:string='strEPValueE', intEP:int=6, doubleEP:double=6.0}]->" + verticesInQuery[1];
+        TestUtils.initializeGraphPermanentlyWithProperties(createQuery);
     }
 
     @Test
@@ -153,8 +151,8 @@ public class OneTimeMatchQueryGroupByTests {
         // There are 7 strEPValueO edges (a, b) with b values: (0,1): 1, (0,3): 3, (0, 5): 5, (1,2): 2,
         // (2, 3): 3, (3,4): 4, (4, 5): 5
         // There are 3 strEPValueE edges (a, b) with b values: (0,2): 2, (0,4): 4, (5,1): 1
-        double strEPValueOAvg = (double) (1 + 3 + 5 + 2 + 3 + 4 + 5)/7;
-        double strEPValueEAvg = (double) (2 + 4 + 1)/3;
+        double strEPValueOAvg = (1 + 3 + 5 + 2 + 3 + 4 + 5)/7.0;
+        double strEPValueEAvg = (2 + 4 + 1)/3.0;
         runTest(queryString, "strEPValueO " + strEPValueOAvg, "strEPValueE " + strEPValueEAvg);
     }
 
@@ -164,8 +162,8 @@ public class OneTimeMatchQueryGroupByTests {
         // There are 7 strEPValueO edges (a, b) with a values: (0,1): 0.0, (0,3): 0.0, (0, 5): 0.0, (1,2): 1.0,
         // (2, 3): 2.0, (3,4): 3.0, (4, 5): 4.0
         // There are 3 strEPValueE edges (a, b) with a values: (0,2): 0.0, (0,4): 0.0, (5,1): 5.0
-        double strEPValueOAvg = (double) (0.0 + 0.0 + 0.0 + 1.0 + 2.0 + 3.0 + 4.0)/7;
-        double strEPValueEAvg = (double) (0.0 + 0.0 + 5.0)/3;
+        double strEPValueOAvg = (0.0 + 0.0 + 0.0 + 1.0 + 2.0 + 3.0 + 4.0)/7;
+        double strEPValueEAvg = (0.0 + 0.0 + 5.0)/3;
         runTest(queryString, "strEPValueO " + strEPValueOAvg, "strEPValueE " + strEPValueEAvg);
     }
 
@@ -182,8 +180,8 @@ public class OneTimeMatchQueryGroupByTests {
     public void testSumDouble() {
         String queryString = "MATCH (a)-[e]->(b) return e.strEP, sum(a.doubleVP);";
         // see testAverageDouble
-        double strEPValueOSum = (double) (0.0 + 0.0 + 0.0 + 1.0 + 2.0 + 3.0 + 4.0);
-        double strEPValueESum = (double) (0.0 + 0.0 + 5.0);
+        double strEPValueOSum = 0.0 + 0.0 + 0.0 + 1.0 + 2.0 + 3.0 + 4.0;
+        double strEPValueESum = 0.0 + 0.0 + 5.0;
         runTest(queryString, "strEPValueO " + strEPValueOSum, "strEPValueE " + strEPValueESum);
     }
 

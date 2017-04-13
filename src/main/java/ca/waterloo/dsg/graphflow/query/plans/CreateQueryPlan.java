@@ -44,7 +44,7 @@ public class CreateQueryPlan implements QueryPlan {
     private void createVertices(Graph graph, AbstractDBOperator outputSink) {
         TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
         try {
-            for (QueryVariable queryVariable : structuredQuery.getQueryVaribles()) {
+            for (QueryVariable queryVariable : structuredQuery.getQueryVariables()) {
                 Map<String, Pair<String, String>> stringvertexProperties = queryVariable.
                     getVariableProperties();
                 typeAndPropertyKeyStore.assertExistingKeyDataTypesMatchPreviousDeclarations(
@@ -59,7 +59,7 @@ public class CreateQueryPlan implements QueryPlan {
                 graph.addVertex(vertexId, vertexType, vertexProperties);
             }
             // TODO(amine): bug, count the actual number of vertices created to append to sink.
-            outputSink.append(structuredQuery.getQueryVaribles().size() + " vertices created.");
+            outputSink.append(structuredQuery.getQueryVariables().size() + " vertices created.");
         } catch (UnsupportedOperationException e) {
             outputSink.append("ERROR: " + e.getMessage());
         }

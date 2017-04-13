@@ -71,16 +71,15 @@ public class GraphflowCli {
             if (!singleLineQuery.contains(";")) {
                 // The line does not contain semicolon. Change prompt and wait for more input
                 // before processing it.
-                prompt = "... ";
+                prompt = SECONDARY_PROMPT;
                 continue;
             }
             prompt = PRIMARY_PROMPT; // Reset prompt.
             if (fullQuery.contains("exit") || fullQuery.contains("quit")) {
                 break;
             }
-            System.out.println("Your query: " + fullQuery);
             String result = queryServer(fullQuery);
-            System.out.println("Result:\n" + result);
+            System.out.println("\nResult:\n" + result);
             fullQuery = "";
         }
         System.out.println("May the flow be with you!");

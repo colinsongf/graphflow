@@ -127,7 +127,6 @@ public class Graph implements GraphflowSerializable {
         Map<Short, Pair<DataType, String>> vertexProperties) {
         vertexTypes.set(vertexId, vertexType);
         VertexPropertyStore.getInstance().set(vertexId, vertexProperties);
-        // TODO(amine): Check these are correct.
         highestPermanentVertexId = Integer.max(highestPermanentVertexId, vertexId);
         highestMergedVertexId = Integer.max(highestMergedVertexId, vertexId);
         ensureCapacity(highestMergedVertexId + 1);
@@ -315,9 +314,9 @@ public class Graph implements GraphflowSerializable {
      *
      * @param graphVersion The {@code GraphVersion} for which list of edges is required.
      * @param direction The {@code Direction} of the edges.
-     * @param typeFilter The type of the edges returned by the iterator.
-     * @param propertyEqualityFilters The property equality filters to apply on the edges
-     * returned by the iterator.
+     * @param fromVertexTypeFilter The type of the from vertex of the edge returned by the iterator.
+     * @param toVertexTypeFilter The type of the to vertex of the edge returned by the iterator.
+     * @param edgeTypeFilter The type of the edges returned by the iterator.
      * @return An iterator to the list of edges for the given {@code graphVersion} and
      * {@code direction}.
      * @throws UnsupportedOperationException Exception thrown when {@code graphVersion} is
@@ -325,18 +324,18 @@ public class Graph implements GraphflowSerializable {
      * {@link Direction#BACKWARD}.
      */
     public Iterator<int[]> getEdgesIterator(GraphVersion graphVersion, Direction direction,
-        short typeFilter, Map<Short, Pair<DataType, String>> propertyEqualityFilters) {
+        short fromVertexTypeFilter, short toVertexTypeFilter, short edgeTypeFilter) {
         if ((GraphVersion.DIFF_PLUS == graphVersion || GraphVersion.DIFF_MINUS == graphVersion) &&
             Direction.BACKWARD == direction) {
             throw new UnsupportedOperationException("Getting edges for the DIFF_PLUS "
                 + "or DIFF_MINUS graph in the BACKWARD direction is not supported.");
         }
         if (GraphVersion.DIFF_PLUS == graphVersion) {
-            return new DiffEdgesIterator(diffPlusEdges, diffPlusEdgeTypes, diffPlusEdgeIds,
-                typeFilter, propertyEqualityFilters);
+            return new DiffEdgesIterator(diffPlusEdges, diffPlusEdgeTypes, vertexTypes,
+                fromVertexTypeFilter, toVertexTypeFilter, edgeTypeFilter);
         } else if (GraphVersion.DIFF_MINUS == graphVersion) {
-            return new DiffEdgesIterator(diffMinusEdges, diffMinusEdgeTypes, diffMinusEdgeIds,
-                typeFilter, propertyEqualityFilters);
+            return new DiffEdgesIterator(diffMinusEdges, diffMinusEdgeTypes, vertexTypes,
+                fromVertexTypeFilter, toVertexTypeFilter, edgeTypeFilter);
         } else {
             SortedAdjacencyList[] permanentAdjacencyLists;
             Map<Integer, SortedAdjacencyList> mergedAdjLists;
@@ -357,7 +356,8 @@ public class Graph implements GraphflowSerializable {
                 return Collections.<int[]>emptyList().iterator();
             }
             return new PermanentAndMergedEdgesIterator(graphVersion, permanentAdjacencyLists,
-                mergedAdjLists, typeFilter, propertyEqualityFilters, lastVertexId);
+                mergedAdjLists, vertexTypes, fromVertexTypeFilter, toVertexTypeFilter,
+                edgeTypeFilter, lastVertexId);
         }
     }
 
@@ -371,12 +371,10 @@ public class Graph implements GraphflowSerializable {
      * @param direction The {@link Direction} of the edge.
      * @param graphVersion The {@link GraphVersion} where the edge's presence needs to be checked.
      * @param typeFilter The type of the edge being searched for.
-     * @param propertyEqualityFilters The properties that the edge being searched should contain.
      * @return {@code true} if the edge is present, {@code false} otherwise.
      */
     public boolean isEdgePresent(int fromVertexId, int toVertexId, Direction direction,
-        GraphVersion graphVersion, short typeFilter,
-        Map<Short, Pair<DataType, String>> propertyEqualityFilters) {
+        GraphVersion graphVersion, short typeFilter) {
         if (GraphVersion.DIFF_MINUS == graphVersion || GraphVersion.DIFF_PLUS == graphVersion) {
             throw new UnsupportedOperationException("Checking presence of an edge in the DIFF_PLUS "
                 + "or DIFF_MINUS graph is not supported.");
@@ -399,11 +397,9 @@ public class Graph implements GraphflowSerializable {
             mergedAdjLists = mergedBackwardAdjLists;
         }
         if (graphVersion == GraphVersion.MERGED && mergedAdjLists.containsKey(fromVertexId)) {
-            return mergedAdjLists.get(fromVertexId).contains(toVertexId, typeFilter,
-                propertyEqualityFilters);
+            return mergedAdjLists.get(fromVertexId).contains(toVertexId, typeFilter);
         }
-        return permanentAdjacencyLists[fromVertexId].contains(toVertexId, typeFilter,
-            propertyEqualityFilters);
+        return permanentAdjacencyLists[fromVertexId].contains(toVertexId, typeFilter);
     }
 
     /**
@@ -456,6 +452,14 @@ public class Graph implements GraphflowSerializable {
             // Use the adjacency list of the permanent graph.
             return permanentAdjList[vertexId];
         }
+    }
+
+    /**
+     * Returns the {@code vertexTypes} in the graph where the type of vertex i is in the ith
+     * position of the returned {@link ShortArrayList}.
+     */
+    public ShortArrayList getVertexTypes() {
+        return vertexTypes;
     }
 
     /**

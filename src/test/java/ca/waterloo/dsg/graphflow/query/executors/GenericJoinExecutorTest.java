@@ -9,10 +9,13 @@ import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
-import ca.waterloo.dsg.graphflow.util.QueryOutputUtils;
+import org.antlr.v4.runtime.misc.Pair;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Tests {@code GenericJoinExecutor}.
@@ -30,9 +33,10 @@ public class GenericJoinExecutorTest {
     @Test
     public void testPathQueryWithoutTypes() throws Exception {
         StructuredQuery pathQueryPlan = new StructuredQueryParser().parse("MATCH (a)->(b)");
-        int[][] expectedMotifsAfterAddition = {{0, 1}, {1, 2}, {1, 3}, {2, 3}, {3, 0}, {3, 4},
+        Object[][] expectedMotifsAfterAddition = {{0, 1}, {1, 2}, {1, 3}, {2, 3}, {3, 0}, {3, 4},
             {4, 1}, {4, 4}};
-        int[][] expectedMotifsAfterDeletion = {{0, 1}, {1, 2}, {1, 3}, {2, 3}, {3, 0}, {3, 4}, {4, 4}};
+        Object[][] expectedMotifsAfterDeletion = {{0, 1}, {1, 2}, {1, 3}, {2, 3}, {3, 0}, {3, 4},
+            {4, 4}};
         assertSimpleMatchQueryOutput(pathQueryPlan, expectedMotifsAfterAddition,
             expectedMotifsAfterDeletion);
     }
@@ -44,8 +48,8 @@ public class GenericJoinExecutorTest {
     public void testPathQueryWithTypes() throws Exception {
         StructuredQuery pathQueryPlan = new StructuredQueryParser().parse("MATCH (a)-[:FOLLOWS]->" +
             "(b)");
-        int[][] expectedMotifsAfterAddition = {{0, 1}, {3, 0}, {3, 4}, {4, 1}};
-        int[][] expectedMotifsAfterDeletion = {{3, 0}, {3, 4}, {4, 1}};
+        Object[][] expectedMotifsAfterAddition = {{0, 1}, {3, 0}, {3, 4}, {4, 1}};
+        Object[][] expectedMotifsAfterDeletion = {{3, 0}, {3, 4}, {4, 1}};
         assertComplexMatchQueryOutput(pathQueryPlan, expectedMotifsAfterAddition,
             expectedMotifsAfterDeletion);
     }
@@ -58,9 +62,9 @@ public class GenericJoinExecutorTest {
         // Create a one time MATCH query plan for a simple triangle query with no types.
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)->(b),(b)->(c),(c)->(a)");
-        int[][] expectedMotifsAfterAdditions = {{0, 1, 3}, {1, 3, 0}, {1, 3, 4}, {3, 0, 1},
+        Object[][] expectedMotifsAfterAdditions = {{0, 1, 3}, {1, 3, 0}, {1, 3, 4}, {3, 0, 1},
             {3, 4, 1}, {4, 1, 3}, {4, 4, 4}};
-        int[][] expectedMotifsAfterDeletion = {{0, 1, 3}, {1, 3, 0}, {3, 0, 1}, {4, 4, 4}};
+        Object[][] expectedMotifsAfterDeletion = {{0, 1, 3}, {1, 3, 0}, {3, 0, 1}, {4, 4, 4}};
         assertSimpleMatchQueryOutput(triangleStructuredQuery, expectedMotifsAfterAdditions,
             expectedMotifsAfterDeletion);
     }
@@ -78,8 +82,47 @@ public class GenericJoinExecutorTest {
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)-[:FOLLOWS]->(b),(a)-[:LIKES]->(b),(b)-[:LIKES]->(a),(b)->(c),(c)->(b)," +
             "(c)-[:FOLLOWS]->(a)");
-        int[][] expectedMotifsAfterAdditions = {{1, 0, 3}, {1, 4, 3}};
-        int[][] expectedMotifsAfterDeletion = {{1, 4, 3}};
+        Object[][] expectedMotifsAfterAdditions = {{1, 0, 3}, {1, 4, 3}};
+        Object[][] expectedMotifsAfterDeletion = {{1, 4, 3}};
+        assertComplexMatchQueryOutput(triangleStructuredQuery, expectedMotifsAfterAdditions,
+            expectedMotifsAfterDeletion);
+    }
+
+    @Test
+    public void testTriangleQueryWithProjection() {
+        // Initialize the {@code TypeStore} with types used in the MATCH query.
+        TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("FOLLOWS");
+        TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("LIKES");
+        StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
+            "(a)-[:FOLLOWS]->(b),(b)->(c),(c)-[:FOLLOWS]->(a) RETURN a, b;");
+        Object[][] expectedMotifsAfterAdditions = {{0, 1}, {4, 1}};
+        Object[][] expectedMotifsAfterDeletion = {{4, 1}};
+        assertComplexMatchQueryOutput(triangleStructuredQuery, expectedMotifsAfterAdditions,
+            expectedMotifsAfterDeletion);
+    }
+
+    @Test
+    public void testTriangleQueryWithPropertyProjections() {
+        // Initialize the {@code TypeStore} with types used in the MATCH query.
+        TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("FOLLOWS");
+        TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("LIKES");
+        Map<String, Pair<String, String>> ageProperty = new HashMap<>();
+        ageProperty.put("age", new Pair<>("int", null));
+        TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert(
+            ageProperty);
+        Map<String, Pair<String, String>> viewsProperty = new HashMap<>();
+        viewsProperty.put("views", new Pair<>("int", null));
+        TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert(
+            viewsProperty);
+        Map<String, Pair<String, String>> nameProperty = new HashMap<>();
+        nameProperty.put("name", new Pair<>("string", null));
+        TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert(
+            nameProperty);
+        StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
+            "(a)-[d:FOLLOWS]->(b),(b)->(c),(c)-[:FOLLOWS]->(a) " +
+            "RETURN a.age, b.views, c.name, d.views;");
+        Object[][] expectedMotifsAfterAdditions = {{20, 70, "name3", 60}, {40, 70, "name3", 4}};
+        Object[][] expectedMotifsAfterDeletion = {{40, 70, "name3", 4}};
         assertComplexMatchQueryOutput(triangleStructuredQuery, expectedMotifsAfterAdditions,
             expectedMotifsAfterDeletion);
     }
@@ -92,10 +135,10 @@ public class GenericJoinExecutorTest {
         // Create a one time MATCH query plan for a simple square query with no types.
         StructuredQuery squareStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)->(b),(b)->(c),(c)->(d),(d)->(a)");
-        int[][] expectedMotifsAfterAdditions = {{0, 1, 2, 3}, {1, 2, 3, 0}, {1, 2, 3, 4},
+        Object[][] expectedMotifsAfterAdditions = {{0, 1, 2, 3}, {1, 2, 3, 0}, {1, 2, 3, 4},
             {1, 3, 4, 4}, {2, 3, 0, 1}, {2, 3, 4, 1}, {3, 0, 1, 2}, {3, 4, 1, 2}, {3, 4, 4, 1},
             {4, 1, 2, 3}, {4, 1, 3, 4}, {4, 4, 1, 3}, {4, 4, 4, 4}};
-        int[][] expectedMotifsAfterDeletion = {{0, 1, 2, 3}, {1, 2, 3, 0}, {2, 3, 0, 1},
+        Object[][] expectedMotifsAfterDeletion = {{0, 1, 2, 3}, {1, 2, 3, 0}, {2, 3, 0, 1},
             {3, 0, 1, 2}, {4, 4, 4, 4}};
         assertSimpleMatchQueryOutput(squareStructuredQuery, expectedMotifsAfterAdditions,
             expectedMotifsAfterDeletion);
@@ -112,8 +155,8 @@ public class GenericJoinExecutorTest {
         //Create a one time MATCH query plan for a square pattern with types.
         StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
             "(a)-[:FOLLOWS]->(b),(b)-[:LIKES]->(c),(c)-[:LIKES]->(d),(d)-[:FOLLOWS]->(a)");
-        int[][] expectedMotifsAfterAdditions = {{0, 1, 4, 3}, {4, 1, 4, 3}};
-        int[][] expectedMotifsAfterDeletion = {{4, 1, 4, 3}};
+        Object[][] expectedMotifsAfterAdditions = {{0, 1, 4, 3}, {4, 1, 4, 3}};
+        Object[][] expectedMotifsAfterDeletion = {{4, 1, 4, 3}};
 
         assertComplexMatchQueryOutput(triangleStructuredQuery, expectedMotifsAfterAdditions,
             expectedMotifsAfterDeletion);
@@ -127,11 +170,11 @@ public class GenericJoinExecutorTest {
         //Create a a one time MATCH query plan for a simple diamond pattern with no types.
         StructuredQuery diamondStructuredQuery = new StructuredQueryParser().parse("MATCH (a)->" +
             "(b),(a)->(c),(b)->(d),(c)->(d)");
-        int[][] expectedMotifsAfterAdditions = {{0, 1, 1, 2}, {0, 1, 1, 3}, {1, 2, 2, 3},
+        Object[][] expectedMotifsAfterAdditions = {{0, 1, 1, 2}, {0, 1, 1, 3}, {1, 2, 2, 3},
             {1, 3, 3, 0}, {1, 3, 3, 4}, {2, 3, 3, 0}, {2, 3, 3, 4}, {3, 0, 0, 1}, {3, 0, 4, 1},
             {3, 4, 0, 1}, {3, 4, 4, 1}, {3, 4, 4, 4}, {4, 1, 1, 2}, {4, 1, 1, 3}, {4, 4, 4, 1},
             {4, 4, 4, 4}};
-        int[][] expectedMotifsAfterDeletion = {{0, 1, 1, 2}, {0, 1, 1, 3}, {1, 2, 2, 3},
+        Object[][] expectedMotifsAfterDeletion = {{0, 1, 1, 2}, {0, 1, 1, 3}, {1, 2, 2, 3},
             {1, 3, 3, 0}, {1, 3, 3, 4}, {2, 3, 3, 0}, {2, 3, 3, 4}, {3, 0, 0, 1}, {3, 4, 4, 4},
             {4, 4, 4, 4}};
 
@@ -143,25 +186,24 @@ public class GenericJoinExecutorTest {
      * Tests the execution of a diamond query with types.
      */
     @Test
-    public void testDiamondQueryWithTypes() throws Exception{
+    public void testDiamondQueryWithTypes() throws Exception {
         // Initialize the {@code TypeStore} with types used in the MATCH query.
         TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("FOLLOWS");
         TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("LIKES");
         //Create a one time MATCH query plan for a simple diamond pattern with types.
         StructuredQuery diamondStructuredQuery = new StructuredQueryParser().parse("MATCH (a)" +
             "-[:FOLLOWS]->(b),(a)-[:FOLLOWS]->(c),(b)-[:LIKES]->(d),(c)-[:LIKES]->(d)");
-        int[][] expectedMotifsAfterAdditions = {{0, 1, 1, 0}, {0, 1, 1, 4}, {3, 0, 0, 1},
+        Object[][] expectedMotifsAfterAdditions = {{0, 1, 1, 0}, {0, 1, 1, 4}, {3, 0, 0, 1},
             {3, 0, 4, 1}, {3, 4, 0, 1}, {3, 4, 4, 1}, {3, 4, 4, 3}, {4, 1, 1, 0}, {4, 1, 1, 4}};
-        int[][] expectedMotifsAfterDeletion = {{3, 0, 0, 1}, {3, 0, 4, 1}, {3, 4, 0, 1},
+        Object[][] expectedMotifsAfterDeletion = {{3, 0, 0, 1}, {3, 0, 4, 1}, {3, 4, 0, 1},
             {3, 4, 4, 1}, {3, 4, 4, 3}, {4, 1, 1, 0}, {4, 1, 1, 4}};
 
         assertComplexMatchQueryOutput(diamondStructuredQuery, expectedMotifsAfterAdditions,
             expectedMotifsAfterDeletion);
     }
 
-
     private void assertSimpleMatchQueryOutput(StructuredQuery structuredQuery,
-        int[][] expectedMotifsAfterAdditions, int[][] expectedMotifsAfterDeletion) {
+        Object[][] expectedMotifsAfterAdditions, Object[][] expectedMotifsAfterDeletion) {
 
         // Initialize a graph.
         Graph graph = Graph.getInstance();
@@ -176,8 +218,8 @@ public class GenericJoinExecutorTest {
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new
             OneTimeMatchQueryPlanner(structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
-            expectedMotifsAfterAdditions)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
+            getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
 
         // Delete one of the edges.
         TestUtils.deleteEdgesPermanently(graph, "DELETE (4)->(1);");
@@ -187,19 +229,26 @@ public class GenericJoinExecutorTest {
         actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
             structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
-            expectedMotifsAfterDeletion)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
+            getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));
     }
 
     private void assertComplexMatchQueryOutput(StructuredQuery structuredQuery,
-        int[][] expectedMotifsAfterAdditions, int[][] expectedMotifsAfterDeletion) {
+        Object[][] expectedMotifsAfterAdditions, Object[][] expectedMotifsAfterDeletion) {
         Graph graph = Graph.getInstance();
-        TestUtils.createEdgesPermanently(graph, "CREATE (0:Person)-[:FOLLOWS]->" +
-            "(1:Person),(0:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->(0:Person)," +
-            "(1:Person)-[:TAGGED]->(3:Person),(3:Person)-[:LIKES]->(1:Person)," +
-            "(3:Person)-[:FOLLOWS]->(0:Person),(4:Person)-[:FOLLOWS]->(1:Person)," +
-            "(4:Person)-[:LIKES]->(1:Person),(1:Person)-[:LIKES]->(4:Person)," +
-            "(3:Person)-[:FOLLOWS]->(4:Person), (4:Person)-[:LIKES]->(3:Person);");
+        TestUtils.initializeGraphPermanentlyWithProperties("CREATE " +
+            "(0:Person{name:string='name0', age:int=20, views:int=120})-[:FOLLOWS{views:int=60}]" +
+            "->(1:Person{name:string='name1', age:int=25, views:int=70})," +
+            "(0:Person)-[:LIKES{views:int=2}]->(1:Person)," +
+            "(1:Person)-[:LIKES{views:int=250}]->(0:Person)," +
+            "(1:Person)-[:TAGGED]->(3:Person{name:string='name3', age:int=22, views:int=250})," +
+            "(3:Person)-[:LIKES{views:int=44}]->(1:Person)," +
+            "(3:Person)-[:FOLLOWS{views:int=234}]->(0:Person)," +
+            "(4:Person{name:string='name4', age:int=40, views:int=20})-[:FOLLOWS{views:int=4}]->" +
+            "(1:Person),(4:Person)-[:LIKES{views:int=56}]->(1:Person)," +
+            "(1:Person)-[:LIKES{views:int=68}]->(4:Person)," +
+            "(3:Person)-[:FOLLOWS{views:int=123}]->(4:Person)," +
+            "(4:Person)-[:LIKES{views:int=2}]->(3:Person);");
 
         // Execute the query and test.
 
@@ -207,8 +256,8 @@ public class GenericJoinExecutorTest {
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new
             OneTimeMatchQueryPlanner(structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
-            expectedMotifsAfterAdditions)));
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
+            getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
 
         // Delete one of the edges.
         TestUtils.deleteEdgesPermanently(graph, "DELETE (0)-[:FOLLOWS]->(1);");
@@ -218,16 +267,8 @@ public class GenericJoinExecutorTest {
         actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
             structuredQuery, outputSink).plan();
         actualOneTimeMatchQueryPlan.execute(graph);
-        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, getInMemoryOutputSinkForMotifs(
-            expectedMotifsAfterDeletion)));
-    }
 
-    private InMemoryOutputSink getInMemoryOutputSinkForMotifs(int[][] motifs) {
-        InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
-        for (int[] motif : motifs) {
-            inMemoryOutputSink.append(QueryOutputUtils.getStringMatchQueryOutput(motif,
-                MatchQueryResultType.MATCHED));
-        }
-        return inMemoryOutputSink;
+        Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
+            getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));
     }
 }

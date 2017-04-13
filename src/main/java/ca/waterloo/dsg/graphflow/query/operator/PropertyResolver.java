@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class PropertyResolver extends PropertyReadingOperator {
 
-    private static String STRING_OUTPUT_DELIMETER = " ";
+    private static String STRING_OUTPUT_DELIMITER = " ";
 
     /**
      * @see PropertyReadingOperator#PropertyReadingOperator(AbstractDBOperator, List).
@@ -29,7 +29,7 @@ public class PropertyResolver extends PropertyReadingOperator {
 
     @Override
     public void append(MatchQueryOutput matchQueryOutput) {
-        clearAndFillStringBuilder(matchQueryOutput, STRING_OUTPUT_DELIMETER);
+        clearAndFillStringBuilder(matchQueryOutput, STRING_OUTPUT_DELIMITER);
         stringBuilder.append(" " + matchQueryOutput.matchQueryResultType.name());
         nextOperator.append(stringBuilder.toString());
     }

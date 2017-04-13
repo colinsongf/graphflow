@@ -1,9 +1,14 @@
 package ca.waterloo.dsg.graphflow.query;
 
 import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
+import ca.waterloo.dsg.graphflow.exceptions.IncorrectVertexTypeException;
+import ca.waterloo.dsg.graphflow.exceptions.MalformedMatchQueryException;
+import ca.waterloo.dsg.graphflow.exceptions.MalformedReturnClauseException;
+import ca.waterloo.dsg.graphflow.exceptions.MalformedWhereClauseException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.SerializationDeserializationException;
+import ca.waterloo.dsg.graphflow.exceptions.NoSuchVertexIDException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
@@ -132,8 +137,10 @@ public class QueryProcessor {
         AbstractDBOperator outputSink = new InMemoryOutputSink();
         try {
             ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink).
-                plan()).execute(Graph.getInstance());
-        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
+            plan()).execute(Graph.getInstance());
+        } catch (IncorrectDataTypeException | IncorrectVertexTypeException | NoSuchPropertyKeyException |
+            NoSuchTypeException | MalformedMatchQueryException | MalformedReturnClauseException |
+            MalformedWhereClauseException | NoSuchVertexIDException e) {
             logger.debug(e.getMessage());
             outputSink.append("ERROR: " + e.getMessage());
         }
@@ -153,7 +160,8 @@ public class QueryProcessor {
             ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
                 (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
                     outputSink).plan());
-        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
+        } catch (IncorrectDataTypeException | IncorrectVertexTypeException | NoSuchPropertyKeyException |
+            NoSuchTypeException | MalformedMatchQueryException | MalformedWhereClauseException e) {
             logger.debug(e.getMessage());
             return "ERROR: The CONTINUOUS MATCH query could not be registered. " + e.getMessage();
         }
@@ -165,7 +173,12 @@ public class QueryProcessor {
             ShortestPathExecutor.getInstance().init(Graph.getInstance());
         }
         AbstractDBOperator outputSink = new InMemoryOutputSink();
-        ((ShortestPathPlan) new ShortestPathPlanner(structuredQuery).plan()).execute(outputSink);
+        try {
+            ((ShortestPathPlan) new ShortestPathPlanner(structuredQuery).plan()).execute(
+                outputSink);
+        } catch (NoSuchVertexIDException e) {
+            return "ERROR: " + e.getMessage();
+        }
         return outputSink.toString();
     }
 }

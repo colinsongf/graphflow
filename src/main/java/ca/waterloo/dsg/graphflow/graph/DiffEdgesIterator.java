@@ -1,13 +1,9 @@
 package ca.waterloo.dsg.graphflow.graph;
 
-import ca.waterloo.dsg.graphflow.util.DataType;
-import ca.waterloo.dsg.graphflow.util.LongArrayList;
 import ca.waterloo.dsg.graphflow.util.ShortArrayList;
-import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
@@ -17,9 +13,10 @@ public class DiffEdgesIterator implements Iterator<int[]> {
 
     private List<int[]> diffEdges;
     private ShortArrayList diffEdgeTypes;
-    private LongArrayList diffEdgeIds;
+    private ShortArrayList vertexTypes;
+    private short fromVertexTypeFilter;
+    private short toVertexTypeFilter;
     private short edgeTypeFilter;
-    private Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters;
     private int next = -1;
 
     /**
@@ -28,19 +25,22 @@ public class DiffEdgesIterator implements Iterator<int[]> {
      *
      * @param diffEdges The set of edges that were added or deleted from the graph.
      * @param diffEdgeTypes The types of the added or deleted edges.
-     * @param diffEdgeIds The IDs of the added or deleted edges.
+     * @param vertexTypes The types of the graph vertices.
+     * @param fromVertexTypeFilter The {@code short} filter on the type of the from vertex of the
+     * edge that should be matched.
+     * @param toVertexTypeFilter The {@code short} filter on the type of the to vertex of the edge
+     * that should be matched.
      * @param edgeTypeFilter The {@code short} filter on the type of edges that should be matched.
-     * @param edgePropertyEqualityFilters The property equality filters, as <key, <DataType,
-     * value>> pairs, that should be matched on the edges returned by this iterator.
      */
     public DiffEdgesIterator(List<int[]> diffEdges, ShortArrayList diffEdgeTypes,
-        LongArrayList diffEdgeIds, short edgeTypeFilter,
-        Map<Short, Pair<DataType, String>> edgePropertyEqualityFilters) {
+        ShortArrayList vertexTypes, short fromVertexTypeFilter, short toVertexTypeFilter,
+        short edgeTypeFilter) {
         this.diffEdges = diffEdges;
         this.diffEdgeTypes = diffEdgeTypes;
-        this.diffEdgeIds = diffEdgeIds;
+        this.vertexTypes = vertexTypes;
+        this.fromVertexTypeFilter = fromVertexTypeFilter;
+        this.toVertexTypeFilter = toVertexTypeFilter;
         this.edgeTypeFilter = edgeTypeFilter;
-        this.edgePropertyEqualityFilters = edgePropertyEqualityFilters;
         setIndexToNextEdge();
     }
 
@@ -66,10 +66,13 @@ public class DiffEdgesIterator implements Iterator<int[]> {
             // edgeTypeFilter} and {@code e}'s properties match {@code edgePropertyEqualityFilters}.
             // If there is no such {@code e=(u, v)}, the {@code next} index is set to the size of
             // {@code diffEdges.size()}.
-            if ((TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
-                diffEdgeTypes.get(next) == edgeTypeFilter) &&
-                (null == edgePropertyEqualityFilters || EdgeStore.getInstance().
-                    checkEqualityFilters(diffEdgeIds.get(next), edgePropertyEqualityFilters))) {
+            int[] diffEdge = diffEdges.get(next);
+            if ((TypeAndPropertyKeyStore.ANY == fromVertexTypeFilter ||
+                vertexTypes.get(diffEdge[0]) == fromVertexTypeFilter) &&
+                (TypeAndPropertyKeyStore.ANY == toVertexTypeFilter ||
+                    vertexTypes.get(diffEdges.get(next)[1]) == toVertexTypeFilter) &&
+                (TypeAndPropertyKeyStore.ANY == edgeTypeFilter ||
+                    diffEdgeTypes.get(next) == edgeTypeFilter)) {
                 return;
             }
             next++;

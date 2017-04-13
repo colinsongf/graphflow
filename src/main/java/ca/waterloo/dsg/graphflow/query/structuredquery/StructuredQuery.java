@@ -31,6 +31,7 @@ public class StructuredQuery implements AbstractStructuredQuery {
     private QueryOperation queryOperation;
     private String continuousMatchAction;
     private String filePath;
+    private List<QueryPropertyPredicate> queryPropertyPredicates = new ArrayList<>();
 
     /**
      * @return A read-only list of query relations.
@@ -42,8 +43,22 @@ public class StructuredQuery implements AbstractStructuredQuery {
     /**
      * @return A read-only list of query variables.
      */
-    public List<QueryVariable> getQueryVaribles() {
+    public List<QueryVariable> getQueryVariables() {
         return Collections.unmodifiableList(queryVariables);
+    }
+
+    /**
+     * Returns a read-only list of {@link QueryPropertyPredicate}s.
+     *
+     * @return List of {@link QueryPropertyPredicate}.
+     */
+    public List<QueryPropertyPredicate> getQueryPropertyPredicates() {
+        return Collections.unmodifiableList(queryPropertyPredicates);
+    }
+
+    @UsedOnlyByTests
+    public void setQueryPropertyPredicates(List<QueryPropertyPredicate> queryPropertyPredicates) {
+        this.queryPropertyPredicates = queryPropertyPredicates;
     }
 
     /**
@@ -62,6 +77,15 @@ public class StructuredQuery implements AbstractStructuredQuery {
      */
     public void addVariable(QueryVariable queryVariable) {
         this.queryVariables.add(queryVariable);
+    }
+
+    /**
+     * Adds a {@link QueryPropertyPredicate} to the list of query property predicates.
+     *
+     * @param queryPropertyPredicate The {@link QueryPropertyPredicate} to be added.
+     */
+    public void addQueryPropertyPredicate(QueryPropertyPredicate queryPropertyPredicate) {
+        this.queryPropertyPredicates.add(queryPropertyPredicate);
     }
 
     public QueryOperation getQueryOperation() {

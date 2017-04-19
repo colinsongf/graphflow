@@ -12,7 +12,6 @@ import ca.waterloo.dsg.graphflow.exceptions.SerializationDeserializationExceptio
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
-import ca.waterloo.dsg.graphflow.query.executors.ShortestPathExecutor;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
@@ -183,9 +182,6 @@ public class QueryProcessor {
     }
 
     private String handleShortestPathQuery(StructuredQuery structuredQuery) {
-        if (!ShortestPathExecutor.getInstance().isInitialized()) {
-            ShortestPathExecutor.getInstance().init(Graph.getInstance());
-        }
         AbstractDBOperator outputSink = new InMemoryOutputSink();
         try {
             ((ShortestPathPlan) new ShortestPathPlanner(structuredQuery).plan()).execute(

@@ -27,10 +27,11 @@ import java.util.StringJoiner;
  **/
 public class ShortestPathExecutor {
 
-    private static final Logger logger = LogManager.getLogger(ShortestPathExecutor.class);
     private static final ShortestPathExecutor INSTANCE = new ShortestPathExecutor();
+
+    private static final Logger logger = LogManager.getLogger(ShortestPathExecutor.class);
     private static final int INITIAL_QUEUE_SIZE = 25000;
-    private Graph graph;
+
     // The forward and backward queues store the unvisited neighbours of visited vertices for
     // BFS in the forward and backward directions.
     private IntQueue forwardQueue;
@@ -58,44 +59,29 @@ public class ShortestPathExecutor {
      * Empty private constructor enforces usage of the singleton object {@link #INSTANCE} for this
      * class.
      */
-    private ShortestPathExecutor() {}
+    private ShortestPathExecutor() {
+        forwardQueue = new IntQueue(INITIAL_QUEUE_SIZE);
+        backwardQueue = new IntQueue(INITIAL_QUEUE_SIZE);
+        initArrays();
+    }
 
     /**
      * Used to set executor state for testing purposes.
      */
     @UsedOnlyByTests
-    ShortestPathExecutor(Graph graph, short[] visitedLevels, int[] visitedVerticesByQueryId,
-        int queryId) {
-        this.graph = graph;
+    ShortestPathExecutor(short[] visitedLevels, int[] visitedVerticesByQueryId, int queryId) {
         this.visitedLevels = visitedLevels;
         this.visitedVerticesByQueryId = visitedVerticesByQueryId;
         this.queryId = queryId;
     }
 
-    /**
-     * Initializes the {@link ShortestPathExecutor} using the provided {@code graph}.
-     *
-     * @param graph The graph instance.
-     */
-    public void init(Graph graph) {
-        if (null == forwardQueue) {
-            this.graph = graph;
-            forwardQueue = new IntQueue(INITIAL_QUEUE_SIZE);
-            backwardQueue = new IntQueue(INITIAL_QUEUE_SIZE);
-            initArrays();
-        } else {
-            throw new UnsupportedOperationException("Cannot init shortest path executor twice.");
-        }
-    }
-
     private void initArrays() {
         // Initialize {@code visitedVerticesByQueryId} on the first query and on overflows.
+        Graph graph = Graph.getInstance();
         int extraArraySize = (int) Double.min(graph.getVertexCount() * 0.01, 1000);
         visitedVerticesByQueryId = new int[graph.getVertexCount() + extraArraySize];
         visitedDirections = new boolean[graph.getVertexCount() + extraArraySize];
         visitedLevels = new short[graph.getVertexCount() + extraArraySize];
-        logger.info("Resizing shortest path structures to size " + (graph.getVertexCount() +
-            extraArraySize));
     }
 
     /**
@@ -111,22 +97,11 @@ public class ShortestPathExecutor {
             queryId = 1;
             logger.info("Overflow in ShortestPathExecutor#queryId.");
             initArrays();
-        } else if (graph.getVertexCount() > visitedVerticesByQueryId.length) {
+        } else if (Graph.getInstance().getVertexCount() > visitedVerticesByQueryId.length) {
             initArrays();
         }
         forwardQueue.reset();
         backwardQueue.reset();
-    }
-
-    /**
-     * Returns true if the {@link ShortestPathExecutor} has been initialized with the in-memory
-     * graph.
-     *
-     * @return boolean Returns true if the {@link ShortestPathExecutor} has been initialized with
-     * the graph.
-     */
-    public boolean isInitialized() {
-        return null != graph;
     }
 
     /**
@@ -178,8 +153,8 @@ public class ShortestPathExecutor {
             stopVertex = -1;
             while (!minQueue.isEmpty() && minQueue.peekNext() != stopVertex) {
                 int currentVertex = minQueue.dequeue();
-                SortedAdjacencyList neighbours = graph.getSortedAdjacencyList(currentVertex,
-                    currentDirection, GraphVersion.PERMANENT);
+                SortedAdjacencyList neighbours = Graph.getInstance().getSortedAdjacencyList(
+                    currentVertex, currentDirection, GraphVersion.PERMANENT);
                 if (null == neighbours || neighbours.getSize() == 0) {
                     continue;
                 }
@@ -264,8 +239,8 @@ public class ShortestPathExecutor {
             nextLevelVertices = temp; // Assign empty queue to nextLevelVertices.
             while (!currentLevelVertices.isEmpty()) {
                 int currentVertex = currentLevelVertices.dequeue();
-                SortedAdjacencyList adjList = graph.getSortedAdjacencyList(currentVertex,
-                    directionToBacktrack, GraphVersion.PERMANENT);
+                SortedAdjacencyList adjList = Graph.getInstance().getSortedAdjacencyList(
+                    currentVertex, directionToBacktrack, GraphVersion.PERMANENT);
                 if (null == adjList || adjList.getSize() == 0) {
                     continue;
                 }
@@ -302,7 +277,7 @@ public class ShortestPathExecutor {
      * @throws NoSuchVertexIDException
      */
     private void assertVertexIDExists(int vertexId) throws NoSuchVertexIDException {
-        if (vertexId >= graph.getVertexCount()) {
+        if (vertexId >= Graph.getInstance().getVertexCount()) {
             throw new NoSuchVertexIDException("The specified vertexID " + vertexId + " does not " +
                 "exist.");
         }

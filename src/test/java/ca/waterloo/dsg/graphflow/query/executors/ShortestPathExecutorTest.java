@@ -2,7 +2,6 @@ package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchVertexIDException;
-import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
@@ -21,8 +20,7 @@ import java.util.Set;
  */
 public class ShortestPathExecutorTest {
 
-    private Graph graph = Graph.getInstance();
-    private ShortestPathExecutor executor;
+    private ShortestPathExecutor executor = ShortestPathExecutor.getInstance();
 
     @Before
     public void setUp() throws Exception {
@@ -32,11 +30,8 @@ public class ShortestPathExecutorTest {
         short[] edgeTypes = {2, 4, 6, 8, 8, 10, 12, 12, 14, 14, 16, 18, 18, 20, 22, 22, 22};
         short[][] vertexTypes = {{0, 1}, {0, 2}, {1, 3}, {1, 4}, {2, 4}, {2, 5}, {3, 6}, {4, 6},
             {4, 7}, {5, 7}, {6, 8}, {6, 9}, {7, 9}, {7, 10}, {8, 11}, {9, 11}, {10, 11}};
-        graph = TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
+        TestUtils.initializeGraphPermanently(edges, edgeTypes, vertexTypes);
         executor = ShortestPathExecutor.getInstance();
-        if (!executor.isInitialized()) {
-            executor.init(graph);
-        }
     }
 
     @Test
@@ -65,7 +60,7 @@ public class ShortestPathExecutorTest {
         short[] visitedLevels = new short[]{1, 2, 2, 3, 3, 3, -2, -2, 0, -1, 0, 0};
         int[] visitedQueryId = new int[]{1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0};
         int queryId = 1;
-        executor = new ShortestPathExecutor(graph, visitedLevels, visitedQueryId, queryId);
+        executor = new ShortestPathExecutor(visitedLevels, visitedQueryId, queryId);
         Map<Integer, Set<Integer>> actualResults = new HashMap<>();
         Set<Integer> intersectVertices = new HashSet<>();
         intersectVertices.add(6);

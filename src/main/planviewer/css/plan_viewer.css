@@ -1,0 +1,112 @@
+/* General Styling */
+
+* {
+    box-sizing: initial;
+    font-family: 'Crimson Text', serif;
+}
+
+h3 {
+    font-size: 1.17em;
+    font-weight: bold;
+    margin: 5px 0 10px 0;
+}
+
+.center {
+    margin: auto;
+    text-align: center;
+    width: 100%;
+}
+
+/* Specific Element Styling */
+
+#query {
+    width: 50%;
+}
+
+#stageSet {
+    margin-left: 15%;
+    margin-top: 50px;
+    white-space: nowrap;
+    overflow-x: scroll;
+}
+
+.column {
+    display: inline-block;
+    margin-right: 10%;
+}
+
+.stage {
+    border: 3px solid black;
+    border-radius: 5%;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    padding: 5px;
+    width: 230px;
+}
+
+.inner-stage {
+    border: 2px solid grey;
+    margin-bottom: 5px;
+    width: 80%;
+}
+
+.output {
+    margin-left: 30px;
+    text-align: left;
+    width: 500px;
+}
+
+.arrow {
+    border-bottom: 20px solid black;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    height: 0;
+    width: 0;
+}
+
+.graph-version-box {
+    border: 2px solid;
+    display: inline;
+    padding: 1px;
+}
+
+.new-graph {
+    border-color: red;
+    color: red;
+}
+
+.current-graph {
+    border-color: blue;
+    color: blue;
+}
+
+.delta-graph {
+    border-color: green;
+    color: green;
+}
+
+.legend {
+    border: 3px solid black;
+    margin: 5px;
+    padding: 3px;
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    z-index: 10;
+}
+
+.legend-item {
+    border: 2px solid;
+    display: inline-block;
+    margin: 2px 0 2px 5px;
+    padding: 1px;
+    width: 10px;
+}
+
+.legend-words {
+    display: inline;
+}
+
+.simple-legend-entry {
+    margin-left: 8px;
+}

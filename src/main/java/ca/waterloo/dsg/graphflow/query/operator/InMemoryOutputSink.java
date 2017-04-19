@@ -1,6 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
+import ca.waterloo.dsg.graphflow.util.JsonUtils;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
+import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,14 @@ public class InMemoryOutputSink extends AbstractDBOperator {
     @Override
     public String getHumanReadableOperator() {
         return "InMemoryOutputSink:\n";
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject jsonOperator = new JsonObject();
+        jsonOperator.addProperty(JsonUtils.TYPE, JsonUtils.SINK);
+        jsonOperator.addProperty(JsonUtils.NAME, this.getClass().getSimpleName());
+        return jsonOperator;
     }
 
     @Override

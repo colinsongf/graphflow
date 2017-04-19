@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.server;
 
+import ca.waterloo.dsg.graphflow.client.httpserver.PlanViewerHttpServer;
 import ca.waterloo.dsg.graphflow.query.QueryProcessor;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -16,14 +17,22 @@ public class GraphflowServer {
 
     private static final Logger logger = LogManager.getLogger(GraphflowServer.class);
 
-    private static int PORT = 8080;
+    private static String GRPC_HOST = "localhost";
+    private static int GRPC_PORT = 8080;
     private Server grpcServer;
 
     public void start() throws IOException {
         System.err.println("*** starting gRPC server...");
-        grpcServer = ServerBuilder.forPort(PORT).addService(new GraphflowQueryImpl()).build().
+        grpcServer = ServerBuilder.forPort(GRPC_PORT).addService(new GraphflowQueryImpl()).build().
             start();
         System.err.println("*** gRPC server running.");
+
+        System.err.println("*** starting http server...");
+        final PlanViewerHttpServer planViewerHttpServer = new PlanViewerHttpServer(GRPC_HOST,
+            GRPC_PORT);
+        planViewerHttpServer.start();
+        System.err.println("*** http server running.");
+
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -45,6 +54,20 @@ public class GraphflowServer {
         grpcServer.awaitTermination();
     }
 
+    /**
+     * Getter for {@code GRPC_HOST}.
+     */
+    public static String getGrpcHost() {
+        return GRPC_HOST;
+    }
+
+    /**
+     * Getter for {@code GRPC_PORT}.
+     */
+    public static int getGrpcPort() {
+        return GRPC_PORT;
+    }
+
     private class GraphflowQueryImpl extends GraphflowServerQueryGrpc.GraphflowServerQueryImplBase {
 
         private QueryProcessor processor = new QueryProcessor();
@@ -54,7 +77,7 @@ public class GraphflowServer {
             responseObserver) {
             String result;
             try {
-                result = processor.process(request.getMessage());
+                result = processor.process(request);
             } catch (Exception e) {
                 logger.error("Unknown error when executing the query '" + request.getMessage() +
                     "'. Exception stack trace:", e);

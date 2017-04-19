@@ -20,10 +20,9 @@ import java.util.NoSuchElementException;
  */
 public class VertexPropertyStore extends PropertyStore {
 
-    private static VertexPropertyStore INSTANCE = new VertexPropertyStore();
-
     private static final String SERDE_FILE_NAME_PREFIX = "vertex_property_store";
     private static final int INITIAL_CAPACITY = 2;
+    private static VertexPropertyStore INSTANCE = new VertexPropertyStore();
     @VisibleForTesting
     byte[][] vertexProperties;
 

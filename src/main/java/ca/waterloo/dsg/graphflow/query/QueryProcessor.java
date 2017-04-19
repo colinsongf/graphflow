@@ -29,6 +29,8 @@ import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.ShortestPathPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
+import ca.waterloo.dsg.graphflow.server.ServerQueryString;
+import ca.waterloo.dsg.graphflow.server.ServerQueryString.ReturnType;
 import ca.waterloo.dsg.graphflow.util.IOUtils;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.logging.log4j.LogManager;
@@ -50,10 +52,12 @@ public class QueryProcessor {
      * Executes a string query by converting it into a {@link StructuredQuery}, creating the
      * corresponding {@link QueryPlan}, and executing the plan.
      *
-     * @param query The {@code String} input query.
+     * @param request The {@code ServerQueryString} input request.
      * @return The result of the query as a {@code String}.
      */
-    public String process(String query) {
+    public String process(ServerQueryString request) {
+        String query = request.getMessage();
+        ReturnType returnType = request.getReturnType();
         long beginTime = System.nanoTime();
         String output;
         StructuredQuery structuredQuery;
@@ -84,12 +88,21 @@ public class QueryProcessor {
             case SAVE_GRAPH:
                 output = handleSaveGraphQuery(structuredQuery);
                 break;
+            case EXPLAIN:
+                output = handleExplainMatchQuery(structuredQuery, returnType);
+                break;
+            case CONTINUOUS_EXPLAIN:
+                output = handleExplainContinuousMatchQuery(structuredQuery, returnType);
+                break;
             default:
                 return "ERROR: the operation '" + structuredQuery.getQueryOperation() +
                     "' is not defined.";
         }
-        output += String.format("\nQuery executed in %.3f ms.", IOUtils.getElapsedTimeInMillis(
-            beginTime));
+
+        if (ReturnType.TEXT == returnType) {
+            output += String.format("\nQuery executed in %.3f ms.", IOUtils.getElapsedTimeInMillis(
+                beginTime));
+        }
         return output;
     }
 
@@ -149,8 +162,7 @@ public class QueryProcessor {
     }
 
     private String handleContinuousMatchQuery(StructuredQuery structuredQuery) {
-        String fileName = "continuous_match_query_" + structuredQuery.
-            getFilePath();
+        String fileName = "continuous_match_query_" + structuredQuery.getFilePath();
         AbstractDBOperator outputSink;
         try {
             outputSink = new FileOutputSink(new File(TMP_DIRECTORY + fileName));
@@ -182,5 +194,53 @@ public class QueryProcessor {
             return "ERROR: " + e.getMessage();
         }
         return outputSink.toString();
+    }
+
+    private String handleExplainMatchQuery(StructuredQuery structuredQuery, ReturnType returnType) {
+        AbstractDBOperator outputSink = new InMemoryOutputSink();
+        try {
+            OneTimeMatchQueryPlan oneTimeMatchQueryPlan =
+                (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink)
+                    .plan();
+
+            switch (returnType) {
+                case TEXT:
+                    return oneTimeMatchQueryPlan.getHumanReadablePlan();
+                case JSON:
+                    return oneTimeMatchQueryPlan.getJsonPlan().toString();
+                default:
+                    return "INTERNAL ERROR: unrecognized return type of query result";
+            }
+        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
+            logger.debug(e.getMessage());
+            return "ERROR: " + e.getMessage();
+        }
+    }
+
+    private String handleExplainContinuousMatchQuery(StructuredQuery structuredQuery,
+        ReturnType returnType) {
+        AbstractDBOperator outputSink;
+        String fileName = "continuous_match_query_" + structuredQuery.getFilePath();
+        try {
+            outputSink = new FileOutputSink(new File(TMP_DIRECTORY + fileName));
+        } catch (IOException e) {
+            return "IO ERROR for file: " + fileName + ".";
+        }
+        try {
+            ContinuousMatchQueryPlan continuousMatchQueryPlan = (ContinuousMatchQueryPlan)
+                new ContinuousMatchQueryPlanner(structuredQuery, outputSink).plan();
+
+            switch (returnType) {
+                case TEXT:
+                    return continuousMatchQueryPlan.getHumanReadablePlan();
+                case JSON:
+                    return continuousMatchQueryPlan.getJsonPlan().toString();
+                default:
+                    return "INTERNAL ERROR: unrecognized return type of query result.";
+            }
+        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
+            logger.debug(e.getMessage());
+            return "ERROR: The CONTINUOUS MATCH query could not be planned. " + e.getMessage();
+        }
     }
 }

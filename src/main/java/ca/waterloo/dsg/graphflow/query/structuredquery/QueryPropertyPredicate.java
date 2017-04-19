@@ -1,6 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.structuredquery;
 
+import ca.waterloo.dsg.graphflow.query.output.JsonOutputable;
 import ca.waterloo.dsg.graphflow.util.RuntimeTypeBasedComparator.ComparisonOperator;
+import com.google.gson.JsonObject;
 import org.antlr.v4.runtime.misc.Pair;
 
 import java.util.function.Predicate;
@@ -11,7 +13,7 @@ import java.util.function.Predicate;
  * pattern of the MATCH query. The results of the MATCH query will be forced to satisfy a
  * {@link Predicate} encapsulating the predicate (a op b).
  */
-public class QueryPropertyPredicate {
+public class QueryPropertyPredicate implements JsonOutputable {
 
     /**
      * An enum whose constants specify types of predicates based on the types of the operand
@@ -105,5 +107,12 @@ public class QueryPropertyPredicate {
             stringBuilder.append(literal + "}");
         }
         return stringBuilder.toString();
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject jsonPropertyPredicate = new JsonObject();
+        jsonPropertyPredicate.addProperty("Predicate", toString());
+        return jsonPropertyPredicate;
     }
 }

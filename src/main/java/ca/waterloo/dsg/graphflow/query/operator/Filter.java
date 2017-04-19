@@ -2,6 +2,9 @@ package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
+import ca.waterloo.dsg.graphflow.util.JsonUtils;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -57,5 +60,24 @@ public class Filter extends PropertyReadingOperator {
         appendListAsCommaSeparatedString(stringBuilder, queryPropertyPredicates,
             "filterPredicates");
         return stringBuilder.toString();
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject jsonFilter = new JsonObject();
+
+        JsonArray jsonPropertyPredicates = new JsonArray();
+        for (int i = 0; i < queryPropertyPredicates.size(); i++) {
+            jsonPropertyPredicates.add(queryPropertyPredicates.get(i).toJson());
+        }
+        JsonArray jsonArguments = new JsonArray();
+        JsonObject jsonArgument = new JsonObject();
+        jsonArgument.addProperty(JsonUtils.NAME, "Vertex Indices");
+        jsonArgument.add(JsonUtils.VALUE, jsonPropertyPredicates);
+        jsonArguments.add(jsonArgument);
+        jsonFilter.addProperty(JsonUtils.NAME, "Filter (&sigma;)");
+        jsonFilter.add(JsonUtils.ARGS, jsonArguments);
+
+        return jsonFilter;
     }
 }

@@ -24,12 +24,11 @@ import java.util.NoSuchElementException;
  */
 public class EdgeStore extends PropertyStore {
 
-    private static EdgeStore INSTANCE = new EdgeStore();
     @VisibleForTesting
     static final int MAX_EDGES_PER_BUCKET = 8;
     private static final int INITIAL_CAPACITY = 2;
     private static final int MAX_BUCKETS_PER_PARTITION = 1000000;
-
+    private static EdgeStore INSTANCE = new EdgeStore();
     @VisibleForTesting
     byte[][][] data = new byte[INITIAL_CAPACITY][][];
     @VisibleForTesting

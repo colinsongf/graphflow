@@ -11,6 +11,11 @@ service GraphflowServerQuery {
 
 message ServerQueryString {
     string message = 1;
+    enum ReturnType {
+        TEXT = 0;
+        JSON = 1;
+    }
+    ReturnType returnType = 2;
 }
 
 message ServerQueryResult {

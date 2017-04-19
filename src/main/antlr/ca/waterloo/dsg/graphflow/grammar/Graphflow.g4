@@ -6,6 +6,8 @@ statement : query ;
 
 query : matchQuery
        | continuousMatchQuery
+       | explainMatchQuery
+       | explainContinuousMatchQuery
        | createQuery
        | deleteQuery
        | shortestPathQuery
@@ -14,6 +16,8 @@ query : matchQuery
 
 matchQuery : MATCH whitespace matchPattern (whitespace whereClause)? (whitespace returnClause)?;
 continuousMatchQuery : CONTINUOUS whitespace MATCH whitespace matchPattern (whitespace whereClause)? whitespace FILE whitespace SINGLE_QUOTE filePath SINGLE_QUOTE ;
+explainMatchQuery : EXPLAIN whitespace matchQuery ;
+explainContinuousMatchQuery : EXPLAIN whitespace continuousMatchQuery ;
 createQuery : CREATE whitespace (createEdgePattern | createVertexPattern) ;
 deleteQuery : DELETE whitespace deletePattern ;
 shortestPathQuery: SHORTEST whitespace PATH whitespace pathPattern ;
@@ -78,6 +82,9 @@ dataType : ( INT | DOUBLE | BOOLEAN | STRING ) ;
 
 MATCH : M A T C H ;
 CONTINUOUS : C O N T I N U O U S ;
+
+EXPLAIN : E X P L A I N ;
+
 CREATE : C R E A T E ;
 DELETE : D E L E T E;
 SHORTEST : S H O R T E S T ;

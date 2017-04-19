@@ -3,6 +3,8 @@ package ca.waterloo.dsg.graphflow.query.plans;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,36 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
      */
     public void addOneTimeMatchQueryPlan(OneTimeMatchQueryPlan oneTimeMatchQueryPlan) {
         oneTimeMatchQueryPlans.add(oneTimeMatchQueryPlan);
+    }
+
+    /**
+     * @return a String human readable representation of {@code ContinuousMatchQueryPlan}
+     */
+    public String getHumanReadablePlan() {
+        StringBuilder stringBuilder = new StringBuilder("ContinuousMatchQueryPlan: \n");
+        for (int i = 0; i < oneTimeMatchQueryPlans.size(); i += 2) {
+            stringBuilder.append("dQ" + (i / 2 + 1) + "\n");
+            stringBuilder.append(oneTimeMatchQueryPlans.get(i).getHumanReadablePlan() + "\n");
+        }
+        return stringBuilder.toString();
+    }
+
+    /**
+     * Converts {@link ContinuousMatchQueryPlan} into JSON format
+     *
+     * @return {@code JsonArray} containing one or more {@code JsonObject}
+     */
+    public JsonArray getJsonPlan() {
+        JsonArray jsonArray = new JsonArray();
+        JsonObject oneTimeMatchQueryPlanJson;
+        for (int i = 0; i < oneTimeMatchQueryPlans.size(); i += 2) {
+            oneTimeMatchQueryPlanJson = (JsonObject) oneTimeMatchQueryPlans.get(i).getJsonPlan()
+                .get(0);
+            oneTimeMatchQueryPlanJson.remove("name");
+            oneTimeMatchQueryPlanJson.addProperty("name", "dQ" + (i / 2 + 1));
+            jsonArray.add(oneTimeMatchQueryPlanJson);
+        }
+        return jsonArray;
     }
 
     /**

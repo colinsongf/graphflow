@@ -1,11 +1,6 @@
-package ca.waterloo.dsg.graphflow.cli;
+package ca.waterloo.dsg.graphflow.client.cli;
 
-import ca.waterloo.dsg.graphflow.server.GraphflowServerQueryGrpc;
-import ca.waterloo.dsg.graphflow.server.ServerQueryResult;
-import ca.waterloo.dsg.graphflow.server.ServerQueryString;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.StatusRuntimeException;
+import ca.waterloo.dsg.graphflow.client.GraphflowClient;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -15,35 +10,22 @@ import org.jline.terminal.TerminalBuilder;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Client side CLI implementation, which communicates with the {@code GraphflowServer} using gRPC.
  */
-public class GraphflowCli {
+public class GraphflowCli extends GraphflowClient {
 
     private static final String PRIMARY_PROMPT = "graphflow> ";
     private static final String SECONDARY_PROMPT = "... ";
-    /**
-     * Stores the gRPC channel to the server.
-     */
-    private final ManagedChannel channel;
 
-    /**
-     * Used to perform blocking gRPC calls.
-     */
-    private final GraphflowServerQueryGrpc.GraphflowServerQueryBlockingStub blockingStub;
     private LineReader lineReader;
 
     /**
      * Construct a client connecting to a server at {@code host:port}.
      */
     public GraphflowCli(String host, int port) throws IOException {
-        // Turn off logs to suppress debug messages from netty.
-        Logger.getLogger("io.grpc.internal").setLevel(Level.OFF);
-        channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build();
-        blockingStub = GraphflowServerQueryGrpc.newBlockingStub(channel);
+        super(host, port);
         lineReader = LineReaderBuilder.builder().terminal(TerminalBuilder.builder().build()).
             build();
     }
@@ -83,20 +65,6 @@ public class GraphflowCli {
             fullQuery = "";
         }
         System.out.println("May the flow be with you!");
-    }
-
-    /**
-     * Send the input {@code query} string to the server.
-     */
-    private String queryServer(String query) {
-        ServerQueryString request = ServerQueryString.newBuilder().setMessage(query).build();
-        ServerQueryResult result;
-        try {
-            result = blockingStub.executeQuery(request);
-        } catch (StatusRuntimeException e) {
-            return "ERROR: " + e.getMessage();
-        }
-        return result.getMessage();
     }
 
     /**

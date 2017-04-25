@@ -1,4 +1,4 @@
-<code_scheme name="uwaterloo_dsg_code_style_guide">
+<code_scheme name="graphflow_code_style_guide">
   <option name="INSERT_INNER_CLASS_IMPORTS" value="true" />
   <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="20" />
   <option name="NAMES_COUNT_TO_USE_IMPORT_ON_DEMAND" value="20" />

@@ -8,9 +8,8 @@ active queries as its core feature.
 
 Gradle is used as the build tool. To test the environment setup:
 
-* Clone the repo: `git clone git@bitbucket.org:activegraphdb/graphflow.git`
+* Clone the repo: `git clone git@github.com:graphflow/graphflow-dev.git`
 * Do a full clean build: `./gradlew clean build installDist`
-
 * Subsequent builds: `./gradlew build installDist`
 * Build without tests: `./gradlew build installDist -x test`
 
@@ -61,16 +60,20 @@ any IntelliJ prompts.
 To run or debug the Server or the CLI in IntelliJ, we need to create Run
 configurations.
 
-* Copy the 'intellij_configs/runConfigurations' directory from the project source
-into the '.idea' directory: `cp -r intellij_configs/runConfigurations .idea`
+* It is recommended that you link the provided configurations into the IntelliJ 
+config directory, so that any changes made in the repo will be automatically 
+applied by IntelliJ. From the root directory, run: `ln -s ../intellij_configs/runConfigurations .idea`
+* Alternatively, copy the configurations: `cp -r intellij_configs/runConfigurations .idea`
 * In IntelliJ, "Run -> Run... -> GraphflowServerRunner/GraphflowCliRunner"
 
 To see/edit the actual configuration, go to "Run -> Edit Configurations..."
 
 ### Import style settings
 
-Finally import the project specific style configuration
+Import the IntelliJ code style configuration for auto-formatting code.
 
 * "File -> Settings -> Editor -> Code Style -> Java -> Manage... -> Import... -> IntelliJ IDEA code style XML"
-* Browse to the source directory and select 'intellij_configs/uwaterloo_dsg_code_style_guide.xml'
-* Press "OK" everywhere and exit the settings. Use 'Alt + Shift + L' to format code automatically.
+* Browse to the source directory and select 'intellij_configs/graphflow_code_style_guide.xml'
+* Press "OK" everywhere and exit the settings.
+
+You can now use 'Alt + Shift + L' to format code automatically in IntelliJ.

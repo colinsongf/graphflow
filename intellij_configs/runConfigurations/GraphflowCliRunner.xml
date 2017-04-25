@@ -18,8 +18,8 @@
     <module name="graphflow_main" />
     <envs />
     <method>
-      <option name="Make" enabled="false" />
       <option name="Gradle.BeforeRunTask" enabled="true" tasks="build" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="-x test" />
+      <option name="Make" enabled="true" />
     </method>
   </configuration>
 </component>

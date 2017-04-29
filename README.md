@@ -77,3 +77,8 @@ Import the IntelliJ code style configuration for auto-formatting code.
 * Press "OK" everywhere and exit the settings.
 
 You can now use 'Alt + Shift + L' to format code automatically in IntelliJ.
+
+## Licensing
+
+Graphflow is an open source software under the Apache 2.0 license.
+

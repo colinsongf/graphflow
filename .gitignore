@@ -1,6 +1,7 @@
-build/
 .gradle/
+gradlew.bat
 .idea/
 .DS_Store
+build/
 generated
 classes

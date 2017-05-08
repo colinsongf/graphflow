@@ -54,18 +54,16 @@ public class VertexPropertyStore extends PropertyStore {
      * Returns the {@code Short} key, and {@code Object} value pair properties of the vertex with
      * the given ID.
      * <p>
-     * Warning: If the vertex ID is less than the highest created vertex ID, the vertex with the
-     * given ID might still have never been created. The properties of a not yet created vertex
-     * less than the highest created vertex ID returns an empty map.
+     * Warning: If a vertex's properties are empty, it can be because of two things: (1) the
+     * vertex was never created; or (2) the vertex has indeed no properties.
      *
      * @param vertexId The ID of the vertex.
-     * @return The properties of the edge as a Map<Short, Object> if properties are not null. If the
-     * properties are {@code null}, an empty Map is returned.
+     * @return The possibly empty properties of the edge as a Map<Short, Object>.
      * @throws NoSuchElementException if the vertex with ID {@code vertexId} is larger than the
      * highest vertex ID previously created.
      */
     public Map<Short, Object> getProperties(int vertexId) {
-        if (vertexId >= vertexProperties.length) {
+        if (vertexId > Graph.getInstance().getHighestVertexId()) {
             throw new NoSuchElementException("Vertex with ID " + vertexId + " does not exist.");
         }
         Map<Short, Object> properties = new HashMap<>();
@@ -78,6 +76,37 @@ public class VertexPropertyStore extends PropertyStore {
         while (propertyIterator.hasNext()) {
             keyValue = propertyIterator.next();
             properties.put(keyValue.a, keyValue.b);
+        }
+        return properties;
+    }
+
+    /**
+     * Returns the {@code String} key, and {@code String} value pair properties of the vertex with
+     * the given ID.
+     * <p>
+     * Warning: If a vertex's properties are empty, it can be because of two things: (1) the
+     * vertex was never created; or (2) the vertex has indeed no properties.
+     *
+     * @param vertexId The ID of the vertex.
+     * @return The possibly empty properties of the edge as a Map<String, String>.
+     * @throws NoSuchElementException if the vertex with ID {@code vertexId} is larger than the
+     * highest vertex ID previously created.
+     */
+    public Map<String, String> getPropertiesAsStrings(int vertexId) {
+        if (vertexId > Graph.getInstance().getHighestVertexId()) {
+            throw new NoSuchElementException("Vertex with ID " + vertexId + " does not exist.");
+        }
+        Map<String, String> properties = new HashMap<>();
+        byte[] data = vertexProperties[vertexId];
+        if (null == data) {
+            return properties;
+        }
+        propertyIterator.reset(data, 0, data.length);
+        Pair<Short, Object> keyValue;
+        while (propertyIterator.hasNext()) {
+            keyValue = propertyIterator.next();
+            properties.put(TypeAndPropertyKeyStore.getInstance().mapShortPropertyKeyToString(
+                keyValue.a), keyValue.b.toString());
         }
         return properties;
     }

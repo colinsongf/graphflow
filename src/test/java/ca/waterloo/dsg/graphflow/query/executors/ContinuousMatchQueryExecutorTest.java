@@ -19,6 +19,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.StringJoiner;
 
 /**
@@ -40,9 +41,9 @@ public class ContinuousMatchQueryExecutorTest {
      * Tests the execution of a triangle CONTINUOUS MATCH query.
      */
     @Test
-    public void testProcessTriangles() throws Exception {
+    public void testProcessTriangles() throws IOException {
         // Register a triangle CONTINUOUS MATCH query.
-        String continuousTriangleQuery = "CONTINUOUS MATCH (a)->(b),(b)->(c),(c)->(a)" +
+        String continuousTriangleQuery = "CONTINUOUSLY MATCH (a)->(b),(b)->(c),(c)->(a)" +
             " FILE 'results';";
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(
             continuousTriangleQuery);
@@ -50,9 +51,10 @@ public class ContinuousMatchQueryExecutorTest {
             getFilePath();
         File location = temporaryFolder.newFile(fileName);
         AbstractDBOperator outputSink = new FileOutputSink(location);
+        ContinuousMatchQueryPlanner planner = new ContinuousMatchQueryPlanner(structuredQuery,
+            location);
         ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
-            (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
-                outputSink).plan());
+            (ContinuousMatchQueryPlan) planner.plan());
 
         // Initialize a graph.
         Graph graph = Graph.getInstance();
@@ -69,7 +71,7 @@ public class ContinuousMatchQueryExecutorTest {
         // Execute the registered CONTINUOUS MATCH query.
         ContinuousMatchQueryExecutor.getInstance().execute(graph);
 
-        Object[][] expectedMotifs = {{2, 0, 1}, {3, 4, 1}, {3, 4, 1}, {3, 4, 1}, {1, 2, 0}};
+        int[][] expectedMotifs = {{2, 0, 1}, {3, 4, 1}, {3, 4, 1}, {3, 4, 1}, {1, 2, 0}};
         MatchQueryResultType[] expectedMatchQueryResultTypes = {MatchQueryResultType.EMERGED,
             MatchQueryResultType.DELETED, MatchQueryResultType.DELETED,
             MatchQueryResultType.DELETED, MatchQueryResultType.DELETED};
@@ -81,8 +83,8 @@ public class ContinuousMatchQueryExecutorTest {
         while ((line = br.readLine()) != null) {
             actualOutput.add(line);
         }
-        Assert.assertEquals(actualOutput.toString(), TestUtils.getInMemoryOutputSinkForMotifs(
-            expectedMotifs, expectedMatchQueryResultTypes).toString());
+        Assert.assertEquals(TestUtils.getExpectedContentOfOutputFileSink(expectedMotifs,
+            expectedMatchQueryResultTypes), actualOutput.toString());
     }
 
     /**

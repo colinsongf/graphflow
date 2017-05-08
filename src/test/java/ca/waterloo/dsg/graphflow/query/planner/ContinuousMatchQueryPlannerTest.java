@@ -11,8 +11,11 @@ import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +23,9 @@ import java.util.List;
  * Tests {@link ContinuousMatchQueryPlanner}.
  */
 public class ContinuousMatchQueryPlannerTest {
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     /**
      * Tests the creation of a {@link ContinuousMatchQueryPlan} for a simple triangle MATCH query
@@ -30,10 +36,11 @@ public class ContinuousMatchQueryPlannerTest {
         AbstractDBOperator outputSink = new InMemoryOutputSink();
 
         // Create a continuous MATCH query plan for a simple triangle query with no types.
-        StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
-            "(a)->(b),(b)->(c),(c)->(a)");
+        StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("CONTINUOUSLY" +
+            " MATCH (a)->(b),(b)->(c),(c)->(a) FILE 'results.txt'");
+        File location = temporaryFolder.newFile("results.txt");
         ContinuousMatchQueryPlan actualContinuousMatchQueryPlan = (ContinuousMatchQueryPlan) new
-            ContinuousMatchQueryPlanner(triangleStructuredQuery, outputSink).plan();
+            ContinuousMatchQueryPlanner(triangleStructuredQuery, location).plan();
 
         // Create the continuous MATCH query plan manually.
         ContinuousMatchQueryPlan expectedContinuousMatchQueryPlan = new ContinuousMatchQueryPlan(
@@ -156,11 +163,12 @@ public class ContinuousMatchQueryPlannerTest {
             "LIKES");
         // Create a continuous MATCH query plan for a complex triangle query with multiple
         // relations between variable having different edge types.
-        StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("MATCH " +
-            "(a)-[:FOLLOWS]->(b),(a)-[:LIKES]->(b),(b)-[:LIKES]->(a),(b)->(c),(c)->(b)," +
-            "(c)-[:FOLLOWS]->(a)");
+        StructuredQuery triangleStructuredQuery = new StructuredQueryParser().parse("CONTINUOUSLY" +
+            " MATCH (a)-[:FOLLOWS]->(b),(a)-[:LIKES]->(b),(b)-[:LIKES]->(a),(b)->(c)," +
+            "(c)->(b),(c)-[:FOLLOWS]->(a) FILE 'results.txt'");
+        File location = temporaryFolder.newFile("results.txt");
         ContinuousMatchQueryPlan actualContinuousMatchQueryPlan = (ContinuousMatchQueryPlan) new
-            ContinuousMatchQueryPlanner(triangleStructuredQuery, outputSink).plan();
+            ContinuousMatchQueryPlanner(triangleStructuredQuery, location).plan();
 
         // Create the continuous MATCH query plan manually.
         ContinuousMatchQueryPlan expectedContinuousMatchQueryPlan = new ContinuousMatchQueryPlan(

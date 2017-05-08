@@ -32,6 +32,7 @@ public class VertexPropertyStoreTest {
 
         Map<Short, Pair<DataType, String>> keyToDataTypeValuePairMap = typeAndPropertyKeyStore.
             mapStringPropertiesToShortAndDataTypeOrInsert(keysToAddToPropertyStore);
+        Graph.getInstance().setHighestMergedVertexId(2);
         vertexPropertyStore.set(2, keyToDataTypeValuePairMap);
 
         Assert.assertEquals(null, vertexPropertyStore.vertexProperties[0]);

@@ -97,12 +97,18 @@ public class Graph implements GraphflowSerializable {
     }
 
     /**
-     * Returns the number of vertices in the permanent graph.
      *
-     * @return The number of permanent vertices.
+     * @return The highest permanent vertex ID .
      */
     public int getVertexCount() {
         return highestPermanentVertexId + 1;
+    }
+
+    /***
+     * @return The highest merged vertex ID in the graph.
+     */
+    int getHighestVertexId() {
+        return highestMergedVertexId;
     }
 
     /**
@@ -405,13 +411,20 @@ public class Graph implements GraphflowSerializable {
      * @param destinationId ID of the destination vertex.
      * @param type type of the edge between srcId and destinationId.
      * @return the ID of the edge between fromVertexId and toVertexId with the given type in the
-     * {@link GraphVersion#PERMANENT} graph.
+     * {@link GraphVersion#MERGED} or {@link GraphVersion#PERMANENT} graph. Returns -1, if the
+     * edge does not exist.
      */
-    public long getEdgeIdFromPermanentGraph(int srcId, int destinationId, short type) {
-        if (srcId > highestPermanentVertexId || destinationId > highestPermanentVertexId) {
-            return -1;
+    public long getEdgeIdFromGraph(int srcId, int destinationId, short type) {
+        long edgeId = -1;
+        if (!mergedForwardAdjLists.isEmpty()) {
+            if (null != mergedForwardAdjLists.get(srcId)) {
+                edgeId = mergedForwardAdjLists.get(srcId).getEdgeId(destinationId, type);
+            }
         }
-        return forwardAdjLists[srcId].getEdgeId(destinationId, type);
+        if (-1 == edgeId){
+            edgeId = forwardAdjLists[srcId].getEdgeId(destinationId, type);
+        }
+        return edgeId;
     }
 
     /**
@@ -426,9 +439,10 @@ public class Graph implements GraphflowSerializable {
      */
     public SortedAdjacencyList getSortedAdjacencyList(int vertexId, Direction direction,
         GraphVersion graphVersion) {
-        if (vertexId < 0 || vertexId > highestMergedVertexId || (GraphVersion.PERMANENT ==
-            graphVersion && vertexId > highestPermanentVertexId)) {
+        if (vertexId < 0 || vertexId > highestMergedVertexId) {
             throw new NoSuchElementException(vertexId + " does not exist.");
+        } else if (GraphVersion.PERMANENT == graphVersion && vertexId > highestPermanentVertexId) {
+            return new SortedAdjacencyList();
         } else if (GraphVersion.DIFF_MINUS == graphVersion || GraphVersion.DIFF_PLUS ==
             graphVersion) {
             throw new UnsupportedOperationException("Getting adjacency lists from the DIFF_PLUS "
@@ -450,6 +464,20 @@ public class Graph implements GraphflowSerializable {
             // Use the adjacency list of the permanent graph.
             return permanentAdjList[vertexId];
         }
+    }
+
+    /**
+     * Returns the {@link GraphVersion#DIFF_PLUS} or {@link GraphVersion#DIFF_MINUS} edges of the
+     * graph.
+     *
+     * @param graphVersion The vertices in the diffPlus or diffMinus in the graph.
+     */
+    public List<int[]> getDiffEdges(GraphVersion graphVersion) {
+        if (graphVersion != GraphVersion.DIFF_PLUS && graphVersion != GraphVersion.DIFF_MINUS) {
+            throw new IllegalArgumentException("The graph version should be " + GraphVersion.
+                DIFF_PLUS.name() + " or " + GraphVersion.DIFF_MINUS.name() + ".");
+        }
+        return graphVersion == GraphVersion.DIFF_PLUS ? diffPlusEdges : diffMinusEdges;
     }
 
     /**
@@ -487,6 +515,11 @@ public class Graph implements GraphflowSerializable {
             forwardAdjLists[i] = new SortedAdjacencyList();
             backwardAdjLists[i] = new SortedAdjacencyList();
         }
+    }
+
+    @UsedOnlyByTests
+    void setHighestMergedVertexId(int highestMergedVertexId) {
+        this.highestMergedVertexId = highestMergedVertexId;
     }
 
     /**

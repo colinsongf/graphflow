@@ -15,7 +15,7 @@ query : matchQuery
        ;
 
 matchQuery : MATCH whitespace matchPattern (whitespace whereClause)? (whitespace returnClause)?;
-continuousMatchQuery : CONTINUOUS whitespace MATCH whitespace matchPattern (whitespace whereClause)? whitespace FILE whitespace SINGLE_QUOTE filePath SINGLE_QUOTE ;
+continuousMatchQuery : CONTINUOUSLY whitespace MATCH whitespace matchPattern (whitespace whereClause)? whitespace (fileSink | udfCall) ;
 explainMatchQuery : EXPLAIN whitespace matchQuery ;
 explainContinuousMatchQuery : EXPLAIN whitespace continuousMatchQuery ;
 createQuery : CREATE whitespace (createEdgePattern | createVertexPattern) ;
@@ -66,7 +66,10 @@ booleanLiteral : TRUE | FALSE ;
 stringLiteral : '\'' value '\'';
 value : ( Digits | Characters | UNDERSCORE | DASH | DOT )+ ;
 
+fileSink : FILE whitespace SINGLE_QUOTE filePath SINGLE_QUOTE;
+udfCall : ACTION whitespace UDF whitespace functionName whitespace IN whitespace SINGLE_QUOTE filePath DOT JAR SINGLE_QUOTE ;
 filePath: ( Digits | Characters | UNDERSCORE | DASH | DOT | SLASH | SPACE )+ ;
+functionName : ( Characters | Digits | UNDERSCORE | DASH | DOT )+ ;
 
 operator : (equalTo | notEqualTo | lessThan | lessThanOrEqualTo | greaterThan | greaterThanOrEqualTo) ;
 equalTo : '=' ;
@@ -81,23 +84,27 @@ variable : ( Characters | UNDERSCORE | DASH ) ( Digits | Characters | UNDERSCORE
 dataType : ( INT | DOUBLE | BOOLEAN | STRING ) ;
 
 MATCH : M A T C H ;
-CONTINUOUS : C O N T I N U O U S ;
+CONTINUOUSLY : C O N T I N U O U S L Y ;
 
 EXPLAIN : E X P L A I N ;
 
 CREATE : C R E A T E ;
-DELETE : D E L E T E;
+DELETE : D E L E T E ;
 SHORTEST : S H O R T E S T ;
 PATH : P A T H ;
 WHERE : W H E R E ;
 RETURN : R E T U R N ;
 
-COUNT : C O U N T;
+COUNT : C O U N T ;
 AVG : A V G ;
 MAX : M A X ;
 MIN : M I N ;
 SUM : S U M ;
 
+ACTION : A C T I O N ;
+IN : I N ;
+UDF : U D F ;
+JAR : J A R ;
 LOAD: L O A D ;
 SAVE: S A V E ;
 FROM: F R O M ;

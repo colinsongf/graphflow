@@ -45,6 +45,10 @@ public class QueryGraph {
         }
     }
 
+    public void addToRelationMap(String relationName, QueryRelation queryRelation) {
+        relationNameRelationMap.put(relationName, queryRelation);
+    }
+
     /**
      * Adds the new relation to the {@code queryGraph} map.
      *

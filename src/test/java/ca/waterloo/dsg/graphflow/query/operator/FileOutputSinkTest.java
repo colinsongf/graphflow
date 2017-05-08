@@ -1,6 +1,5 @@
-package ca.waterloo.dsg.graphflow.outputsink;
+package ca.waterloo.dsg.graphflow.query.operator;
 
-import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -13,7 +12,7 @@ import java.io.FileReader;
 import java.util.StringJoiner;
 
 /**
- * Tests the {@code FileOutputSink} class.
+ * Tests the {@link FileOutputSink} class.
  */
 public class FileOutputSinkTest {
 

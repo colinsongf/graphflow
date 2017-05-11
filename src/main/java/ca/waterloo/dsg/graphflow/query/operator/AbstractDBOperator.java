@@ -11,8 +11,8 @@ import com.google.gson.JsonObject;
 import java.util.List;
 
 /**
- * Base class for various database operators, such as projections, as well as output sinks, such
- * as {@link FileOutputSink}. Contains the following methods and fields:
+ * Base class for various database operators, such as projections, as well as output sinks.
+ * Contains the following methods and fields:
  * <ul>
  * <li> Different append methods that accept different query outputs that this operator will
  * process.

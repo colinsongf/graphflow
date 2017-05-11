@@ -75,15 +75,13 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
      * string, {@link TypeAndPropertyKeyStore#ANY} is returned.
      * @throws NoSuchTypeException if the type is not found in the store.
      */
-    public Short mapStringTypeToShortAndAssertTypeExists(String type) {
+    public void mapStringTypeToShortAndAssertTypeExists(String type) {
         if (null != type) {
             Short shortType = mapStringTypeToShort(type);
             if (null == shortType) {
                 throw new NoSuchTypeException("The type " + type + " is not found in the store.");
             }
-            return shortType;
         }
-        return ANY;
     }
 
     /**
@@ -110,6 +108,20 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
                 "key store.");
         }
         return typeKeyStore.mapShortKeyToString(shortType);
+    }
+
+    /**
+     * @param shortPropertyKey The {@code Short} property key.
+     * @return The {@code String} property key.
+     * @throws NoSuchPropertyKeyException if {@code shortPropertyKey} is either {@code null} or a
+     * negative shortPropertyKey.
+     */
+    public String mapShortPropertyKeyToString(Short shortPropertyKey) {
+        if (null == shortPropertyKey || 0 > shortPropertyKey) {
+            throw new NoSuchPropertyKeyException("The short " + shortPropertyKey + " is not " +
+                "present in the key store.");
+        }
+        return propertyKeyStore.mapShortKeyToString(shortPropertyKey);
     }
 
     /**

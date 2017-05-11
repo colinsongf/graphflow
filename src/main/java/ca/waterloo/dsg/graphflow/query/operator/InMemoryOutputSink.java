@@ -17,7 +17,7 @@ public class InMemoryOutputSink extends AbstractDBOperator {
     private List<String> results = new ArrayList<>();
 
     public InMemoryOutputSink() {
-        super(null /* no output operator */);
+        super(null /* no nextOperator, always last operator in the OneTimeMatchQueryPlan. */);
     }
 
     /**

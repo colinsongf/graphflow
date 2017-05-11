@@ -137,7 +137,7 @@ public class SortedAdjacencyList {
      */
     public long getEdgeId(int neighbourId, short edgeType) {
         int index = search(neighbourId, edgeType);
-        return (index != -1) ? edgeIds[index] : -1;
+        return (index >= 0) ? edgeIds[index] : -1;
     }
 
     /**

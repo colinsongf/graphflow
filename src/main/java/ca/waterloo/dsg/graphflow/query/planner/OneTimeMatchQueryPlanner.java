@@ -60,6 +60,10 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         queryGraph = new MatchQueryValidator(structuredQuery).validateQueryAndGetQueryGraph();
     }
 
+    public OneTimeMatchQueryPlanner(StructuredQuery structuredQuery) {
+        this(structuredQuery, null /* Sink not set */);
+    }
+
     /**
      * Selects the order of the rest of the variables, considering the following properties: 1)
      * Select the variable with highest number of connections to the already covered variables. 2)
@@ -276,7 +280,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         }
     }
 
-    private AbstractDBOperator constructFilter(Map<String, Integer>
+    protected AbstractDBOperator constructFilter(Map<String, Integer>
         vertexVariableOrderIndexMapBeforeProjection, Map<String, Integer>
         edgeVariableOrderIndexMap, AbstractDBOperator nextOperator) {
         List<EdgeOrVertexPropertyDescriptor> edgeOrVertexPropertyDescriptors = new ArrayList<>();
@@ -405,9 +409,9 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         return new GroupByAndAggregate(outputSink, valuesToGroupBy, valueAggregatorPairs);
     }
 
-    private AbstractDBOperator constructEdgeIdResolver(List<String> orderedEdgeVariables,
-        Map<String, Integer> orderedVariableIndexMapBeforeProjection, AbstractDBOperator
-        nextOperator) {
+    protected AbstractDBOperator constructEdgeIdResolver(List<String> orderedEdgeVariables,
+        Map<String, Integer> orderedVariableIndexMapBeforeProjection,
+        AbstractDBOperator nextOperator) {
         List<SourceDestinationIndexAndType> srcDstVertexIndicesAndTypes = new ArrayList<>();
         for (int i = 0; i < orderedEdgeVariables.size(); ++i) {
             String orderedEdgeVariable = orderedEdgeVariables.get(i);
@@ -534,7 +538,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         return new PropertyResolver(outputSink, edgeOrVertexPropertyIndices);
     }
 
-    private Map<String, Integer> getOrderedVariableIndexMap(List<String> orderedVariables) {
+    protected Map<String, Integer> getOrderedVariableIndexMap(List<String> orderedVariables) {
         Map<String, Integer> variableOrderIndexMapBeforeProjection = new HashMap<>();
         for (int i = 0; i < orderedVariables.size(); ++i) {
             variableOrderIndexMapBeforeProjection.put(orderedVariables.get(i), i);

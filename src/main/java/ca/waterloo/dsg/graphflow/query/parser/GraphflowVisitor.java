@@ -50,6 +50,14 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         if (null != ctx.whereClause()) {
             visitWhereClause(structuredQuery, ctx.whereClause());
         }
+        if (null != ctx.udfCall()) {
+            UdfCallContext udfCtx = ctx.udfCall();
+            structuredQuery.setContinuousMatchAction(udfCtx.functionName().getText());
+            structuredQuery.setContinuousMatchOutputLocation(udfCtx.filePath().getText() + ".jar");
+        } else {
+            FileSinkContext fileSinkCtx = ctx.fileSink();
+            structuredQuery.setFilePath(fileSinkCtx.filePath().getText());
+        }
         return structuredQuery;
     }
 

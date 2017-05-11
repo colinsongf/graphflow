@@ -5,15 +5,26 @@ import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver;
+import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.Filter;
+import ca.waterloo.dsg.graphflow.query.operator.UDFSink;
+import ca.waterloo.dsg.graphflow.query.operator.udf.UDFAction;
+import ca.waterloo.dsg.graphflow.query.operator.udf.UDFResolver;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery.QueryOperation;
+import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -22,9 +33,21 @@ import java.util.Set;
  */
 public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
 
-    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery,
-        AbstractDBOperator outputSink) {
-        super(structuredQuery, outputSink);
+    /**
+     * @param structuredQuery query to plan.
+     */
+    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery) throws IOException,
+        ClassNotFoundException, InstantiationException, IllegalAccessException {
+        super(structuredQuery);
+        if (QueryOperation.CONTINUOUS_EXPLAIN != structuredQuery.getQueryOperation()) {
+            if (null != structuredQuery.getFilePath()) {
+                outputSink = new FileOutputSink(new File(structuredQuery.getFilePath()));
+            } else {
+                outputSink = new UDFSink(UDFResolver.getUDFObject(structuredQuery.
+                    getContinuousMatchOutputLocation(), structuredQuery.
+                    getContinuousMatchAction()));
+            }
+        }
     }
 
     /**
@@ -55,9 +78,9 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             orderedVariables.add(diffRelation.getFromQueryVariable().getVariableName());
             orderedVariables.add(diffRelation.getToQueryVariable().getVariableName());
             super.orderRemainingVariables(orderedVariables);
-            // Create the query plan using the ordering determined above.
 
-            nextOperator = super.getNextOperator(orderedVariables);
+            // Create the query plan using the ordering determined above.
+            nextOperator = getNextOperator(orderedVariables);
             queryPlan = addSingleQueryPlan(
                 GraphVersion.DIFF_PLUS, orderedVariables, diffRelation, permanentRelations,
                 mergedRelations);
@@ -204,5 +227,70 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             }
         }
         return false;
+    }
+
+    /**
+     * Adds to the delta query plans the next set of operators. The op1->op2 below indicates that
+     * operator op1 appends results to operator op2.
+     * Delta queries always append to {@link EdgeIdResolver}->({@link Filter})?->{@link UDFSink}
+     * or {@link FileOutputSink}.
+     */
+    AbstractDBOperator getNextOperator(List<String> orderedVertexVariables) {
+        AbstractDBOperator nextOperator = outputSink;
+
+        Map<String, Integer> orderedVariableIndexMap = getOrderedVariableIndexMap(
+            orderedVertexVariables);
+
+        List<String> orderedEdgeVariables = giveAllQueryRelationsVariableNames();
+
+        // Construct the {@code Filter} operator if needed.
+        if (!structuredQuery.getQueryPropertyPredicates().isEmpty()) {
+            Map<String, Integer> orderedEdgeIndexMap = getOrderedVariableIndexMap(
+                orderedEdgeVariables);
+            nextOperator = constructFilter(orderedVariableIndexMap, orderedEdgeIndexMap,
+                nextOperator);
+        }
+
+        return constructEdgeIdResolver(orderedEdgeVariables, orderedVariableIndexMap, nextOperator);
+    }
+
+    private List<String> giveAllQueryRelationsVariableNames() {
+        /*
+         * Sets a name for all relations in the structured query. The names of the relations in
+         * the StructuredQuery are set when a return statement is used. The goal of doing this is
+         * to pass the names to the edgeId resolver in order to have all edgeIds resolved by the
+         * time the MatchQueryOutput is at the sink.
+         * Issue #37 once resolved would address an enhanced implementation.
+         */
+        List<String> orderedEdgeVariables = new ArrayList<>();
+
+        int count = 0;
+        for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
+            String relationName;
+            if (null == queryRelation.getRelationName()) {
+                relationName = count + "internalEdgeName";
+                queryRelation.setRelationName(relationName);
+                count++;
+            } else {
+                relationName = queryRelation.getRelationName();
+            }
+            orderedEdgeVariables.add(relationName);
+            queryGraph.addToRelationMap(relationName, queryRelation);
+        }
+        return orderedEdgeVariables;
+    }
+
+    @UsedOnlyByTests
+    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery, File location)
+        throws IOException{
+        super(structuredQuery, null);
+        outputSink = new FileOutputSink(location);
+    }
+
+    @UsedOnlyByTests
+    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery, UDFAction udfAction)
+        throws IOException{
+        super(structuredQuery, null);
+        outputSink = new UDFSink(udfAction);
     }
 }

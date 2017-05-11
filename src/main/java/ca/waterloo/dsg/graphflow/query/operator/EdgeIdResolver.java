@@ -46,10 +46,10 @@ public class EdgeIdResolver extends AbstractDBOperator {
             srcDstVertexIndicesAndType = srcDstVertexIndicesAndTypes.get(i);
             srcId = matchQueryOutput.vertexIds[srcDstVertexIndicesAndType.sourceIndex];
             dstId = matchQueryOutput.vertexIds[srcDstVertexIndicesAndType.destinationIndex];
-            edgeIds[i] = graph.getEdgeIdFromPermanentGraph(srcId, dstId,
-                srcDstVertexIndicesAndType.type);
+            edgeIds[i] = graph.getEdgeIdFromGraph(srcId, dstId, srcDstVertexIndicesAndType.type);
         }
         matchQueryOutput.edgeIds = edgeIds;
+        matchQueryOutput.srcDstVertexIndicesAndTypes = srcDstVertexIndicesAndTypes;
         nextOperator.append(matchQueryOutput);
     }
 
@@ -82,7 +82,7 @@ public class EdgeIdResolver extends AbstractDBOperator {
     }
 
     /**
-     * A triple storing a (sourceIndex, destinationIndex, type).
+     * A triple storing a (sourceIndex, destinationIndex, type) for an edge in the prefix.
      */
     public static class SourceDestinationIndexAndType implements JsonOutputable {
 

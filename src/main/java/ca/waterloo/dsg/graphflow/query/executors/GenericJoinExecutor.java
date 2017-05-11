@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Executes the Generic Join algorithm encapsulated in {@code stages} on {@code graph} and appends
@@ -34,13 +35,14 @@ public class GenericJoinExecutor {
     private AbstractDBOperator nextOperator;
 
     public GenericJoinExecutor(List<List<GenericJoinIntersectionRule>> stages,
-        AbstractDBOperator nextOperator, Graph graph) {
+        Map<String, Integer> variableIndicesMap, AbstractDBOperator nextOperator) {
         this.nextOperator = nextOperator;
         if (0 == stages.size() || 0 == stages.get(0).size()) {
             throw new RuntimeException("Incomplete stages.");
         }
         this.stages = stages;
-        this.graph = graph;
+        this.matchQueryOutput.vertexIndices = variableIndicesMap;
+        this.graph = Graph.getInstance();
     }
 
     public void execute() {
@@ -122,7 +124,7 @@ public class GenericJoinExecutor {
             }
             return;
         }
-        logger.debug("Starting new recursion. Stage: " + stageIndex);
+        logger.info("Starting new recursion. Stage: " + stageIndex);
         List<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.
             get(stageIndex);
         int newPrefixCount = 0;

@@ -206,4 +206,17 @@ public class TestUtils {
         }
         return inMemoryOutputSink;
     }
+
+    public static String getExpectedContentOfOutputFileSink(int[][] results,
+        MatchQueryResultType[] matchQueryResultTypes) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < results.length; ++i) {
+            stringBuilder.append(Arrays.toString(results[i])).append(" ").append(
+                matchQueryResultTypes[i].name());
+            if (i < results.length - 1) {
+                stringBuilder.append("\n");
+            }
+        }
+        return stringBuilder.toString();
+    }
 }

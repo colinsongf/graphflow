@@ -32,6 +32,7 @@ public class StructuredQuery implements AbstractStructuredQuery {
     private List<QueryAggregation> queryAggregations = new ArrayList<>();
     private QueryOperation queryOperation;
     private String continuousMatchAction;
+    private String continuousMatchOutputLocation;
     private String filePath;
     private List<QueryPropertyPredicate> queryPropertyPredicates = new ArrayList<>();
 
@@ -122,8 +123,20 @@ public class StructuredQuery implements AbstractStructuredQuery {
         queryAggregations.add(queryAggregation);
     }
 
+    public String getContinuousMatchAction() {
+        return continuousMatchAction;
+    }
+
     public void setContinuousMatchAction(String continuousMatchAction) {
         this.continuousMatchAction = continuousMatchAction;
+    }
+
+    public String getContinuousMatchOutputLocation() {
+        return continuousMatchOutputLocation;
+    }
+
+    public void setContinuousMatchOutputLocation(String continuousMatchOutputLocation) {
+        this.continuousMatchOutputLocation = continuousMatchOutputLocation;
     }
 
     public String getFilePath() {

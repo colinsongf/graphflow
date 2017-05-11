@@ -103,6 +103,29 @@ public class EdgeStore extends PropertyStore {
         return edgeProperties;
     }
 
+    /**
+     * Returns the {@code String} key, and {@code String} value pair properties of the edge with the
+     * given ID.
+     * Warning: If the ID provided is an ID of a deleted edge, the properties of the deleted edge
+     * are returned.
+     *
+     * @param edgeId The ID of the edge.
+     * @return The properties of the edge as a Map<String, String>.
+     * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
+     */
+    public Map<String, String> getPropertiesAsStrings(long edgeId) {
+        verifyEdgeIdAndResetPropertyIterator(edgeId);
+        Map<String, String> edgeProperties = new HashMap<>();
+        Pair<Short, Object> keyValue;
+        TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
+        while (propertyIterator.hasNext()) {
+            keyValue = propertyIterator.next();
+            edgeProperties.put(typeAndPropertyKeyStore.mapShortPropertyKeyToString(keyValue.a),
+                keyValue.b.toString());
+        }
+        return edgeProperties;
+    }
+
     private void verifyEdgeIdAndResetPropertyIterator(long edgeId) {
         if (edgeId >= nextIDNeverYetAssigned) {
             throw new NoSuchElementException("Edge with ID " + edgeId + " does not exist.");

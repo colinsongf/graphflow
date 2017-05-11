@@ -48,7 +48,6 @@ public class Filter extends PropertyReadingOperator {
     public void append(MatchQueryOutput matchQueryOutput) {
         clearAndFillStringBuilder(matchQueryOutput, FILTER_DELIMITER);
         String[] properties = stringBuilder.toString().split(FILTER_DELIMITER);
-        System.out.println(Arrays.toString(properties));
         if (filterPredicate.test(properties)) {
             nextOperator.append(matchQueryOutput);
         }

@@ -11,7 +11,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class representing plan for a MATCH operation.
@@ -19,11 +21,8 @@ import java.util.List;
 public class OneTimeMatchQueryPlan extends AbstractDBOperator implements QueryPlan {
 
     private List<List<GenericJoinIntersectionRule>> stages = new ArrayList<>();
-
-    /**
-     * This is currently only used by the PlanViewer.
-     */
     private List<String> orderedVariables;
+    private Map<String, Integer> variableIndicesMap;
 
     /**
      * Constructs a new {@link OneTimeMatchQueryPlan} with null next operator.
@@ -46,6 +45,10 @@ public class OneTimeMatchQueryPlan extends AbstractDBOperator implements QueryPl
      */
     public void setOrderedVariables(List<String> orderedVariables) {
         this.orderedVariables = orderedVariables;
+        variableIndicesMap = new HashMap<>();
+        for (int i = 0; i < orderedVariables.size(); ++i) {
+            variableIndicesMap.put(orderedVariables.get(i), i);
+        }
     }
 
     /**
@@ -106,7 +109,7 @@ public class OneTimeMatchQueryPlan extends AbstractDBOperator implements QueryPl
      * @param graph the {@link Graph} instance to use during the plan execution.
      */
     public void execute(Graph graph) {
-        new GenericJoinExecutor(stages, nextOperator, graph).execute();
+        new GenericJoinExecutor(stages, variableIndicesMap, nextOperator).execute();
     }
 
     @Override

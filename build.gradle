@@ -1,5 +1,5 @@
 group 'ca.waterloo.dsg'
-version '0.1'
+version '0.1.0'
 
 apply plugin: 'java'
 apply plugin: 'antlr'
@@ -83,8 +83,8 @@ distZip.enabled = false
 distTar.enabled = false
 // Create the convenience executables.
 def scripts = [
-    'graphflow-server'  : 'ca.waterloo.dsg.graphflow.server.GraphflowServerRunner',
-    'graphflow-cli'     : 'ca.waterloo.dsg.graphflow.client.cli.GraphflowCliRunner'
+    'graphflow-server': 'ca.waterloo.dsg.graphflow.server.GraphflowServerRunner',
+    'graphflow-cli'   : 'ca.waterloo.dsg.graphflow.client.cli.GraphflowCliRunner'
 ]
 scripts.each() { fileName, className ->
     tasks.create(name: fileName, type: CreateStartScripts) {
@@ -97,6 +97,18 @@ scripts.each() { fileName, className ->
         from(tasks[fileName])
         fileMode = 0755
     }
+}
+
+task udfJar(type: Jar) {
+    baseName = "udf"
+    from sourceSets.main.output
+    include('**/udf/UDFAction.class', '**/udf/subgraph/*.class')
+    exclude('**/udf/subgraph/SubgraphFactory.class')
+    includeEmptyDirs = false
+}
+
+tasks.installDist.doLast {
+    tasks.udfJar.execute()
 }
 
 // Define specific gradle version.

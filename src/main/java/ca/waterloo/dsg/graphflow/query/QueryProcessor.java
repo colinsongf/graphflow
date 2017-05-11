@@ -13,7 +13,6 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
-import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
@@ -35,7 +34,6 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -44,8 +42,6 @@ import java.io.IOException;
 public class QueryProcessor {
 
     private static final Logger logger = LogManager.getLogger(QueryProcessor.class);
-
-    private static final String TMP_DIRECTORY = "/tmp/";
 
     /**
      * Executes a string query by converting it into a {@link StructuredQuery}, creating the
@@ -161,20 +157,14 @@ public class QueryProcessor {
     }
 
     private String handleContinuousMatchQuery(StructuredQuery structuredQuery) {
-        String fileName = "continuous_match_query_" + structuredQuery.getFilePath();
-        AbstractDBOperator outputSink;
-        try {
-            outputSink = new FileOutputSink(new File(TMP_DIRECTORY + fileName));
-        } catch (IOException e) {
-            return "IO ERROR for file: " + fileName + ".";
-        }
         try {
             ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
-                (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery,
-                    outputSink).plan());
+                (ContinuousMatchQueryPlan) new ContinuousMatchQueryPlanner(structuredQuery).plan());
         } catch (IncorrectDataTypeException | IncorrectVertexTypeException |
             NoSuchPropertyKeyException | NoSuchTypeException | MalformedMatchQueryException |
-            MalformedWhereClauseException e) {
+            MalformedWhereClauseException | IOException | ClassNotFoundException |
+            ClassCastException | NullPointerException | InstantiationException |
+            IllegalAccessException e) {
             logger.debug(e.getMessage());
             return "ERROR: The CONTINUOUS MATCH query could not be registered. " + e.getMessage();
         }
@@ -215,17 +205,9 @@ public class QueryProcessor {
 
     private String handleExplainContinuousMatchQuery(StructuredQuery structuredQuery,
         ReturnType returnType) {
-        AbstractDBOperator outputSink;
-        String fileName = "continuous_match_query_" + structuredQuery.getFilePath();
-        try {
-            outputSink = new FileOutputSink(new File(TMP_DIRECTORY + fileName));
-        } catch (IOException e) {
-            return "IO ERROR for file: " + fileName + ".";
-        }
         try {
             ContinuousMatchQueryPlan continuousMatchQueryPlan = (ContinuousMatchQueryPlan)
-                new ContinuousMatchQueryPlanner(structuredQuery, outputSink).plan();
-
+                new ContinuousMatchQueryPlanner(structuredQuery).plan();
             switch (returnType) {
                 case TEXT:
                     return continuousMatchQueryPlan.getHumanReadablePlan();
@@ -234,7 +216,9 @@ public class QueryProcessor {
                 default:
                     return "INTERNAL ERROR: unrecognized return type of query result.";
             }
-        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException e) {
+        } catch (IncorrectDataTypeException | NoSuchPropertyKeyException | NoSuchTypeException |
+            IOException | ClassNotFoundException | InstantiationException |
+            IllegalAccessException e) {
             logger.debug(e.getMessage());
             return "ERROR: The CONTINUOUS MATCH query could not be planned. " + e.getMessage();
         }

@@ -10,6 +10,7 @@ import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 import ca.waterloo.dsg.graphflow.udfexamples.WriteToFileUDFAction;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,6 +26,11 @@ import java.util.StringJoiner;
  * Tests the {@link UDFSink} class.
  */
 public class UDFSinkTest {
+
+    @After
+    public void resetContinuousTests() {
+        ContinuousMatchQueryExecutor.getInstance().reset();
+    }
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();

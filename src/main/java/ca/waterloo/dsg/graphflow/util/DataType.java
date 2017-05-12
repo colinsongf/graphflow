@@ -168,6 +168,8 @@ public enum DataType {
      *
      * @param dataType The {@code DataType} of the passed value.
      * @param data The byte array containing the value to deserialize.
+     * @param startIndex Index to start deserializing at from the {@code byte[]} data.
+     * @param length length of the property value as stored in bytes.
      * @return The deserialized bytes as an appropriate Object.
      * @throws IllegalArgumentException if the dataType passed is not one of the {@link DataType}
      * enum values.
@@ -196,6 +198,23 @@ public enum DataType {
 
         throw new IllegalArgumentException("The data type " + dataType + " is null or not " +
             "supported.");
+    }
+
+    /**
+     * Deserializes the {@code byte[]} passed into an integer relying on the start index and the
+     * size of an integer in bytes (4).
+     *
+     * @param data The byte array containing the Integer to deserialize.
+     * @param startIndex Index to start deserializing at from the {@code byte[]} data.
+     * @return The deserialized bytes as an int.
+     */
+    public static int deserializeInteger(byte[] data, int startIndex) {
+        int value = 0;
+        for (int i = 0; i < Integer.BYTES; i++) {
+            value <<= Byte.SIZE;
+            value |= (data[startIndex + i] & 0xFF);
+        }
+        return value;
     }
 
     public static Object parseDataType(DataType dataType, String value) {

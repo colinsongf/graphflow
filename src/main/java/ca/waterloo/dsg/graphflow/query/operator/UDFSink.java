@@ -7,12 +7,12 @@ import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.graph.VertexPropertyStore;
 import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver.SourceDestinationIndexAndType;
+import ca.waterloo.dsg.graphflow.query.operator.udf.UDFAction;
+import ca.waterloo.dsg.graphflow.query.operator.udf.UDFResolver;
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.Edge;
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.Edge.EdgeUpdate;
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.Subgraph;
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.Subgraph.SubgraphType;
-import ca.waterloo.dsg.graphflow.query.operator.udf.UDFAction;
-import ca.waterloo.dsg.graphflow.query.operator.udf.UDFResolver;
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.SubgraphFactory;
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.Vertex;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
@@ -64,7 +64,7 @@ public class UDFSink extends AbstractDBOperator {
         List<Vertex> vertices = new ArrayList<>();
         for (int vertexId : matchQueryOutput.vertexIds) {
             vertices.add(SubgraphFactory.getVertex(vertexId, TypeAndPropertyKeyStore.getInstance().
-                mapShortToStringType(Graph.getInstance().getVertexTypes().get(vertexId)),
+                    mapShortToStringType(Graph.getInstance().getVertexTypes().get(vertexId)),
                 VertexPropertyStore.getInstance().getPropertiesAsStrings(vertexId)));
         }
         return vertices;

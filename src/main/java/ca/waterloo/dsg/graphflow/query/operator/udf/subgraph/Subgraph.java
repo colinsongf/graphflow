@@ -8,9 +8,9 @@ import java.util.Map;
 /**
  * A wrapper to the list of vertices and list of edges with the following getter functionality:
  * <ul>
- *    <li> Vertex type and properties using the {@code String} variable name from the query graph.
- *    <li> Edge type and properties using the {@code String} fromVertex variable name and the {@code
- *    String} toVertex variable name.</li>
+ * <li> Vertex type and properties using the {@code String} variable name from the query graph.
+ * <li> Edge type and properties using the {@code String} fromVertex variable name and the {@code
+ * String} toVertex variable name.</li>
  * </ul>
  * <p>
  * Note: The edge type is that specified by the user in the query. If the user didn't specify a

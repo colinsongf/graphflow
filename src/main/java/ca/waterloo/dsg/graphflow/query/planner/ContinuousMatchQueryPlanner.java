@@ -282,14 +282,14 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
 
     @UsedOnlyByTests
     public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery, File location)
-        throws IOException{
+        throws IOException {
         super(structuredQuery, null);
         outputSink = new FileOutputSink(location);
     }
 
     @UsedOnlyByTests
     public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery, UDFAction udfAction)
-        throws IOException{
+        throws IOException {
         super(structuredQuery, null);
         outputSink = new UDFSink(udfAction);
     }

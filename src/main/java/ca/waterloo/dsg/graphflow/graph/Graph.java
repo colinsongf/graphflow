@@ -442,6 +442,7 @@ public class Graph implements GraphflowSerializable {
         if (vertexId < 0 || vertexId > highestMergedVertexId) {
             throw new NoSuchElementException(vertexId + " does not exist.");
         } else if (GraphVersion.PERMANENT == graphVersion && vertexId > highestPermanentVertexId) {
+            // The vertexId's adj list has not been added yet. vertexId > highestPermanentVertexId
             return new SortedAdjacencyList();
         } else if (GraphVersion.DIFF_MINUS == graphVersion || GraphVersion.DIFF_PLUS ==
             graphVersion) {
@@ -460,9 +461,12 @@ public class Graph implements GraphflowSerializable {
         if (GraphVersion.MERGED == graphVersion && mergedAdjLists.containsKey(vertexId)) {
             // Use the adjacency list of the merged graph.
             return mergedAdjLists.get(vertexId);
-        } else {
+        } else if (vertexId <= highestPermanentVertexId) {
             // Use the adjacency list of the permanent graph.
             return permanentAdjList[vertexId];
+        } else {
+            // The vertexId's adj list has not been added yet. vertexId > highestPermanentVertexId
+            return new SortedAdjacencyList();
         }
     }
 

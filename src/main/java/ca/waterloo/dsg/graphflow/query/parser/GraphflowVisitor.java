@@ -336,7 +336,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
             return DataType.STRING.toString();
         } else if (null != literalCtx.booleanLiteral()) {
             return DataType.BOOLEAN.toString();
-        } else if (null != literalCtx.numericalLiteral().integerLiteral()) {
+        } else if (null != literalCtx.numericLiteral().integerLiteral()) {
             return DataType.INTEGER.toString();
         } else {
             return DataType.DOUBLE.toString();
@@ -344,22 +344,22 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     }
 
     private String getLiteral(LiteralContext ctx) {
-        String sign = "", numericalLiteral;
         if (null != ctx.stringLiteral()) {
             return getUnquotedString(ctx.getText());
         } else if (null != ctx.booleanLiteral()) {
             return ctx.getText();
         } else {
-            if (null != ctx.numericalLiteral().DASH()) {
-                sign = "-";
-            }
-            if (null != ctx.numericalLiteral().integerLiteral()) {
-                numericalLiteral = ctx.numericalLiteral().integerLiteral().getText();
+            String numericalLiteral;
+            if (null != ctx.numericLiteral().integerLiteral()) {
+                numericalLiteral = ctx.numericLiteral().integerLiteral().getText();
             } else {
-                numericalLiteral = ctx.numericalLiteral().doubleLiteral().getText();
+                numericalLiteral = ctx.numericLiteral().doubleLiteral().getText();
             }
+            if (null != ctx.numericLiteral().DASH()) {
+                numericalLiteral = "-" + numericalLiteral;
+            }
+            return numericalLiteral;
         }
-        return sign + numericalLiteral;
     }
 
     private String getUnquotedString(String quotedString) {

@@ -64,6 +64,7 @@ public class Graph implements GraphflowSerializable {
             return isForward;
         }
     }
+
     private static final Logger logger = LogManager.getLogger(Graph.class);
     private static final int DEFAULT_GRAPH_SIZE = 2;
     private static Graph INSTANCE = new Graph();
@@ -97,7 +98,6 @@ public class Graph implements GraphflowSerializable {
     }
 
     /**
-     *
      * @return The highest permanent vertex ID .
      */
     public int getVertexCount() {
@@ -421,7 +421,7 @@ public class Graph implements GraphflowSerializable {
                 edgeId = mergedForwardAdjLists.get(srcId).getEdgeId(destinationId, type);
             }
         }
-        if (-1 == edgeId){
+        if (-1 == edgeId) {
             edgeId = forwardAdjLists[srcId].getEdgeId(destinationId, type);
         }
         return edgeId;

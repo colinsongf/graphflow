@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.client;
 
+import ca.waterloo.dsg.graphflow.server.GraphflowServerQueryGrpc;
 import ca.waterloo.dsg.graphflow.server.GraphflowServerQueryGrpc.GraphflowServerQueryBlockingStub;
 import ca.waterloo.dsg.graphflow.server.ServerQueryResult;
 import ca.waterloo.dsg.graphflow.server.ServerQueryString;
@@ -10,8 +11,6 @@ import io.grpc.StatusRuntimeException;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static ca.waterloo.dsg.graphflow.server.GraphflowServerQueryGrpc.newBlockingStub;
 
 /**
  * Client class which communicates with the {@code GraphflowServer} using gRPC.
@@ -35,7 +34,7 @@ public class GraphflowClient {
         // Turn off logs to suppress debug messages from netty.
         Logger.getLogger("io.grpc.internal").setLevel(Level.OFF);
         channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext(true).build();
-        blockingStub = newBlockingStub(channel);
+        blockingStub = GraphflowServerQueryGrpc.newBlockingStub(channel);
     }
 
     /**

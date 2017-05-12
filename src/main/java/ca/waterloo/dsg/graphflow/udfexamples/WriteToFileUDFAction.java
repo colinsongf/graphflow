@@ -1,8 +1,8 @@
 package ca.waterloo.dsg.graphflow.udfexamples;
 
+import ca.waterloo.dsg.graphflow.query.operator.udf.UDFAction;
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.Edge;
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.Subgraph;
-import ca.waterloo.dsg.graphflow.query.operator.udf.UDFAction;
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.Vertex;
 
 import java.io.BufferedWriter;
@@ -14,10 +14,9 @@ import java.util.List;
  * "The {@link UDFAction} that can be used for writing continuously matched (a)->(b)->(c) patterns
  * to a file. Assuming the user creates a jar write-to-file.jar that contains this class, this
  * class can be used in a continuous match query as follows:
- *
+ * <p>
  * CONTINUOUSLY MATCH (a)->(b), (b)->(c)
  * ACTION UDF ca.waterloo.dsg.graphflow.udfexamples.WriteToFile in UDFExamples.jar
- *
  */
 public class WriteToFileUDFAction extends UDFAction {
 

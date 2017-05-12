@@ -8,6 +8,7 @@ import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.OneTimeMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,8 +16,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.Assert.assertArrayEquals;
 
 /**
  * End to end tests for group by and aggregation. The tests in this class are executed on a
@@ -244,6 +243,6 @@ public class OneTimeMatchQueryGroupByTests {
         List<String> actualResults = outputSink.getResults();
         Collections.sort(expectedResults);
         Collections.sort(actualResults);
-        assertArrayEquals(expectedResults.toArray(), actualResults.toArray());
+        Assert.assertArrayEquals(expectedResults.toArray(), actualResults.toArray());
     }
 }

@@ -27,6 +27,7 @@ public class FileOutputSink extends AbstractDBOperator {
 
     /**
      * Appends data from {@code matchQueryOutput} to the configured {@code File}.
+     *
      * @param result A result record to append to the sink.
      */
     @Override
@@ -37,6 +38,7 @@ public class FileOutputSink extends AbstractDBOperator {
 
     /**
      * Appends data from {@code matchQueryOutput} to the configured {@code File}.
+     *
      * @param matchQueryOutput A result record to append to the sink.
      */
     @Override

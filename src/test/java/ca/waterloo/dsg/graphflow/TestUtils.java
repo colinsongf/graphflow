@@ -162,14 +162,14 @@ public class TestUtils {
         Pair<String, String> variable1, Pair<String, String> variable2, String literal,
         ComparisonOperator comparisonOperator) {
         QueryPropertyPredicate queryPropertyPredicate = new QueryPropertyPredicate();
-        queryPropertyPredicate.setVariable1(variable1);
-        queryPropertyPredicate.setVariable2(variable2);
+        queryPropertyPredicate.setLeftOperand(variable1);
+        queryPropertyPredicate.setRightOperand(variable2);
         queryPropertyPredicate.setLiteral(literal);
         queryPropertyPredicate.setComparisonOperator(comparisonOperator);
         if (null == queryPropertyPredicate.getLiteral()) {
-            queryPropertyPredicate.setPredicateType(PredicateType.TWO_VARIABLES);
+            queryPropertyPredicate.setPredicateType(PredicateType.TWO_PROPERTY_KEY_OPERANDS);
         } else {
-            queryPropertyPredicate.setPredicateType(PredicateType.VARIABLE_AND_LITERAL);
+            queryPropertyPredicate.setPredicateType(PredicateType.PROPERTY_KEY_AND_LITERAL_OPERANDS);
         }
         return queryPropertyPredicate;
     }

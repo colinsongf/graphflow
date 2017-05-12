@@ -161,11 +161,11 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
                 QueryPropertyPredicate queryPropertyPredicate;
                 for (String key : relationPropertyFilters.keySet()) {
                     queryPropertyPredicate = new QueryPropertyPredicate();
-                    queryPropertyPredicate.setVariable1(new Pair<>(ctx.edgeVariable().variable().
+                    queryPropertyPredicate.setLeftOperand(new Pair<>(ctx.edgeVariable().variable().
                         getText(), key));
                     queryPropertyPredicate.setLiteral(relationPropertyFilters.get(key).b);
                     queryPropertyPredicate.setComparisonOperator(ComparisonOperator.EQUALS);
-                    queryPropertyPredicate.setPredicateType(PredicateType.VARIABLE_AND_LITERAL);
+                    queryPropertyPredicate.setPredicateType(PredicateType.PROPERTY_KEY_AND_LITERAL_OPERANDS);
                     structuredQuery.addQueryPropertyPredicate(queryPropertyPredicate);
                 }
             }
@@ -260,29 +260,29 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
                     " literals.");
             } else if (null != leftOperandCtx.variableWithProperty() && null != rightOperandCtx.
                 variableWithProperty()) {
-                queryPropertyPredicate.setVariable1(new Pair<>(leftOperandCtx.
+                queryPropertyPredicate.setLeftOperand(new Pair<>(leftOperandCtx.
                     variableWithProperty().variable().getText(), leftOperandCtx.
                     variableWithProperty().key().getText()));
-                queryPropertyPredicate.setVariable2(new Pair<>(rightOperandCtx.
+                queryPropertyPredicate.setRightOperand(new Pair<>(rightOperandCtx.
                     variableWithProperty().variable().getText(), rightOperandCtx.
                     variableWithProperty().key().getText()));
             } else if (null != leftOperandCtx.variableWithProperty() && null != rightOperandCtx.
                 literal()) {
-                queryPropertyPredicate.setVariable1(new Pair<>(leftOperandCtx.
+                queryPropertyPredicate.setLeftOperand(new Pair<>(leftOperandCtx.
                     variableWithProperty().variable().getText(), leftOperandCtx.
                     variableWithProperty().key().getText()));
                 queryPropertyPredicate.setLiteral(getLiteral(rightOperandCtx.literal()));
             } else {
-                queryPropertyPredicate.setVariable1(new Pair<>(rightOperandCtx.
+                queryPropertyPredicate.setLeftOperand(new Pair<>(rightOperandCtx.
                     variableWithProperty().variable().getText(), rightOperandCtx.
                     variableWithProperty().key().getText()));
                 queryPropertyPredicate.setLiteral(getLiteral(leftOperandCtx.literal()));
             }
 
             if (null == rightOperandCtx.literal() && null == leftOperandCtx.literal()) {
-                queryPropertyPredicate.setPredicateType(PredicateType.TWO_VARIABLES);
+                queryPropertyPredicate.setPredicateType(PredicateType.TWO_PROPERTY_KEY_OPERANDS);
             } else {
-                queryPropertyPredicate.setPredicateType(PredicateType.VARIABLE_AND_LITERAL);
+                queryPropertyPredicate.setPredicateType(PredicateType.PROPERTY_KEY_AND_LITERAL_OPERANDS);
             }
 
             queryPropertyPredicate.setComparisonOperator(ComparisonOperator.
@@ -307,10 +307,10 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
             QueryPropertyPredicate queryPropertyPredicate;
             for (String key : variablePropertyFilters.keySet()) {
                 queryPropertyPredicate = new QueryPropertyPredicate();
-                queryPropertyPredicate.setVariable1(new Pair<>(ctx.variable().getText(), key));
+                queryPropertyPredicate.setLeftOperand(new Pair<>(ctx.variable().getText(), key));
                 queryPropertyPredicate.setLiteral(variablePropertyFilters.get(key).b);
                 queryPropertyPredicate.setComparisonOperator(ComparisonOperator.EQUALS);
-                queryPropertyPredicate.setPredicateType(PredicateType.VARIABLE_AND_LITERAL);
+                queryPropertyPredicate.setPredicateType(PredicateType.PROPERTY_KEY_AND_LITERAL_OPERANDS);
                 structuredQuery.addQueryPropertyPredicate(queryPropertyPredicate);
             }
         }

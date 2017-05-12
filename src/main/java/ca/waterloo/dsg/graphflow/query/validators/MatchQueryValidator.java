@@ -103,19 +103,19 @@ public class MatchQueryValidator {
         // GraphflowVisitor ensures that the leftOperand is always a variableWithProperty and not
         // a literal.
         for (QueryPropertyPredicate predicate : structuredQuery.getQueryPropertyPredicates()) {
-            checkVariableIsDefined(predicate.getVariable1().a);
-            leftOperandKeyAndDataType = getKeyAndDataTypePair(predicate.getVariable1().b);
-            if (PredicateType.TWO_VARIABLES == predicate.getPredicateType()) {
-                checkVariableIsDefined(predicate.getVariable2().a);
-                rightOperandKeyAndDataType = getKeyAndDataTypePair(predicate.getVariable2().b);
+            checkVariableIsDefined(predicate.getLeftOperand().a);
+            leftOperandKeyAndDataType = getKeyAndDataTypePair(predicate.getLeftOperand().b);
+            if (PredicateType.TWO_PROPERTY_KEY_OPERANDS == predicate.getPredicateType()) {
+                checkVariableIsDefined(predicate.getRightOperand().a);
+                rightOperandKeyAndDataType = getKeyAndDataTypePair(predicate.getRightOperand().b);
                 if ((!isNumeric(leftOperandKeyAndDataType.b) ||
                     !isNumeric(rightOperandKeyAndDataType.b)) &&
                     leftOperandKeyAndDataType.b != rightOperandKeyAndDataType.b) {
                     throw new IncorrectDataTypeException("DataType Mismatch - The left " +
-                        "operand " + predicate.getVariable1().a + "." + predicate.
-                        getVariable1().b + " is of data type " + leftOperandKeyAndDataType.b +
-                        " and the right operand " + predicate.getVariable2().a + "." +
-                        predicate.getVariable2().b + " is of data type " +
+                        "operand " + predicate.getLeftOperand().a + "." + predicate.
+                        getLeftOperand().b + " is of data type " + leftOperandKeyAndDataType.b +
+                        " and the right operand " + predicate.getRightOperand().a + "." +
+                        predicate.getRightOperand().b + " is of data type " +
                         rightOperandKeyAndDataType.b + ".");
                 }
             } else {

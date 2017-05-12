@@ -291,7 +291,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         Predicate<String[]> predicate = null;
         for (QueryPropertyPredicate queryPropertyPredicate : structuredQuery.
             getQueryPropertyPredicates()) {
-            Pair<String, String> variable1 = queryPropertyPredicate.getVariable1();
+            Pair<String, String> variable1 = queryPropertyPredicate.getLeftOperand();
             if (null == descriptorIndexMap.get(variable1.a + '.' + variable1.b)) {
                 descriptorIndexMap.put(variable1.a + '.' + variable1.b,
                     edgeOrVertexPropertyDescriptors.size());
@@ -299,7 +299,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                     vertexVariableOrderIndexMapBeforeProjection, edgeVariableOrderIndexMap,
                     variable1.a, typeAndPropertyKeyStore.mapStringPropertyKeyToShort(variable1.b)));
             }
-            Pair<String, String> variable2 = queryPropertyPredicate.getVariable2();
+            Pair<String, String> variable2 = queryPropertyPredicate.getRightOperand();
             if (null != variable2 && null == descriptorIndexMap.get(variable2.a + '.' +
                 variable2.b)) {
                 descriptorIndexMap.put(variable2.a + '.' + variable2.b,
@@ -334,9 +334,9 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         resolvedEdges.addAll(orderedEdgesFromProjection);
         for (QueryPropertyPredicate queryPropertyPredicate : structuredQuery.
             getQueryPropertyPredicates()) {
-            String operandVariable1 = queryPropertyPredicate.getVariable1().a;
-            String operandVariable2 = queryPropertyPredicate.getVariable2() != null ?
-                queryPropertyPredicate.getVariable2().a : null;
+            String operandVariable1 = queryPropertyPredicate.getLeftOperand().a;
+            String operandVariable2 = queryPropertyPredicate.getRightOperand() != null ?
+                queryPropertyPredicate.getRightOperand().a : null;
             checkIfEdgeVariableNeedsToBeResolved(operandVariable1, resolvedEdges,
                 orderedEdgeVariablesInFiltersAndProjections);
             checkIfEdgeVariableNeedsToBeResolved(operandVariable2, resolvedEdges,

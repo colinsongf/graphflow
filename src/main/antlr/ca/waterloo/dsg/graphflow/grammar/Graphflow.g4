@@ -66,7 +66,7 @@ type : variable ;
 properties : OPEN_CURLY_BRACKET whitespace? ( property ( whitespace? COMMA whitespace? property )* )?
              whitespace? CLOSE_CURLY_BRACKET ;
 property : key whitespace? COLON whitespace? literal ;
-literal : integerLiteral | doubleLiteral | booleanLiteral | stringLiteral  ;
+literal : numericalLiteral | booleanLiteral | stringLiteral  ;
 
 fileSink : FILE whitespace stringLiteral;
 udfCall : ACTION whitespace UDF whitespace functionName whitespace IN whitespace stringLiteral ;
@@ -108,7 +108,7 @@ keyword
     | FILE ;
 
 whitespace : ( SPACE | TAB | CARRIAGE_RETURN | LINE_FEED | FORM_FEED | Comment )+ ;
-
+numericalLiteral : (DASH whitespace?)? ( integerLiteral | doubleLiteral ) ;
 integerLiteral : Digits ;
 doubleLiteral : Digits DOT Digits ;
 booleanLiteral : TRUE | FALSE ;

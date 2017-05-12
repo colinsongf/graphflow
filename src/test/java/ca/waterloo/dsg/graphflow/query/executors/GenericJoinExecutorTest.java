@@ -107,11 +107,11 @@ public class GenericJoinExecutorTest {
         TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("FOLLOWS");
         TypeAndPropertyKeyStore.getInstance().mapStringTypeToShortOrInsert("LIKES");
         Map<String, Pair<String, String>> ageProperty = new HashMap<>();
-        ageProperty.put("age", new Pair<>("int", null));
+        ageProperty.put("age", new Pair<>("integer", null));
         TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert(
             ageProperty);
         Map<String, Pair<String, String>> viewsProperty = new HashMap<>();
-        viewsProperty.put("views", new Pair<>("int", null));
+        viewsProperty.put("views", new Pair<>("integer", null));
         TypeAndPropertyKeyStore.getInstance().mapStringPropertiesToShortAndDataTypeOrInsert(
             viewsProperty);
         Map<String, Pair<String, String>> nameProperty = new HashMap<>();
@@ -237,18 +237,18 @@ public class GenericJoinExecutorTest {
         Object[][] expectedMotifsAfterAdditions, Object[][] expectedMotifsAfterDeletion) {
         Graph graph = Graph.getInstance();
         TestUtils.initializeGraphPermanentlyWithProperties("CREATE " +
-            "(0:Person{name:string='name0', age:int=20, views:int=120})-[:FOLLOWS{views:int=60}]" +
-            "->(1:Person{name:string='name1', age:int=25, views:int=70})," +
-            "(0:Person)-[:LIKES{views:int=2}]->(1:Person)," +
-            "(1:Person)-[:LIKES{views:int=250}]->(0:Person)," +
-            "(1:Person)-[:TAGGED]->(3:Person{name:string='name3', age:int=22, views:int=250})," +
-            "(3:Person)-[:LIKES{views:int=44}]->(1:Person)," +
-            "(3:Person)-[:FOLLOWS{views:int=234}]->(0:Person)," +
-            "(4:Person{name:string='name4', age:int=40, views:int=20})-[:FOLLOWS{views:int=4}]->" +
-            "(1:Person),(4:Person)-[:LIKES{views:int=56}]->(1:Person)," +
-            "(1:Person)-[:LIKES{views:int=68}]->(4:Person)," +
-            "(3:Person)-[:FOLLOWS{views:int=123}]->(4:Person)," +
-            "(4:Person)-[:LIKES{views:int=2}]->(3:Person);");
+            "(0:Person { name: 'name0', age: 20, views: 120 })-[:FOLLOWS { views: 60 }]" +
+            "->(1:Person { name: 'name1', age: 25, views: 70 })," +
+            "(0:Person)-[:LIKES { views: 2 }]->(1:Person)," +
+            "(1:Person)-[:LIKES { views: 250 }]->(0:Person)," +
+            "(1:Person)-[:TAGGED]->(3:Person { name: 'name3', age: 22, views: 250})," +
+            "(3:Person)-[:LIKES { views: 44 }]->(1:Person)," +
+            "(3:Person)-[:FOLLOWS { views: 234 }]->(0:Person)," +
+            "(4:Person{ name: 'name4', age: 40, views: 20})-[:FOLLOWS {views: 4}]->" +
+            "(1:Person),(4:Person)-[:LIKES { views: 56 }]->(1:Person)," +
+            "(1:Person)-[:LIKES { views: 68 }]->(4:Person)," +
+            "(3:Person)-[:FOLLOWS { views: 123 }]->(4:Person)," +
+            "(4:Person)-[:LIKES { views: 2 }]->(3:Person);");
 
         // Execute the query and test.
 

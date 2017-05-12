@@ -124,7 +124,7 @@ public class GenericJoinExecutor {
             }
             return;
         }
-        logger.info("Starting new recursion. Stage: " + stageIndex);
+        logger.debug("Starting new recursion. Stage: " + stageIndex);
         List<GenericJoinIntersectionRule> genericJoinIntersectionRules = this.stages.
             get(stageIndex);
         int newPrefixCount = 0;

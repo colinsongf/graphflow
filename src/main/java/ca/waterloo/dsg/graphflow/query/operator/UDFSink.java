@@ -55,7 +55,12 @@ public class UDFSink extends AbstractDBOperator {
     @Override
     public void done() {
         if (subgraphList.size() > 0) {
-            udfObject.evaluate(subgraphList);
+            try {
+                udfObject.evaluate(subgraphList);
+            } catch (Exception e) {
+                logger.error("The UDF " + udfObject.getClass().getSimpleName() + " did not " +
+                    "execute correctly and threw an exception.");
+            }
         }
         subgraphList = new ArrayList<>();
     }

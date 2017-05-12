@@ -53,10 +53,11 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         if (null != ctx.udfCall()) {
             UdfCallContext udfCtx = ctx.udfCall();
             structuredQuery.setContinuousMatchAction(udfCtx.functionName().getText());
-            structuredQuery.setContinuousMatchOutputLocation(udfCtx.filePath().getText() + ".jar");
+            structuredQuery.setContinuousMatchOutputLocation(getUnquotedString(udfCtx.
+                stringLiteral().getText()));
         } else {
             FileSinkContext fileSinkCtx = ctx.fileSink();
-            structuredQuery.setFilePath(fileSinkCtx.filePath().getText());
+            structuredQuery.setFilePath(getUnquotedString(fileSinkCtx.stringLiteral().getText()));
         }
         return structuredQuery;
     }
@@ -92,7 +93,7 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         } else {
             structuredQuery.setQueryOperation(QueryOperation.SAVE_GRAPH);
         }
-        structuredQuery.setFilePath(ctx.filePath().getText());
+        structuredQuery.setFilePath(getUnquotedString(ctx.stringLiteral().getText()));
         return structuredQuery;
     }
 
@@ -141,6 +142,35 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     public AbstractStructuredQuery visitPathPattern(PathPatternContext ctx) {
         return new QueryRelation(new QueryVariable(ctx.Digits(0).getText()), new QueryVariable(ctx.
             Digits(1).getText()));
+    }
+
+    private void visitVariableEdge(VariableEdgeContext ctx, StructuredQuery structuredQuery) {
+        QueryRelation queryRelation = new QueryRelation((QueryVariable) visitVariableVertex(
+            structuredQuery, ctx.variableVertex(0)), (QueryVariable) visitVariableVertex(
+            structuredQuery, ctx.variableVertex(1)));
+        if (null != ctx.edgeVariable()) {
+            if (null != ctx.edgeVariable().variable()) {
+                queryRelation.setRelationName(ctx.edgeVariable().variable().getText());
+            }
+            if (null != ctx.edgeVariable().type()) {
+                queryRelation.setRelationType(ctx.edgeVariable().type().getText());
+            }
+            if (null != ctx.edgeVariable().properties()) {
+                Map<String, Pair<String, String>> relationPropertyFilters = parseProperties(ctx.
+                    edgeVariable().properties());
+                QueryPropertyPredicate queryPropertyPredicate;
+                for (String key : relationPropertyFilters.keySet()) {
+                    queryPropertyPredicate = new QueryPropertyPredicate();
+                    queryPropertyPredicate.setLeftOperand(new Pair<>(ctx.edgeVariable().variable().
+                        getText(), key));
+                    queryPropertyPredicate.setLiteral(relationPropertyFilters.get(key).b);
+                    queryPropertyPredicate.setComparisonOperator(ComparisonOperator.EQUALS);
+                    queryPropertyPredicate.setPredicateType(PredicateType.PROPERTY_KEY_AND_LITERAL_OPERANDS);
+                    structuredQuery.addQueryPropertyPredicate(queryPropertyPredicate);
+                }
+            }
+        }
+        structuredQuery.addRelation(queryRelation);
     }
 
     @Override
@@ -230,31 +260,29 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
                     " literals.");
             } else if (null != leftOperandCtx.variableWithProperty() && null != rightOperandCtx.
                 variableWithProperty()) {
-                queryPropertyPredicate.setVariable1(new Pair<>(leftOperandCtx.
+                queryPropertyPredicate.setLeftOperand(new Pair<>(leftOperandCtx.
                     variableWithProperty().variable().getText(), leftOperandCtx.
                     variableWithProperty().key().getText()));
-                queryPropertyPredicate.setVariable2(new Pair<>(rightOperandCtx.
+                queryPropertyPredicate.setRightOperand(new Pair<>(rightOperandCtx.
                     variableWithProperty().variable().getText(), rightOperandCtx.
                     variableWithProperty().key().getText()));
             } else if (null != leftOperandCtx.variableWithProperty() && null != rightOperandCtx.
                 literal()) {
-                queryPropertyPredicate.setVariable1(new Pair<>(leftOperandCtx.
+                queryPropertyPredicate.setLeftOperand(new Pair<>(leftOperandCtx.
                     variableWithProperty().variable().getText(), leftOperandCtx.
                     variableWithProperty().key().getText()));
-                queryPropertyPredicate.setLiteral(rightOperandCtx.literal().getText().
-                    replaceAll("\'", ""));
+                queryPropertyPredicate.setLiteral(getLiteral(rightOperandCtx.literal()));
             } else {
-                queryPropertyPredicate.setVariable1(new Pair<>(rightOperandCtx.
+                queryPropertyPredicate.setLeftOperand(new Pair<>(rightOperandCtx.
                     variableWithProperty().variable().getText(), rightOperandCtx.
                     variableWithProperty().key().getText()));
-                queryPropertyPredicate.setLiteral(leftOperandCtx.literal().getText().
-                    replaceAll("\'", ""));
+                queryPropertyPredicate.setLiteral(getLiteral(leftOperandCtx.literal()));
             }
 
             if (null == rightOperandCtx.literal() && null == leftOperandCtx.literal()) {
-                queryPropertyPredicate.setPredicateType(PredicateType.TWO_VARIABLES);
+                queryPropertyPredicate.setPredicateType(PredicateType.TWO_PROPERTY_KEY_OPERANDS);
             } else {
-                queryPropertyPredicate.setPredicateType(PredicateType.VARIABLE_AND_LITERAL);
+                queryPropertyPredicate.setPredicateType(PredicateType.PROPERTY_KEY_AND_LITERAL_OPERANDS);
             }
 
             queryPropertyPredicate.setComparisonOperator(ComparisonOperator.
@@ -267,51 +295,22 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
         }
     }
 
-    private void visitVariableEdge(VariableEdgeContext ctx, StructuredQuery structuredQuery) {
-        QueryRelation queryRelation = new QueryRelation((QueryVariable) visitVariableVertex(
-            structuredQuery, ctx.variableVertex(0)), (QueryVariable) visitVariableVertex(
-            structuredQuery, ctx.variableVertex(1)));
-        if (null != ctx.edgeVariable()) {
-            if (null != ctx.edgeVariable().variable()) {
-                queryRelation.setRelationName(ctx.edgeVariable().variable().getText());
-            }
-            if (null != ctx.edgeVariable().type()) {
-                queryRelation.setRelationType(ctx.edgeVariable().type().getText());
-            }
-            if (null != ctx.edgeVariable().propertyFilters()) {
-                Map<String, String> relationPropertyFilters = parsePropertyFilters(ctx.
-                    edgeVariable().propertyFilters());
-                QueryPropertyPredicate queryPropertyPredicate;
-                for (String key : relationPropertyFilters.keySet()) {
-                    queryPropertyPredicate = new QueryPropertyPredicate();
-                    queryPropertyPredicate.setVariable1(new Pair<>(ctx.edgeVariable().variable().
-                        getText(), key));
-                    queryPropertyPredicate.setLiteral(relationPropertyFilters.get(key));
-                    queryPropertyPredicate.setComparisonOperator(ComparisonOperator.EQUALS);
-                    queryPropertyPredicate.setPredicateType(PredicateType.VARIABLE_AND_LITERAL);
-                    structuredQuery.addQueryPropertyPredicate(queryPropertyPredicate);
-                }
-            }
-        }
-        structuredQuery.addRelation(queryRelation);
-    }
-
     private AbstractStructuredQuery visitVariableVertex(StructuredQuery structuredQuery,
         VariableVertexContext ctx) {
         QueryVariable queryVariable = new QueryVariable(ctx.variable().getText());
         if (null != ctx.type()) {
             queryVariable.setVariableType(ctx.type().variable().getText());
         }
-        if (null != ctx.propertyFilters()) {
-            Map<String, String> variablePropertyFilters = parsePropertyFilters(ctx.
-                propertyFilters());
+        if (null != ctx.properties()) {
+            Map<String, Pair<String, String>> variablePropertyFilters = parseProperties(ctx.
+                properties());
             QueryPropertyPredicate queryPropertyPredicate;
             for (String key : variablePropertyFilters.keySet()) {
                 queryPropertyPredicate = new QueryPropertyPredicate();
-                queryPropertyPredicate.setVariable1(new Pair<>(ctx.variable().getText(), key));
-                queryPropertyPredicate.setLiteral(variablePropertyFilters.get(key));
+                queryPropertyPredicate.setLeftOperand(new Pair<>(ctx.variable().getText(), key));
+                queryPropertyPredicate.setLiteral(variablePropertyFilters.get(key).b);
                 queryPropertyPredicate.setComparisonOperator(ComparisonOperator.EQUALS);
-                queryPropertyPredicate.setPredicateType(PredicateType.VARIABLE_AND_LITERAL);
+                queryPropertyPredicate.setPredicateType(PredicateType.PROPERTY_KEY_AND_LITERAL_OPERANDS);
                 structuredQuery.addQueryPropertyPredicate(queryPropertyPredicate);
             }
         }
@@ -321,32 +320,35 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
     private Map<String, Pair<String, String>> parseProperties(PropertiesContext ctx) {
         Map<String, Pair<String, String>> properties = new HashMap<>();
         for (int i = 0; i < ctx.property().size(); ++i) {
-            String dataType = ctx.property(i).dataType().getText();
-            LiteralContext literal = ctx.property(i).literal();
-            String value;
-            if (null != literal.stringLiteral()) {
-                value = literal.stringLiteral().value().getText();
-            } else {
-                value = literal.getText();
-            }
+            String dataType = parsePropertyDataType(ctx.property(i).literal());
+            String value = getLiteral(ctx.property(i).literal());
             DataType.assertValueCanBeCastToDataType(dataType, value);
             properties.put(ctx.property(i).key().getText(), new Pair<>(dataType, value));
         }
         return properties;
     }
 
-    private Map<String, String> parsePropertyFilters(PropertyFiltersContext ctx) {
-        Map<String, String> properties = new HashMap<>();
-        for (int i = 0; i < ctx.propertyFilter().size(); ++i) {
-            LiteralContext literal = ctx.propertyFilter(i).literal();
-            String value;
-            if (null != literal.stringLiteral()) {
-                value = literal.stringLiteral().value().getText();
-            } else {
-                value = literal.getText();
-            }
-            properties.put(ctx.propertyFilter(i).key().getText(), value);
+    private String parsePropertyDataType(LiteralContext literalCtx) {
+        if (null != literalCtx.stringLiteral()) {
+            return DataType.STRING.toString();
+        } else if (null != literalCtx.booleanLiteral()) {
+            return DataType.BOOLEAN.toString();
+        } else if (null != literalCtx.integerLiteral()) {
+            return DataType.INTEGER.toString();
+        } else {
+            return DataType.DOUBLE.toString();
         }
-        return properties;
+    }
+
+    private String getLiteral(LiteralContext ctx) {
+        if (ctx.stringLiteral() != null) {
+            return getUnquotedString(ctx.getText());
+        } else {
+            return ctx.getText();
+        }
+    }
+
+    private String getUnquotedString(String quotedString) {
+        return quotedString.substring(1, quotedString.length() - 1);
     }
 }

@@ -9,49 +9,44 @@ import java.util.function.Predicate;
 
 /**
  * A class representing a filter on the results of a MATCH query. Consists of two operands (a, b)
- * and a comparison operator(op) where the operands are variables used in specifying the subgraph
- * pattern of the MATCH query. The results of the MATCH query will be forced to satisfy a
- * {@link Predicate} encapsulating the predicate (a op b).
+ * and a comparison operator(op) where the operands are a literal or alternatively a relation or
+ * variable name used in the MATCH query followed by a property key. The results of the MATCH
+ * query satisfy a {@link Predicate} encapsulating the predicate (a op b).
  */
 public class QueryPropertyPredicate implements JsonOutputable {
 
     /**
-     * An enum whose constants specify types of predicates based on the types of the operand
-     * variables of comparison. The types of an operand variable is determined by whether they
-     * represent a vertex, or an edge in a MATCH query, or a constant.
+     * An enum whose constants specify types of predicates based on the types of the operands.
+     * The types of an operand is determined by whether they represent a vertex, or an
+     * edge name in a MATCH query, or a literal.
      */
     public enum PredicateType {
-        TWO_VARIABLES,
-        VARIABLE_AND_LITERAL
+        TWO_PROPERTY_KEY_OPERANDS,
+        PROPERTY_KEY_AND_LITERAL_OPERANDS
     }
 
-    public enum OperandType {
-        VARIABLE,
-        LITERAL
-    }
-
-    private Pair<String, String> variable1;
-    private Pair<String, String> variable2;
+    private Pair<String, String> leftOperand;
+    private Pair<String, String> rightOperand;
     private String literal;
     private ComparisonOperator comparisonOperator;
     private PredicateType predicateType;
 
     public QueryPropertyPredicate() { }
 
-    public Pair<String, String> getVariable1() {
-        return variable1;
+    public Pair<String, String> getLeftOperand() {
+        return leftOperand;
     }
 
-    public void setVariable1(Pair<String, String> variable1) {
-        this.variable1 = variable1;
+    public void setLeftOperand(Pair<String, String> leftOperand) {
+        this.leftOperand = leftOperand;
     }
 
-    public Pair<String, String> getVariable2() {
-        return variable2;
+    public Pair<String, String> getRightOperand() {
+        return rightOperand;
     }
 
-    public void setVariable2(Pair<String, String> variable2) {
-        this.variable2 = variable2;
+    public void setRightOperand(Pair<String, String> rightOperand) {
+        this.rightOperand = rightOperand;
     }
 
     public String getLiteral() {
@@ -98,11 +93,11 @@ public class QueryPropertyPredicate implements JsonOutputable {
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder()
-            .append("{ " + variable1.a + "." + variable1.b)
+            .append("{ " + leftOperand.a + "." + leftOperand.b)
             .append(" " + comparisonOperator.name() + " ")
             .append(" ");
-        if (variable2 != null) {
-            stringBuilder.append(variable2.a + "." + variable2.b + "}");
+        if (rightOperand != null) {
+            stringBuilder.append(rightOperand.a + "." + rightOperand.b + "}");
         } else {
             stringBuilder.append(literal + "}");
         }

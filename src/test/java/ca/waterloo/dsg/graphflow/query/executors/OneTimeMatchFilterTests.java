@@ -95,18 +95,18 @@ public class OneTimeMatchFilterTests {
 
     private void constructGraph() {
         TestUtils.initializeGraphPermanentlyWithProperties("CREATE " +
-            "(0:Person{name:string='name0', age:int=20, views:int=120})" +
-            "-[:FOLLOWS{views:int=250,is_friends:boolean=true}]->" +
-            "(1:Person{name:string='name1', age:int=25, views:int=70})," +
-            "(1:Person)-[:FOLLOWS{views:int=12, is_friends:boolean=true}]->(0:Person)," +
-            "(1:Person)-[:FOLLOWS{views:int=40, is_friends:boolean=false}]->" +
-            "(3:Person{name:string='name3', age:int=22, views:int=250})," +
-            "(3:Person)-[:FOLLOWS{views:int=70, is_friends:boolean=true}]->(0:Person), " +
-            "(4:Person{name:string='name4', age:int=40, views:int=20})-" +
-            "[:FOLLOWS{views:int=45, is_friends:boolean=true}]->(1:Person)," +
-            "(3:Person)-[:FOLLOWS{views:int=50, is_friends:boolean=true}]->(4:Person)," +
-            "(5:Person{name:string='name5', age:int=30, views:int=120})-" +
-            "[:FOLLOWS{views:int=35, is_friends:boolean=true}]->(4:Person)," +
-            "(1:Person)-[:FOLLOWS{views:int=250, is_friends:boolean=false}]->(5:Person);");
+            "(0:Person { name: 'name0', age: 20, views: 120 })" +
+            "-[:FOLLOWS { views: 250, is_friends: true }]->" +
+            "(1:Person { name: 'name1', age: 25, views: 70 })," +
+            "(1:Person)-[:FOLLOWS { views: 12, is_friends: true }]->(0:Person)," +
+            "(1:Person)-[:FOLLOWS { views: 40, is_friends: false }]->" +
+            "(3:Person { name: 'name3', age: 22, views: 250 })," +
+            "(3:Person)-[:FOLLOWS { views: 70, is_friends: true }]->(0:Person), " +
+            "(4:Person { name: 'name4', age: 40, views: 20 })-" +
+            "[:FOLLOWS { views: 45, is_friends: true }]->(1:Person)," +
+            "(3:Person)-[:FOLLOWS { views: 50, is_friends: true }]->(4:Person)," +
+            "(5:Person { name: 'name5', age: 30, views: 120 })-" +
+            "[:FOLLOWS { views: 35, is_friends: true }]->(4:Person)," +
+            "(1:Person)-[:FOLLOWS { views: 250, is_friends: false }]->(5:Person);");
     }
 }

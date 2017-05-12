@@ -38,21 +38,11 @@ public class GraphflowDurabilityTest {
     @Test
     public void testSavingAndLoadingSimpleGraph() throws Exception {
         String query = "CREATE " +
-            "(1:Person { name: String = 'Olivier' })" +
-            "-[:FOLLOWS {date:int=3}]->" +
-            "(2:Person { name: String = 'Mohannad' })," +
-            "(1:Person { name: String = 'Olivier' })" +
-            "-[:LIKES{date:int=2}]->" +
-            "(2:Person { name: String = 'Mohannad' })," +
-            "(2:Person { name: String = 'Mohannad' })" +
-            "-[:FOLLOWS]->" +
-            "(4:Person { name: String = 'Sid' })," +
-            "(1:Person {name: String = 'Olivier'})" +
-            "-[:FOLLOWS]->" +
-            "(4:Person { name: String = 'Sid' })," +
-            "(4:Person {name: String = 'Sid'})" +
-            "-[:LIKES]->" +
-            "(1:Person { name: String = 'Amine' });";
+            "(1:Person{ name: 'Olivier' })-[:FOLLOWS{ date:3 }]->(2:Person{ name: 'Mohannad'})," +
+            "(1:Person{ name: 'Olivier' })-[:LIKES{ date:2 }]->(2:Person{ name: 'Mohannad' })," +
+            "(2:Person{ name: 'Mohannad' })-[:FOLLOWS]->(4:Person { name: 'Sid' })," +
+            "(1:Person{ name: 'Olivier' })-[:FOLLOWS]->(4:Person{ name: 'Sid' })," +
+            "(4:Person{ name: 'Sid' })-[:LIKES]->(1:Person{ name: 'Amine' });";
 
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(query);
         ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(

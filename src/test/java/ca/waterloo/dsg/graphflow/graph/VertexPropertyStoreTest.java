@@ -26,7 +26,7 @@ public class VertexPropertyStoreTest {
 
         Map<String, Pair<String, String>> keysToAddToPropertyStore = new LinkedHashMap<>();
         keysToAddToPropertyStore.put("Team Name", new Pair<>("String", "Real Madrid C.F."));
-        keysToAddToPropertyStore.put("UEFA Champions League Wins", new Pair<>("int", "11"));
+        keysToAddToPropertyStore.put("UEFA Champions League Wins", new Pair<>("integer", "11"));
         keysToAddToPropertyStore.put("Won Champions League 15-16", new Pair<>("boolean", "true"));
         keysToAddToPropertyStore.put("Debt in M€ end 09-10", new Pair<>("double", "244.6"));
 

@@ -52,8 +52,7 @@ public class UDFSink extends AbstractDBOperator {
             matchQueryOutput.vertexIndices));
     }
 
-    @Override
-    public void done() {
+    public void executeUDF() {
         if (subgraphList.size() > 0) {
             try {
                 udfObject.evaluate(subgraphList);

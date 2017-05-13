@@ -86,17 +86,13 @@ abstract class PropertyStore implements GraphflowSerializable {
             if (!hasNext()) {
                 throw new NoSuchElementException("PropertyIterator has no more elements.");
             }
-            short key = (short) ((short) (data[currentIndex] << 8) |
-                ((short) data[currentIndex + 1]));
+            short key = (short) ((short) (data[currentIndex] << 8) | data[currentIndex + 1]);
             DataType dataType = TypeAndPropertyKeyStore.getInstance().getPropertyDataType(key);
 
             int length;
             int valueOffset;
             if (DataType.STRING == dataType) {
-                length = (((int) data[currentIndex + 2]) << 24) |
-                    (((int) data[currentIndex + 3]) << 16) |
-                    (((int) data[currentIndex + 4]) << 8) |
-                    (int) data[currentIndex + 5];
+                length = DataType.deserializeInteger(data, currentIndex + 2);
                 // 2 bytes for short key + 4 for an int storing the length of
                 // the String.
                 valueOffset = 6;

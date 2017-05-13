@@ -66,7 +66,7 @@ type : variable ;
 properties : OPEN_CURLY_BRACKET whitespace? ( property ( whitespace? COMMA whitespace? property )* )?
              whitespace? CLOSE_CURLY_BRACKET ;
 property : key whitespace? COLON whitespace? literal ;
-literal : integerLiteral | doubleLiteral | booleanLiteral | stringLiteral  ;
+literal : numericLiteral | booleanLiteral | stringLiteral  ;
 
 fileSink : FILE whitespace stringLiteral;
 udfCall : ACTION whitespace UDF whitespace functionName whitespace IN whitespace stringLiteral ;
@@ -108,7 +108,7 @@ keyword
     | FILE ;
 
 whitespace : ( SPACE | TAB | CARRIAGE_RETURN | LINE_FEED | FORM_FEED | Comment )+ ;
-
+numericLiteral : (DASH whitespace?)? ( integerLiteral | doubleLiteral ) ;
 integerLiteral : Digits ;
 doubleLiteral : Digits DOT Digits ;
 booleanLiteral : TRUE | FALSE ;
@@ -116,12 +116,13 @@ stringLiteral : QuotedString ;
 
 /*********** Lexer rules ***********/
 
+fragment EscapedChar : TAB | CARRIAGE_RETURN | LINE_FEED | BACKSPACE | FORM_FEED | '\\' ( '"' | '\'' | '\\' ) ;
+QuotedCharacter : SINGLE_QUOTE ( EscapedChar | ~( '\\' | '\'' ) ) SINGLE_QUOTE ;
+QuotedString : DOUBLE_QUOTE ( EscapedChar | ~( '"' ) )* DOUBLE_QUOTE
+             | SINGLE_QUOTE ( EscapedChar | ~( '\'' ) )* SINGLE_QUOTE ;
+
 Comment : '/*' .*? '*/'
         | '//' ~( '\n' | '\r' )*  '\r'? ( '\n' | EOF ) ;
-
-fragment EscapedChar : TAB | CARRIAGE_RETURN | LINE_FEED | BACKSPACE | FORM_FEED | '\\' ( '"' | '\'' | '\\' ) ;
-QuotedString : DOUBLE_QUOTE ( EscapedChar | ~( '\\' | '"' ) )* DOUBLE_QUOTE
-             | SINGLE_QUOTE ( EscapedChar | ~( '\\' | '\'' ) )* SINGLE_QUOTE ;
 
 MATCH : M A T C H ;
 CONTINUOUSLY : C O N T I N U O U S L Y ;

@@ -23,19 +23,11 @@ public class FilterPredicateFactory {
      *
      * @param queryPropertyPredicate the {@link QueryPropertyPredicate} which contains operand,
      * operator and type information for creating the {@link Predicate} that is returned.
-<<<<<<< HEAD
-     * @param leftOperandIndexInPropertyResults the index of left operand property in the property
-     * result set created by the {@link Filter} operator. {@link Filter} uses its
-     * {@link EdgeOrVertexPropertyDescriptor} list to create the property result set from the
-     * {@link MatchQueryOutput}.
-     * @param rightOperandIndexInPropertyResults the index of right operand property in the
-=======
      * @param leftOperandIndexInPropertyResults the index of the left operand property in the
      * property result set created by the {@link Filter} operator. {@link Filter} uses its
      * {@link EdgeOrVertexPropertyDescriptor} list to create the property result set from the
      * {@link MatchQueryOutput}.
      * @param rightOperandIndexInPropertyResults the index of the right operand property in the
->>>>>>> renaming 'variable' to avoid ambiguity in certain contexts
      * property result set created by the {@link Filter} operator. {@link Filter} uses its
      * {@link EdgeOrVertexPropertyDescriptor} list to create the property result set from the
      * {@link MatchQueryOutput}.

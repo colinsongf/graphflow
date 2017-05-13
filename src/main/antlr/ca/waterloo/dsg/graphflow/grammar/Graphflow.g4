@@ -116,12 +116,13 @@ stringLiteral : QuotedString ;
 
 /*********** Lexer rules ***********/
 
+fragment EscapedChar : TAB | CARRIAGE_RETURN | LINE_FEED | BACKSPACE | FORM_FEED | '\\' ( '"' | '\'' | '\\' ) ;
+QuotedCharacter : SINGLE_QUOTE ( EscapedChar | ~( '\\' | '\'' ) ) SINGLE_QUOTE ;
+QuotedString : DOUBLE_QUOTE ( EscapedChar | ~( '"' ) )* DOUBLE_QUOTE
+             | SINGLE_QUOTE ( EscapedChar | ~( '\'' ) )* SINGLE_QUOTE ;
+
 Comment : '/*' .*? '*/'
         | '//' ~( '\n' | '\r' )*  '\r'? ( '\n' | EOF ) ;
-
-fragment EscapedChar : TAB | CARRIAGE_RETURN | LINE_FEED | BACKSPACE | FORM_FEED | '\\' ( '"' | '\'' | '\\' ) ;
-QuotedString : DOUBLE_QUOTE ( EscapedChar | ~( '\\' | '"' ) )* DOUBLE_QUOTE
-             | SINGLE_QUOTE ( EscapedChar | ~( '\\' | '\'' ) )* SINGLE_QUOTE ;
 
 MATCH : M A T C H ;
 CONTINUOUSLY : C O N T I N U O U S L Y ;

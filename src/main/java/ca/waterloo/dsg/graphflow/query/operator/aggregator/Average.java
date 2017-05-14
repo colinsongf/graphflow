@@ -19,8 +19,6 @@ public class Average extends AbstractLongDoubleAggregator {
 
     @Override
     protected void aggregateInt(int index, int intValue) {
-        System.out.println("Average Aggregator. aggregating index: " + index + " intValue: "
-            + intValue);
         adjustSizeAndIncrementCount(index);
         this.longValues = ArrayUtils.resizeIfNecessary(this.longValues, index + 1,
             0 /* value to fill new cells if resizing */);
@@ -29,8 +27,6 @@ public class Average extends AbstractLongDoubleAggregator {
 
     @Override
     protected void aggregateDouble(int index, double doubleValue) {
-        System.out.println("Average Aggregator. aggregating index: " + index + " double: "
-            + doubleValue);
         adjustSizeAndIncrementCount(index);
         this.doubleValues = ArrayUtils.resizeIfNecessary(doubleValues, index + 1,
             0.0 /* value to fill new cells if resizing */);

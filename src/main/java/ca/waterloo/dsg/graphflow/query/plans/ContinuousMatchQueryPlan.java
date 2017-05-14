@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.UDFSink;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -73,6 +74,9 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
     public void execute(Graph graph) {
         for (OneTimeMatchQueryPlan oneTimeMatchQueryPlan : oneTimeMatchQueryPlans) {
             oneTimeMatchQueryPlan.execute(graph);
+        }
+        if (outputSink instanceof UDFSink) {
+            ((UDFSink) outputSink).executeUDF();
         }
     }
 

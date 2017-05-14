@@ -33,7 +33,6 @@ public class PropertyResolver extends PropertyReadingOperator {
     @Override
     public void append(MatchQueryOutput matchQueryOutput) {
         clearAndFillStringBuilder(matchQueryOutput, STRING_OUTPUT_DELIMITER);
-        stringBuilder.append(" ").append(matchQueryOutput.matchQueryResultType.name());
         nextOperator.append(stringBuilder.toString());
     }
 

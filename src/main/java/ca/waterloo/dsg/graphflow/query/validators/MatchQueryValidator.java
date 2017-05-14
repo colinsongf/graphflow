@@ -26,8 +26,12 @@ import java.util.Set;
  */
 public class MatchQueryValidator {
 
-    private static final String UNDEFINED_VARIABLE_ERROR_MESSAGE = "RETURN clause contains " +
+    private static final String UNDEFINED_VARIABLE_ERROR_MESSAGE = "clause contains " +
         "variables that are not defined in the MATCH clause.";
+    private static final String UNDEFINED_VARIABLE_IN_WHERE_CLAUSE_ERROR_MESSAGE = "WHERE " +
+        UNDEFINED_VARIABLE_ERROR_MESSAGE;
+    private static final String UNDEFINED_VARIABLE_IN_RETURN_CLAUSE_ERROR_MESSAGE = "RETURN " +
+        UNDEFINED_VARIABLE_ERROR_MESSAGE;
 
     QueryGraph queryGraph = new QueryGraph();
     StructuredQuery structuredQuery;
@@ -66,7 +70,7 @@ public class MatchQueryValidator {
 
     private void checkReturnVariablesAndPropertiesAreWellFormed() {
         for (String variable : structuredQuery.getReturnVariables()) {
-            checkVariableIsDefined(variable);
+            checkVariableIsDefined(variable, UNDEFINED_VARIABLE_IN_RETURN_CLAUSE_ERROR_MESSAGE);
         }
         for (Pair<String, String> variablePropertyPair :
             structuredQuery.getReturnVariablePropertyPairs()) {
@@ -74,7 +78,8 @@ public class MatchQueryValidator {
         }
         for (QueryAggregation queryAggregation : structuredQuery.getQueryAggregations()) {
             if (null != queryAggregation.getVariable()) {
-                checkVariableIsDefined(queryAggregation.getVariable());
+                checkVariableIsDefined(queryAggregation.getVariable(),
+                    UNDEFINED_VARIABLE_IN_RETURN_CLAUSE_ERROR_MESSAGE);
             } else if (null != queryAggregation.getVariablePropertyPair()) {
                 checkVariableIsDefinedAndPropertyExists(queryAggregation.getVariablePropertyPair());
             }
@@ -84,17 +89,17 @@ public class MatchQueryValidator {
     private void checkVariableIsDefinedAndPropertyExists(Pair<String, String>
         variablePropertyPair) {
         String variable = variablePropertyPair.a;
-        checkVariableIsDefined(variable);
+        checkVariableIsDefined(variable, UNDEFINED_VARIABLE_IN_RETURN_CLAUSE_ERROR_MESSAGE);
         String propertyKey = variablePropertyPair.b;
         if (!TypeAndPropertyKeyStore.getInstance().isPropertyDefined(propertyKey)) {
             throw new NoSuchPropertyKeyException(propertyKey);
         }
     }
 
-    private void checkVariableIsDefined(String variable) {
+    private void checkVariableIsDefined(String variable, String errorMessage) {
         if (!queryGraph.getAllVariableNames().contains(variable) &&
             !queryGraph.getAllRelationNames().contains(variable)) {
-            throw new MalformedReturnClauseException(UNDEFINED_VARIABLE_ERROR_MESSAGE);
+            throw new MalformedReturnClauseException(errorMessage);
         }
     }
 
@@ -103,10 +108,12 @@ public class MatchQueryValidator {
         // GraphflowVisitor ensures that the leftOperand is always a variableWithProperty and not
         // a literal.
         for (QueryPropertyPredicate predicate : structuredQuery.getQueryPropertyPredicates()) {
-            checkVariableIsDefined(predicate.getLeftOperand().a);
+            checkVariableIsDefined(predicate.getLeftOperand().a,
+                UNDEFINED_VARIABLE_IN_WHERE_CLAUSE_ERROR_MESSAGE);
             leftOperandKeyAndDataType = getKeyAndDataTypePair(predicate.getLeftOperand().b);
             if (PredicateType.TWO_PROPERTY_KEY_OPERANDS == predicate.getPredicateType()) {
-                checkVariableIsDefined(predicate.getRightOperand().a);
+                checkVariableIsDefined(predicate.getRightOperand().a,
+                    UNDEFINED_VARIABLE_IN_WHERE_CLAUSE_ERROR_MESSAGE);
                 rightOperandKeyAndDataType = getKeyAndDataTypePair(predicate.getRightOperand().b);
                 if ((!isNumeric(leftOperandKeyAndDataType.b) ||
                     !isNumeric(rightOperandKeyAndDataType.b)) &&

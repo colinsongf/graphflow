@@ -66,7 +66,6 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
         return jsonArray;
     }
 
-
     /**
      * Executes the {@link CreateQueryPlan}.
      *

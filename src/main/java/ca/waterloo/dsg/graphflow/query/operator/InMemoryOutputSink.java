@@ -14,6 +14,7 @@ import java.util.StringJoiner;
  */
 public class InMemoryOutputSink extends AbstractDBOperator {
 
+    private String header;
     private List<String> results = new ArrayList<>();
 
     public InMemoryOutputSink() {
@@ -28,6 +29,16 @@ public class InMemoryOutputSink extends AbstractDBOperator {
     @Override
     public void append(String result) {
         results.add(result);
+    }
+
+    /**
+     * Sets the header to be printed before all appended outputs.
+     * Note: the header is only set for queries which do not have return statements.
+     *
+     * @param header the {@code String} header for the results.
+     */
+    public void setHeader(String header) {
+        this.header = header;
     }
 
     @Override
@@ -46,6 +57,9 @@ public class InMemoryOutputSink extends AbstractDBOperator {
     @Override
     public String toString() {
         StringJoiner stringJoiner = new StringJoiner(System.lineSeparator());
+        if (null != header && results.size() > 0) {
+            stringJoiner.add(header);
+        }
         for (String result : results) {
             stringJoiner.add(result);
         }

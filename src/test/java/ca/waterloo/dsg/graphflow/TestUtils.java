@@ -201,7 +201,6 @@ public class TestUtils {
             for (Object element : results[i]) {
                 joiner.add(element.toString());
             }
-            joiner.add(matchQueryResultTypes[i].name());
             inMemoryOutputSink.append(joiner.toString());
         }
         return inMemoryOutputSink;

@@ -10,6 +10,7 @@ import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor.DescriptorType;
 import ca.waterloo.dsg.graphflow.query.operator.Filter;
 import ca.waterloo.dsg.graphflow.query.operator.GroupByAndAggregate;
+import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.operator.Projection;
 import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.AbstractAggregator;
@@ -218,6 +219,10 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             structuredQuery.getReturnVariablePropertyPairs().isEmpty() &&
             structuredQuery.getQueryAggregations().isEmpty()) {
             nextOperator = getIdentityPropertyResolver(orderedVertexVariablesBeforeProjection);
+            if (outputSink instanceof InMemoryOutputSink) {
+                ((InMemoryOutputSink) outputSink).setHeader(orderedVertexVariablesBeforeProjection.
+                    toString());
+            }
         } else {
             // Otherwise we first project onto the set of attributes mentioned in the RETURN
             // clause. And then resolve the variables in the RETURN clause with properties

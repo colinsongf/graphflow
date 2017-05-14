@@ -66,13 +66,9 @@ public class GroupByAndAggregate extends PropertyReadingOperator {
             valueAggregatorPairs) {
             if (valueAggregatorPair.b instanceof CountStar) {
                 valueAggregatorPair.b.aggregate(index, 1 /* we aggregate count(*) by 1 */);
-                System.out.println("Aggreating count(*): groupByKey: " + groupByKey);
                 continue;
             }
-            System.out.println("valueAggregatorPair.a: " + valueAggregatorPair.a);
             Object propertyOrId = getPropertyOrId(matchQueryOutput, valueAggregatorPair.a);
-            System.out.println("Aggreating: groupByKey: " + groupByKey + " value: "
-                + propertyOrId);
             valueAggregatorPair.b.aggregate(index, propertyOrId);
         }
     }

@@ -1,6 +1,5 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
-import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.query.output.JsonOutputable;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
@@ -15,9 +14,8 @@ import java.util.List;
  * needed in the query between some of these vertices. The edge IDs are only searched in the
  * {@link GraphVersion#PERMANENT}.
  */
-public class EdgeIdResolver extends AbstractDBOperator {
+public class EdgeIdResolver extends AbstractOperator {
 
-    private Graph graph = Graph.getInstance();
     private List<SourceDestinationIndexAndType> srcDstVertexIndicesAndTypes;
     private long[] edgeIds;
 
@@ -25,13 +23,12 @@ public class EdgeIdResolver extends AbstractDBOperator {
      * Default constructor.
      *
      * @param nextOperator next operator to append {@link MatchQueryOutput}s to.
-     * @param srcDstVertexIndicesAndTypes a list of {@link SourceDestinationIndexAndType}s. For
-     * each (srcIndex, dstIndex, type) triple in the list, this operator will resolve the ID of
-     * the edge between matchQueryOutput.vertexIds[srcIndex] and matchQueryOutput.
-     * vertexIds[srcIndex] with the given type in each {@link MatchQueryOutput} appended to this
-     * operator.
+     * @param srcDstVertexIndicesAndTypes a list of {@link SourceDestinationIndexAndType}s. For each
+     * (srcIndex, dstIndex, type) triple in the list, this operator will resolve the ID of the edge
+     * between matchQueryOutput.vertexIds[srcIndex] and matchQueryOutput. vertexIds[srcIndex] with
+     * the given type in each {@link MatchQueryOutput} appended to this operator.
      */
-    public EdgeIdResolver(AbstractDBOperator nextOperator,
+    public EdgeIdResolver(AbstractOperator nextOperator,
         List<SourceDestinationIndexAndType> srcDstVertexIndicesAndTypes) {
         super(nextOperator);
         this.srcDstVertexIndicesAndTypes = srcDstVertexIndicesAndTypes;
@@ -94,8 +91,7 @@ public class EdgeIdResolver extends AbstractDBOperator {
          * @param sourceIndex index in vertexIds array to read the ID of the source vertex.
          * @param destinationIndex index in vertexIds array to read the ID of the destination
          * vertex.
-         * @param type of the edge between vertexIds[sourceIndex] and
-         * vertexIds[destinationIndex].
+         * @param type of the edge between vertexIds[sourceIndex] and vertexIds[destinationIndex].
          */
         public SourceDestinationIndexAndType(int sourceIndex, int destinationIndex, short type) {
             this.sourceIndex = sourceIndex;

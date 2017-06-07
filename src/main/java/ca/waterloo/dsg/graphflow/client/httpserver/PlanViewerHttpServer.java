@@ -23,8 +23,8 @@ import java.util.Scanner;
 public class PlanViewerHttpServer extends GraphflowClient implements Runnable {
 
     private static final Logger logger = LogManager.getLogger(PlanViewerHttpServer.class);
-    private String query;
     private final String PLAN_VIEWER_HTML_PATH = "src/main/planviewer/plan_viewer.html";
+    private String query;
     private Thread thread;
 
     /**

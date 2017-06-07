@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.graph.EdgeStore;
 import ca.waterloo.dsg.graphflow.graph.VertexPropertyStore;
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.util.JsonUtils;
 import com.google.gson.JsonArray;
@@ -15,7 +16,6 @@ import java.util.List;
  * it resolves the properties and appends them to the next operator. Other vertices and edges
  * that do not have properties to resolve are also appended to the next operator with only their
  * IDs.
- * <p>
  * Note: For now this operator only appends String outputs to the next operator.
  */
 public class PropertyResolver extends PropertyReadingOperator {
@@ -23,9 +23,9 @@ public class PropertyResolver extends PropertyReadingOperator {
     private static String STRING_OUTPUT_DELIMITER = " ";
 
     /**
-     * @see PropertyReadingOperator#PropertyReadingOperator(AbstractDBOperator, List).
+     * @see PropertyReadingOperator#PropertyReadingOperator(AbstractOperator, List).
      */
-    public PropertyResolver(AbstractDBOperator nextOperator,
+    public PropertyResolver(OutputSink nextOperator,
         List<EdgeOrVertexPropertyDescriptor> propertyDescriptors) {
         super(nextOperator, propertyDescriptors);
     }
@@ -33,7 +33,7 @@ public class PropertyResolver extends PropertyReadingOperator {
     @Override
     public void append(MatchQueryOutput matchQueryOutput) {
         clearAndFillStringBuilder(matchQueryOutput, STRING_OUTPUT_DELIMITER);
-        nextOperator.append(stringBuilder.toString());
+        ((OutputSink) nextOperator).append(stringBuilder.toString());
     }
 
     @Override
@@ -52,8 +52,7 @@ public class PropertyResolver extends PropertyReadingOperator {
         JsonObject jsonArgument = new JsonObject();
         jsonArgument.addProperty(JsonUtils.NAME, "Descriptors");
         JsonArray jsonDescriptors = new JsonArray();
-        for (int i = 0; i < propertyDescriptors.size(); ++i) {
-            EdgeOrVertexPropertyDescriptor descriptor = propertyDescriptors.get(i);
+        for (EdgeOrVertexPropertyDescriptor descriptor : propertyDescriptors) {
             jsonDescriptors.add(descriptor.toJson());
         }
         jsonArgument.add(JsonUtils.VALUE, jsonDescriptors);

@@ -34,7 +34,7 @@ public class Filter extends PropertyReadingOperator {
      * specifying parameters for retrieving the list of properties used by the {@link Predicate}s.
      * @param queryPropertyPredicates The predicates used for filtering the MATCH output.
      */
-    public Filter(AbstractDBOperator nextOperator, Predicate<String[]> filterPredicate,
+    public Filter(AbstractOperator nextOperator, Predicate<String[]> filterPredicate,
         List<EdgeOrVertexPropertyDescriptor> edgeOrVertexPropertyDescriptors,
         List<QueryPropertyPredicate> queryPropertyPredicates) {
         super(nextOperator, edgeOrVertexPropertyDescriptors);
@@ -58,7 +58,7 @@ public class Filter extends PropertyReadingOperator {
     }
 
     @Override
-    protected String getHumanReadableOperator() {
+    public String getHumanReadableOperator() {
         StringBuilder stringBuilder = new StringBuilder("Filter:\n");
         appendListAsCommaSeparatedString(stringBuilder, queryPropertyPredicates,
             "filterPredicates");

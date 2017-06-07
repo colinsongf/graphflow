@@ -6,7 +6,6 @@ import java.io.ObjectOutputStream;
 
 /**
  * Interface for serialization and deserialization.
- * <p>
  * Each Graphflow object that implements {@link GraphflowSerializable} has: (1) a main file into
  * which it serializes parts or all of its data; and (2) optionally other files to store large data
  * structures, such as large arrays, in multiple parts. The main files are serialized using
@@ -33,7 +32,6 @@ public interface GraphflowSerializable {
 
     /**
      * Serializes the main file data and writes it to given {@code objectOutputStream}.
-     * <p>
      * See {@link GraphflowSerializable} class comments for a more detailed explanation.
      *
      * @param objectOutputStream The {@link ObjectOutputStream} to write the serialized data to.
@@ -42,7 +40,6 @@ public interface GraphflowSerializable {
 
     /**
      * Deserializes the main file data from the given {@code objectInputStream}.
-     * <p>
      * See {@link GraphflowSerializable} class comments for a more detailed explanation.
      *
      * @param objectInputStream The {@link ObjectInputStream} to read serialized data from.

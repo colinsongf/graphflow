@@ -1,7 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
-import ca.waterloo.dsg.graphflow.graph.Graph;
-import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractOperator;
 import ca.waterloo.dsg.graphflow.query.operator.UDFSink;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import com.google.gson.JsonArray;
@@ -21,9 +20,9 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
      * which together produce the complete output for the Delta Generic Join query.
      */
     private List<OneTimeMatchQueryPlan> oneTimeMatchQueryPlans = new ArrayList<>();
-    private AbstractDBOperator outputSink;
+    private AbstractOperator outputSink;
 
-    public ContinuousMatchQueryPlan(AbstractDBOperator outputSink) {
+    public ContinuousMatchQueryPlan(AbstractOperator outputSink) {
         this.outputSink = outputSink;
     }
 
@@ -42,8 +41,8 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
     public String getHumanReadablePlan() {
         StringBuilder stringBuilder = new StringBuilder("ContinuousMatchQueryPlan: \n");
         for (int i = 0; i < oneTimeMatchQueryPlans.size(); i += 2) {
-            stringBuilder.append("dQ" + (i / 2 + 1) + "\n");
-            stringBuilder.append(oneTimeMatchQueryPlans.get(i).getHumanReadablePlan() + "\n");
+            stringBuilder.append("dQ").append(i / 2 + 1).append("\n");
+            stringBuilder.append(oneTimeMatchQueryPlans.get(i).getHumanReadablePlan()).append("\n");
         }
         return stringBuilder.toString();
     }
@@ -57,8 +56,8 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
         JsonArray jsonArray = new JsonArray();
         JsonObject oneTimeMatchQueryPlanJson;
         for (int i = 0; i < oneTimeMatchQueryPlans.size(); i += 2) {
-            oneTimeMatchQueryPlanJson = (JsonObject) oneTimeMatchQueryPlans.get(i).getJsonPlan()
-                .get(0);
+            oneTimeMatchQueryPlanJson = (JsonObject) oneTimeMatchQueryPlans.get(i).getJsonPlan().
+                get(0);
             oneTimeMatchQueryPlanJson.remove("name");
             oneTimeMatchQueryPlanJson.addProperty("name", "dQ" + (i / 2 + 1));
             jsonArray.add(oneTimeMatchQueryPlanJson);
@@ -68,12 +67,10 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
 
     /**
      * Executes the {@link CreateQueryPlan}.
-     *
-     * @param graph the {@link Graph} instance to use during the plan execution.
      */
-    public void execute(Graph graph) {
+    public void execute() {
         for (OneTimeMatchQueryPlan oneTimeMatchQueryPlan : oneTimeMatchQueryPlans) {
-            oneTimeMatchQueryPlan.execute(graph);
+            oneTimeMatchQueryPlan.execute();
         }
         if (outputSink instanceof UDFSink) {
             ((UDFSink) outputSink).executeUDF();
@@ -86,8 +83,9 @@ public class ContinuousMatchQueryPlan implements QueryPlan {
      *
      * @param a One of the objects.
      * @param b The other object.
-     * @return {@code true} if the {@code a} object values are the same as the
-     * {@code b} object values, {@code false} otherwise.
+     *
+     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
+     * values, {@code false} otherwise.
      */
     @UsedOnlyByTests
     public static boolean isSameAs(ContinuousMatchQueryPlan a, ContinuousMatchQueryPlan b) {

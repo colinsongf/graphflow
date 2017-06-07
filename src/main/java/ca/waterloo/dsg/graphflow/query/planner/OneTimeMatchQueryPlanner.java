@@ -2,17 +2,18 @@ package ca.waterloo.dsg.graphflow.query.planner;
 
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractOperator;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver.SourceDestinationIndexAndType;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor.DescriptorType;
+import ca.waterloo.dsg.graphflow.query.operator.Extend;
 import ca.waterloo.dsg.graphflow.query.operator.Filter;
 import ca.waterloo.dsg.graphflow.query.operator.GroupByAndAggregate;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.operator.Projection;
 import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver;
+import ca.waterloo.dsg.graphflow.query.operator.Scan;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.AbstractAggregator;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.Average;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.CountStar;
@@ -20,6 +21,9 @@ import ca.waterloo.dsg.graphflow.query.operator.aggregator.Max;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.Min;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.Sum;
 import ca.waterloo.dsg.graphflow.query.operator.filter.FilterPredicateFactory;
+import ca.waterloo.dsg.graphflow.query.operator.genericjoin.EdgeIntersectionRule;
+import ca.waterloo.dsg.graphflow.query.operator.genericjoin.StageOperator;
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryAggregation;
@@ -46,23 +50,18 @@ import java.util.function.Predicate;
 public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
 
     private static final Logger logger = LogManager.getLogger(OneTimeMatchQueryPlanner.class);
-    protected QueryGraph queryGraph = new QueryGraph();
-    protected AbstractDBOperator outputSink;
+    protected OutputSink outputSink;
+    QueryGraph queryGraph = new QueryGraph();
     private TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
 
     /**
      * @param structuredQuery query to plan.
      * @param outputSink output sink to be added to the final operator in the plan.
      */
-    public OneTimeMatchQueryPlanner(StructuredQuery structuredQuery,
-        AbstractDBOperator outputSink) {
+    public OneTimeMatchQueryPlanner(StructuredQuery structuredQuery, OutputSink outputSink) {
         super(structuredQuery);
         this.outputSink = outputSink;
         queryGraph = new MatchQueryValidator(structuredQuery).validateQueryAndGetQueryGraph();
-    }
-
-    public OneTimeMatchQueryPlanner(StructuredQuery structuredQuery) {
-        this(structuredQuery, null /* Sink not set */);
     }
 
     /**
@@ -71,7 +70,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
      * Break tie from (1) by selecting the variable with highest degree. 3) Break tie from (2) by
      * selecting the variable with lowest lexicographical rank.
      */
-    protected void orderRemainingVariables(List<String> orderedVariables) {
+    void orderRemainingVariables(List<String> orderedVariables) {
         int initialSize = orderedVariables.size();
         Set<String> visitedVariables = new HashSet<>();
         visitedVariables.addAll(orderedVariables);
@@ -129,7 +128,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
      * @return A {@link QueryPlan} encapsulating an {@link OneTimeMatchQueryPlan}.
      */
     public QueryPlan plan() {
-        OneTimeMatchQueryPlan oneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
+        OneTimeMatchQueryPlan plan = new OneTimeMatchQueryPlan();
         List<String> orderedVariables = new ArrayList<>();
         /*
           Find the first variable, considering the following properties:
@@ -155,12 +154,16 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         // Order the rest of the variables.
         orderRemainingVariables(orderedVariables);
         // Store variable ordering in {@link OneTimeMatchQueryPlan}
-        oneTimeMatchQueryPlan.setOrderedVariables(orderedVariables);
+        plan.setOrderedVariables(orderedVariables);
         // Finally, create the plan.
+        StageOperator previousStageOperator;
+        StageOperator currentStageOperator = null;
+        String fromVertexTypeFilter = null;
+        String toVertexTypeFilter = null;
         // Start from the second variable to create the first stage.
         for (int i = 1; i < orderedVariables.size(); i++) {
             String variableForCurrentStage = orderedVariables.get(i);
-            ArrayList<GenericJoinIntersectionRule> stage = new ArrayList<>();
+            List<EdgeIntersectionRule> stage = new ArrayList<>();
             // Loop across all variables covered in the previous stages.
             for (int j = 0; j < i; j++) {
                 String variableFromPreviousStage = orderedVariables.get(j);
@@ -171,30 +174,47 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
                         Direction direction = queryRelation.getFromQueryVariable().
                             getVariableName().equals(variableFromPreviousStage) ?
                             Direction.FORWARD : Direction.BACKWARD;
-                        stage.add(new GenericJoinIntersectionRule(j, direction,
-                            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
-                                queryRelation.getFromQueryVariable().getVariableType()),
-                            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
-                                queryRelation.getToQueryVariable().getVariableType()),
-                            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
-                                queryRelation.getRelationType())));
+                        fromVertexTypeFilter = queryRelation.getFromQueryVariable().
+                            getVariableType();
+                        toVertexTypeFilter = queryRelation.getToQueryVariable().getVariableType();
+                        stage.add(new EdgeIntersectionRule(j, direction, TypeAndPropertyKeyStore.
+                            getInstance().mapStringTypeToShort(queryRelation.getRelationType())));
                     }
                 }
             }
-            oneTimeMatchQueryPlan.addStage(stage);
+            if (1 == i) {
+                currentStageOperator = new Scan(stage, TypeAndPropertyKeyStore.getInstance().
+                    mapStringTypeToShort(fromVertexTypeFilter), TypeAndPropertyKeyStore.
+                    getInstance().mapStringTypeToShort(toVertexTypeFilter));
+                plan.setFirstOperator(currentStageOperator);
+            } else {
+                previousStageOperator = currentStageOperator;
+                currentStageOperator = new Extend(stage, TypeAndPropertyKeyStore.getInstance().
+                    mapStringTypeToShort(toVertexTypeFilter));
+                previousStageOperator.nextOperator = currentStageOperator;
+            }
         }
+        currentStageOperator.setMatchQueryOutput(plan.getFirstOperator().getMatchQueryResultType(),
+            getVariableIndicesMap(orderedVariables));
+        currentStageOperator.nextOperator = getNextOperator(orderedVariables);
 
-        oneTimeMatchQueryPlan.setNextOperator(getNextOperator(orderedVariables));
         logger.info("**********Printing OneTimeMatchQueryPlan**********");
-        logger.info("Plan: \n" + oneTimeMatchQueryPlan.getHumanReadablePlan());
-        return oneTimeMatchQueryPlan;
+        logger.info("Plan: \n" + plan.getHumanReadablePlan());
+        return plan;
+    }
+
+    Map<String, Integer> getVariableIndicesMap(List<String> orderedVariables) {
+        Map<String, Integer> variableIndicesMap = new HashMap<>();
+        for (int i = 0; i < orderedVariables.size(); ++i) {
+            variableIndicesMap.put(orderedVariables.get(i), i);
+        }
+        return variableIndicesMap;
     }
 
     /**
      * Adds to {@link OneTimeMatchQueryPlan} the next plan which can be one of the following. The
      * op1->op2 below indicates that operator op1 appends results to operator op2.
      * {@link EdgeIdResolver} is only added when the WHERE or RETURN clauses contain edge variables.
-     * <p>
      * <ul>
      * <li> {@link PropertyResolver}->{@link #outputSink}.
      * <li> {@link Filter}->{@link PropertyResolver}->{@link #outputSink}.
@@ -206,9 +226,9 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
      * OR {@link GroupByAndAggregate})->{@link #outputSink}.
      * </ul>
      */
-    AbstractDBOperator getNextOperator(
+    AbstractOperator getNextOperator(
         List<String> orderedVertexVariablesBeforeProjection) {
-        AbstractDBOperator nextOperator;
+        AbstractOperator nextOperator;
         List<String> orderedEdgeVariablesAfterProjection = new ArrayList<>();
         Map<String, Integer> orderedVariableIndexMapBeforeProjection =
             getOrderedVariableIndexMap(orderedVertexVariablesBeforeProjection);
@@ -240,7 +260,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
 
             // First construct the PropertyResolver or GroupByAndAggregate which will be the
             // operator following Projection
-            AbstractDBOperator projectionsNextOperator;
+            AbstractOperator projectionsNextOperator;
             Map<String, Integer> vertexVariableOrderIndexMapAfterProjection =
                 getOrderedVariableIndexMap(orderedVertexVariablesAfterProjection);
             Map<String, Integer> edgeVariableOrderIndexMap = getOrderedVariableIndexMap(
@@ -285,9 +305,9 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         }
     }
 
-    protected AbstractDBOperator constructFilter(Map<String, Integer>
+    AbstractOperator constructFilter(Map<String, Integer>
         vertexVariableOrderIndexMapBeforeProjection, Map<String, Integer>
-        edgeVariableOrderIndexMap, AbstractDBOperator nextOperator) {
+        edgeVariableOrderIndexMap, AbstractOperator nextOperator) {
         List<EdgeOrVertexPropertyDescriptor> edgeOrVertexPropertyDescriptors = new ArrayList<>();
         // The {@code descriptorIndexMap} holds the position of the descriptor for a given
         // variable in {@code edgeOrVertexPropertyDescriptors} list. A map is used to prevent
@@ -359,7 +379,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         }
     }
 
-    private AbstractDBOperator constructGroupByAndAggregate(
+    private AbstractOperator constructGroupByAndAggregate(
         Map<String, Integer> vertexVariableOrderIndexMapAfterProjection,
         Map<String, Integer> edgeVariableOrderIndexMap) {
         List<EdgeOrVertexPropertyDescriptor> valuesToGroupBy =
@@ -414,12 +434,11 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         return new GroupByAndAggregate(outputSink, valuesToGroupBy, valueAggregatorPairs);
     }
 
-    protected AbstractDBOperator constructEdgeIdResolver(List<String> orderedEdgeVariables,
+    AbstractOperator constructEdgeIdResolver(List<String> orderedEdgeVariables,
         Map<String, Integer> orderedVariableIndexMapBeforeProjection,
-        AbstractDBOperator nextOperator) {
+        AbstractOperator nextOperator) {
         List<SourceDestinationIndexAndType> srcDstVertexIndicesAndTypes = new ArrayList<>();
-        for (int i = 0; i < orderedEdgeVariables.size(); ++i) {
-            String orderedEdgeVariable = orderedEdgeVariables.get(i);
+        for (String orderedEdgeVariable : orderedEdgeVariables) {
             QueryRelation queryRelation = queryGraph.getRelationFromRelationName(
                 orderedEdgeVariable);
             if (null == queryRelation) {
@@ -543,7 +562,7 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
         return new PropertyResolver(outputSink, edgeOrVertexPropertyIndices);
     }
 
-    protected Map<String, Integer> getOrderedVariableIndexMap(List<String> orderedVariables) {
+    Map<String, Integer> getOrderedVariableIndexMap(List<String> orderedVariables) {
         Map<String, Integer> variableOrderIndexMapBeforeProjection = new HashMap<>();
         for (int i = 0; i < orderedVariables.size(); ++i) {
             variableOrderIndexMapBeforeProjection.put(orderedVariables.get(i), i);

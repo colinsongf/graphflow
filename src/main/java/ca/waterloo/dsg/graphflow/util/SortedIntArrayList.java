@@ -61,6 +61,7 @@ public class SortedIntArrayList {
      * value in the list. Returns -1 if value not found.
      *
      * @param value value to find in list.
+     *
      * @return int index of matched value or -1 if value does not exist
      */
     public int search(int value) {
@@ -86,6 +87,7 @@ public class SortedIntArrayList {
      * result as {@code SortedIntArrayList}.
      *
      * @param newList
+     *
      * @return SortedIntArrayList
      */
     public SortedIntArrayList getIntersection(SortedIntArrayList newList) {

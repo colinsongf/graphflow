@@ -3,8 +3,10 @@ package ca.waterloo.dsg.graphflow.query.executors;
 import ca.waterloo.dsg.graphflow.TestUtils;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
-import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractOperator;
 import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
+import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput.MatchQueryResultType;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
@@ -23,7 +25,7 @@ import java.io.IOException;
 import java.util.StringJoiner;
 
 /**
- * Tests {@link GenericJoinExecutor}.
+ * Tests {@link ContinuousMatchQueryExecutor}.
  */
 public class ContinuousMatchQueryExecutorTest {
 
@@ -50,7 +52,7 @@ public class ContinuousMatchQueryExecutorTest {
         String fileName = "continuous_match_query_" + structuredQuery.
             getFilePath();
         File location = temporaryFolder.newFile(fileName);
-        AbstractDBOperator outputSink = new FileOutputSink(location);
+        OutputSink outputSink = new FileOutputSink(location);
         ContinuousMatchQueryPlanner planner = new ContinuousMatchQueryPlanner(structuredQuery,
             location);
         ContinuousMatchQueryExecutor.getInstance().addContinuousMatchQueryPlan(
@@ -69,7 +71,7 @@ public class ContinuousMatchQueryExecutorTest {
         TestUtils.deleteEdgesTemporarily(graph, "DELETE (1)->(2)");
 
         // Execute the registered CONTINUOUS MATCH query.
-        ContinuousMatchQueryExecutor.getInstance().execute(graph);
+        ContinuousMatchQueryExecutor.getInstance().execute();
 
         int[][] expectedMotifs = {{2, 0, 1}, {3, 4, 1}, {3, 4, 1}, {3, 4, 1}, {1, 2, 0}};
         MatchQueryResultType[] expectedMatchQueryResultTypes = {MatchQueryResultType.EMERGED,

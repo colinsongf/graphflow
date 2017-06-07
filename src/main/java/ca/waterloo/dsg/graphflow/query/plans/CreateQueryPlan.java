@@ -4,7 +4,7 @@ import ca.waterloo.dsg.graphflow.exceptions.IncorrectDataTypeException;
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
-import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryRelation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryVariable;
 import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
@@ -27,21 +27,21 @@ public class CreateQueryPlan implements QueryPlan {
     /**
      * Executes the {@link CreateQueryPlan}.
      *
-     * @param graph the {@link Graph} instance to use during the plan execution.
-     * @param outputSink the {@link AbstractDBOperator} to which the execution output is written.
-     * @throws IncorrectDataTypeException if there are two new properties in the query with the
-     * same key but different {@link DataType} or if the {@link DataType} of a property key K is
-     * not the same as the {@link DataType} that has been stored previously for K.
+     * @param outputSink the {@link OutputSink} to which the execution output is written.
+     *
+     * @throws IncorrectDataTypeException if there are two new properties in the query with the same
+     * key but different {@link DataType} or if the {@link DataType} of a property key K is not the
+     * same as the {@link DataType} that has been stored previously for K.
      */
-    public void execute(Graph graph, AbstractDBOperator outputSink) {
+    public void execute(OutputSink outputSink) {
         if (structuredQuery.getQueryRelations().size() > 0) {
-            createEdges(graph, outputSink);
+            createEdges(outputSink);
         } else {
-            createVertices(graph, outputSink);
+            createVertices(outputSink);
         }
     }
 
-    private void createVertices(Graph graph, AbstractDBOperator outputSink) {
+    private void createVertices(OutputSink outputSink) {
         TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
         try {
             for (QueryVariable queryVariable : structuredQuery.getQueryVariables()) {
@@ -56,7 +56,7 @@ public class CreateQueryPlan implements QueryPlan {
                 Map<Short, Pair<DataType, String>> vertexProperties = typeAndPropertyKeyStore.
                     mapStringPropertiesToShortAndDataTypeOrInsert(stringvertexProperties);
 
-                graph.addVertex(vertexId, vertexType, vertexProperties);
+                Graph.getInstance().addVertex(vertexId, vertexType, vertexProperties);
             }
             // TODO(amine): bug, count the actual number of vertices created to append to sink.
             outputSink.append(structuredQuery.getQueryVariables().size() + " vertices created.");
@@ -65,7 +65,7 @@ public class CreateQueryPlan implements QueryPlan {
         }
     }
 
-    private void createEdges(Graph graph, AbstractDBOperator outputSink) {
+    private void createEdges(OutputSink outputSink) {
         TypeAndPropertyKeyStore typeAndPropertyKeyStore = TypeAndPropertyKeyStore.getInstance();
         try {
             for (QueryRelation queryRelation : structuredQuery.getQueryRelations()) {
@@ -109,11 +109,12 @@ public class CreateQueryPlan implements QueryPlan {
                 Map<Short, Pair<DataType, String>> edgeProperties = typeAndPropertyKeyStore.
                     mapStringPropertiesToShortAndDataTypeOrInsert(stringEdgeProperties);
 
-                graph.addEdgeTemporarily(fromVertex, toVertex, fromVertexType, toVertexType,
-                    fromVertexProperties, toVertexProperties, edgeType, edgeProperties);
+                Graph.getInstance().addEdgeTemporarily(fromVertex, toVertex, fromVertexType,
+                    toVertexType, fromVertexProperties, toVertexProperties, edgeType,
+                    edgeProperties);
             }
-            ContinuousMatchQueryExecutor.getInstance().execute(graph);
-            graph.finalizeChanges();
+            ContinuousMatchQueryExecutor.getInstance().execute();
+            Graph.getInstance().finalizeChanges();
             // TODO(amine): bug, count the actual number of edges created to append to sink.
             outputSink.append(structuredQuery.getQueryRelations().size() + " edges created.");
         } catch (UnsupportedOperationException e) {

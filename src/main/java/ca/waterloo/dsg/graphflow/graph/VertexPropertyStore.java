@@ -53,12 +53,13 @@ public class VertexPropertyStore extends PropertyStore {
     /**
      * Returns the {@code Short} key, and {@code Object} value pair properties of the vertex with
      * the given ID.
-     * <p>
      * Warning: If a vertex's properties are empty, it can be because of two things: (1) the
      * vertex was never created; or (2) the vertex has indeed no properties.
      *
      * @param vertexId The ID of the vertex.
+     *
      * @return The possibly empty properties of the edge as a Map<Short, Object>.
+     *
      * @throws NoSuchElementException if the vertex with ID {@code vertexId} is larger than the
      * highest vertex ID previously created.
      */
@@ -83,12 +84,13 @@ public class VertexPropertyStore extends PropertyStore {
     /**
      * Returns the {@code String} key, and {@code String} value pair properties of the vertex with
      * the given ID.
-     * <p>
      * Warning: If a vertex's properties are empty, it can be because of two things: (1) the
      * vertex was never created; or (2) the vertex has indeed no properties.
      *
      * @param vertexId The ID of the vertex.
+     *
      * @return The possibly empty properties of the edge as a Map<String, String>.
+     *
      * @throws NoSuchElementException if the vertex with ID {@code vertexId} is larger than the
      * highest vertex ID previously created.
      */
@@ -115,14 +117,15 @@ public class VertexPropertyStore extends PropertyStore {
      * Given a vertex ID, and key, returns the property of the vertex with the given vertex ID
      * that has the given key. If the vertex does not contain a property with the given key, returns
      * null.
-     * <p>
      * Warning: If the vertex ID is less than the highest created vertex ID, the vertex with the
      * given ID might still have never been created. The property with the given key of a not yet
      * created vertex returns null.
      *
      * @param vertexId ID of a vertex.
      * @param key key of a property.
+     *
      * @return the given vertex's property with the given key or null if no such property exists.
+     *
      * @throws NoSuchElementException if the vertex with ID {@code vertexId} is larger than the
      * highest vertex ID previously created.
      */
@@ -185,6 +188,7 @@ public class VertexPropertyStore extends PropertyStore {
      *
      * @param a One of the objects.
      * @param b The other object.
+     *
      * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests

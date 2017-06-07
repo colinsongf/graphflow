@@ -9,7 +9,6 @@ import java.util.NoSuchElementException;
 /**
  * Stores a mapping of {@code String} keys to {@code short} keys and vice versa. Each new
  * {@code String} key inserted gets a consecutively increasing short key starting from 0.
- * <p>
  * Warning: This class internally uses {@link StringToIntKeyMap} and stores the {@code short} keys
  * as integers and converts them to {@code short}s. If the callers insert more than
  * {@link Short#MAX_VALUE} keys this class will overflow its short values.
@@ -51,7 +50,9 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
 
     /**
      * @param stringKey The {@code String} key.
+     *
      * @return The {@code short} mapping of the given {@code String} key.
+     *
      * @throws IllegalArgumentException if {@code stringKey} passed is {@code null}.
      */
     public short getKeyAsShortOrInsert(String stringKey) {
@@ -60,8 +61,10 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
 
     /**
      * @param key The {@code String} key.
+     *
      * @return The {@code Short} mapping of the given {@code String} key or {@code null} if the
      * {@code key} is not in the map.
+     *
      * @throws IllegalArgumentException if {@code key} passed is {@code null}.
      */
     public Short mapStringKeyToShort(String key) {
@@ -74,7 +77,9 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
 
     /**
      * @param shortKey The {@code short} key.
+     *
      * @return The {@code String} mapping of the given {@code short} key.
+     *
      * @throws NoSuchElementException if {@code key} passed is not present in the key store.
      */
     public String mapShortKeyToString(short shortKey) {
@@ -91,6 +96,7 @@ public class StringToShortKeyStore extends StringToIntKeyMap {
      *
      * @param a One of the objects.
      * @param b The other object.
+     *
      * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests

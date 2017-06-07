@@ -1,6 +1,5 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
-import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
 
 import java.util.ArrayList;
@@ -32,12 +31,9 @@ public class ContinuousMatchQueryExecutor {
 
     /**
      * Executes all the registered {@link ContinuousMatchQueryPlan}s.
-     *
-     * @param graph the {@link Graph} instance to use for the execution of the
-     * {@link ContinuousMatchQueryPlan}s.
      */
-    public void execute(Graph graph) {
-        continuousMatchQueryPlans.forEach(plan -> plan.execute(graph));
+    public void execute() {
+        continuousMatchQueryPlans.forEach(plan -> plan.execute());
     }
 
     /**

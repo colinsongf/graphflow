@@ -24,15 +24,16 @@ public class FilterPredicateFactory {
      * @param queryPropertyPredicate the {@link QueryPropertyPredicate} which contains operand,
      * operator and type information for creating the {@link Predicate} that is returned.
      * @param leftOperandIndexInPropertyResults the index of the left operand property in the
-     * property result set created by the {@link Filter} operator. {@link Filter} uses its
-     * {@link EdgeOrVertexPropertyDescriptor} list to create the property result set from the
-     * {@link MatchQueryOutput}.
+     * property result set created by the {@link Filter} operator. {@link Filter} uses its {@link
+     * EdgeOrVertexPropertyDescriptor} list to create the property result set from the {@link
+     * MatchQueryOutput}.
      * @param rightOperandIndexInPropertyResults the index of the right operand property in the
-     * property result set created by the {@link Filter} operator. {@link Filter} uses its
-     * {@link EdgeOrVertexPropertyDescriptor} list to create the property result set from the
-     * {@link MatchQueryOutput}.
-     * @return a {@link Predicate<String[]>} instance that will perform the comparison
-     * specified in the {@code queryPropertyPredicate}.
+     * property result set created by the {@link Filter} operator. {@link Filter} uses its {@link
+     * EdgeOrVertexPropertyDescriptor} list to create the property result set from the {@link
+     * MatchQueryOutput}.
+     *
+     * @return a {@link Predicate<String[]>} instance that will perform the comparison specified in
+     * the {@code queryPropertyPredicate}.
      */
     public static Predicate<String[]> getFilterPredicate(
         QueryPropertyPredicate queryPropertyPredicate, int leftOperandIndexInPropertyResults,

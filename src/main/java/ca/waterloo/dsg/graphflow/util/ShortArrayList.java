@@ -54,9 +54,11 @@ public class ShortArrayList {
      * Returns the value at the specified index.
      *
      * @param index The index in the underlying array of the element to be returned.
+     *
      * @return short The value at {@code index}.
-     * @throws ArrayIndexOutOfBoundsException Throws exception if index is greater than the size
-     * of the {@link ShortArrayList} collection.
+     *
+     * @throws ArrayIndexOutOfBoundsException Throws exception if index is greater than the size of
+     * the {@link ShortArrayList} collection.
      */
     public short get(int index) {
         if (index >= size) {
@@ -108,6 +110,7 @@ public class ShortArrayList {
      *
      * @param a One of the objects.
      * @param b The other object.
+     *
      * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests

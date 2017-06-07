@@ -84,7 +84,9 @@ public class SortedAdjacencyList {
      * Returns the neighbour ID at the given {@code index}.
      *
      * @param index The index of the neighbour ID.
+     *
      * @return The neighbour ID at the given index.
+     *
      * @throws ArrayIndexOutOfBoundsException If {@code index} is greater than the size of this
      * {@code SortedAdjacencyList}.
      */
@@ -100,7 +102,9 @@ public class SortedAdjacencyList {
      * Returns the edge type at the given {@code index}.
      *
      * @param index The index of the edge type.
+     *
      * @return The edge type at the given index.
+     *
      * @throws ArrayIndexOutOfBoundsException If {@code index} is greater than the size of this
      * {@code SortedAdjacencyList}.
      */
@@ -116,7 +120,9 @@ public class SortedAdjacencyList {
      * Returns the edge ID at the given {@code index}.
      *
      * @param index The index of the edge ID.
+     *
      * @return The edge ID at the given index.
+     *
      * @throws ArrayIndexOutOfBoundsException If {@code index} is greater than the size of this
      * {@code SortedAdjacencyList}.
      */
@@ -133,6 +139,7 @@ public class SortedAdjacencyList {
      *
      * @param neighbourId The neighbour ID of the edge.
      * @param edgeType The type of the edge.
+     *
      * @return The edge ID at the given index.
      */
     public long getEdgeId(int neighbourId, short edgeType) {
@@ -145,6 +152,7 @@ public class SortedAdjacencyList {
      *
      * @param toVertexTypeFilter The to vertex type for filtering.
      * @param edgeTypeFilter The edge type for filtering.
+     *
      * @return IntArrayList The subset of neighbour IDs matching {@code toVertexTypeFilter} and
      * {@code edgeTypeFilter}
      */
@@ -201,6 +209,7 @@ public class SortedAdjacencyList {
      *
      * @param sortedListToIntersect The {@link IntArrayList} to intersect.
      * @param edgeTypeFilter The edge type for filtering the intersections.
+     *
      * @return The set of intersected vertices as an {@link IntArrayList}.
      */
     public IntArrayList getIntersection(IntArrayList sortedListToIntersect, short edgeTypeFilter) {
@@ -264,6 +273,7 @@ public class SortedAdjacencyList {
      * @param neighbourId The neighbour ID to be searched.
      * @param edgeTypeFilter The type of the edge searched for.
      * @param startIndex The index to start the search from.
+     *
      * @return Index of the neighbour if a match is found or a negative value as described above.
      */
     public int search(int neighbourId, short edgeTypeFilter, int startIndex) {
@@ -375,6 +385,7 @@ public class SortedAdjacencyList {
      *
      * @param a One of the objects.
      * @param b The other object.
+     *
      * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests

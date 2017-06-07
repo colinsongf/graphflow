@@ -237,8 +237,7 @@ public class OneTimeMatchQueryGroupByTests {
     private void runTest(String queryString, String... expectedResultsList) {
         StructuredQuery query = new StructuredQueryParser().parse(queryString);
         InMemoryOutputSink outputSink = new InMemoryOutputSink();
-        ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(query, outputSink).plan()).
-            execute(Graph.getInstance());
+        ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(query, outputSink).plan()).execute();
         List<String> expectedResults = new ArrayList<>(Arrays.asList(expectedResultsList));
         List<String> actualResults = outputSink.getResults();
         Collections.sort(expectedResults);

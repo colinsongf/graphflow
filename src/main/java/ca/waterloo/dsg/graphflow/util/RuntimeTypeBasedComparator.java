@@ -43,14 +43,16 @@ public class RuntimeTypeBasedComparator {
      * eg 1: Runtime types Integer and Double are comparable.
      * eg 2: Runtime types String and Integer are not comparable.
      *
-     * @param operand1 an {@link Object} operand for {@code comparisonOperator} with a runtime
-     * type of {@link Integer}, {@link Double}, {@link Boolean} or {@link String}.
-     * @param operand2 an {@link Object} operand for {@code comparisonOperator} with a runtime
-     * type of {@link Integer}, {@link Double}, {@link Boolean} or {@link String}.
+     * @param operand1 an {@link Object} operand for {@code comparisonOperator} with a runtime type
+     * of {@link Integer}, {@link Double}, {@link Boolean} or {@link String}.
+     * @param operand2 an {@link Object} operand for {@code comparisonOperator} with a runtime type
+     * of {@link Integer}, {@link Double}, {@link Boolean} or {@link String}.
      * @param comparisonOperator an {@link ComparisonOperator} that represents the comparison
      * operator to be performed on {@code operand1} and {@code operand2}.
-     * @return the {@code boolean} which results by performing the comparison
-     * {@code comparisonOperator} on the operands {@code operand1} and {@code operand2}.
+     *
+     * @return the {@code boolean} which results by performing the comparison {@code
+     * comparisonOperator} on the operands {@code operand1} and {@code operand2}.
+     *
      * @throws IllegalArgumentException if the runtime types of the operands are not comparable.
      */
     public static boolean resolveTypesAndCompare(Object operand1, Object operand2,

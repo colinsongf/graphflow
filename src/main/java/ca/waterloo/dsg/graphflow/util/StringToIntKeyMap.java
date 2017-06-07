@@ -20,8 +20,10 @@ public class StringToIntKeyMap {
 
     /**
      * @param key The {@code String} key.
+     *
      * @return The {@code Integer} mapping of the given {@code String} key or {@code null} if the
      * {@code key} is not in the map.
+     *
      * @throws IllegalArgumentException if {@code key} passed is {@code null}.
      */
     public Integer mapStringKeyToInt(String key) {
@@ -33,7 +35,9 @@ public class StringToIntKeyMap {
 
     /**
      * @param stringKey The {@code String} key.
+     *
      * @return The {@code int} mapping of the given {@code String} key.
+     *
      * @throws IllegalArgumentException if {@code stringKey} passed is {@code null}.
      */
     public int getKeyAsIntOrInsert(String stringKey) {
@@ -52,7 +56,6 @@ public class StringToIntKeyMap {
     /**
      * Adjusts other data structures that classes extending {@link StringToIntKeyMap} might have.
      * This is called when a new key is being inserted to the map.
-     * <p>
      * Note: Should be implemented by classes extending {@link StringToIntKeyMap}.
      *
      * @param newStringKey new String key being inserted.
@@ -100,6 +103,7 @@ public class StringToIntKeyMap {
      *
      * @param a One of the objects.
      * @param b The other object.
+     *
      * @return {@code true} if the {@code a} object values are the same as the {@code b} object
      * values, {@code false} otherwise.
      */

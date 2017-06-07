@@ -47,10 +47,10 @@ public class EdgeOrVertexPropertyDescriptor implements JsonOutputable {
      * vertex or edge should be used.
      * </ul>
      *
-     * @param descriptorType Whether this descriptor is describing a vertex ID/property
-     * or edge ID/property.
-     * @param index index of the vertex or edge in the vertexIds or edgeIds fields of
-     * {@link MatchQueryOutput}.
+     * @param descriptorType Whether this descriptor is describing a vertex ID/property or edge
+     * ID/property.
+     * @param index index of the vertex or edge in the vertexIds or edgeIds fields of {@link
+     * MatchQueryOutput}.
      * @param key the short key of the vertex or edge property (or -1 if the descriptor is
      * describing an ID).
      */

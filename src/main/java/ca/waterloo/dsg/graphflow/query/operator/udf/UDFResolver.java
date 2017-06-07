@@ -17,6 +17,7 @@ public class UDFResolver {
      * @param pathToJar The absolute path to the jar file containing the user's {@link UDFAction}
      * class.
      * @param udfClassName The qualified class name for the udf in the jar file.
+     *
      * @throws IOException when the jar file cannot be read or accessed.
      * @throws ClassNotFoundException when the class specified is not found in the specified jar.
      * @throws InstantiationException When the class loaded from the jar fails to be instantiated.

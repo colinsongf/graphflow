@@ -14,7 +14,6 @@ import java.util.List;
  * "The {@link UDFAction} that can be used for writing continuously matched (a)->(b)->(c) patterns
  * to a file. Assuming the user creates a jar write-to-file.jar that contains this class, this
  * class can be used in a continuous match query as follows:
- * <p>
  * CONTINUOUSLY MATCH (a)->(b), (b)->(c)
  * ACTION UDF ca.waterloo.dsg.graphflow.udfexamples.WriteToFile in UDFExamples.jar
  */

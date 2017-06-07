@@ -1,7 +1,8 @@
 package ca.waterloo.dsg.graphflow.query.plans;
 
 import ca.waterloo.dsg.graphflow.query.executors.ShortestPathExecutor;
-import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractOperator;
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
 
 /**
  * Represents the execution plan for a shortest path query.
@@ -19,9 +20,9 @@ public class ShortestPathPlan implements QueryPlan {
     /**
      * Executes the {@link OneTimeMatchQueryPlan}.
      *
-     * @param outputSink the {@link AbstractDBOperator} to which the execution output is written.
+     * @param outputSink the {@link AbstractOperator} to which the execution output is written.
      */
-    public void execute(AbstractDBOperator outputSink) {
+    public void execute(OutputSink outputSink) {
         ShortestPathExecutor.getInstance().execute(source, destination, outputSink);
     }
 }

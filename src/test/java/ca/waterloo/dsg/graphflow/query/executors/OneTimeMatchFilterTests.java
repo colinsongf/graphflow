@@ -1,7 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.executors;
 
 import ca.waterloo.dsg.graphflow.TestUtils;
-import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
@@ -86,7 +85,7 @@ public class OneTimeMatchFilterTests {
     private void runTest(String query, Object[][] expectedResults) {
         InMemoryOutputSink inMemoryOutputSink = new InMemoryOutputSink();
         ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(new StructuredQueryParser().parse(
-            query), inMemoryOutputSink).plan()).execute(Graph.getInstance());
+            query), inMemoryOutputSink).plan()).execute();
         InMemoryOutputSink expectedResultOutputSink = TestUtils.getInMemoryOutputSinkForMotifs(
             expectedResults);
         Assert.assertArrayEquals(expectedResultOutputSink.getResults().toArray(),

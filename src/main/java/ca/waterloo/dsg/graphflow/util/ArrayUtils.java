@@ -38,6 +38,7 @@ public class ArrayUtils {
 
     /**
      * @param defaultValue default value to fill the new cells in the array when resizing.
+     *
      * @see #resizeIfNecessary(Object[], int)
      */
     public static long[] resizeIfNecessary(long[] array, int minCapacity, long defaultValue) {
@@ -54,6 +55,7 @@ public class ArrayUtils {
 
     /**
      * @param defaultValue default value to fill the new cells in the array when resizing.
+     *
      * @see #resizeIfNecessary(Object[], int)
      */
     public static double[] resizeIfNecessary(double[] array, int minCapacity, double defaultValue) {

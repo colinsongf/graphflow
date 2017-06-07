@@ -67,6 +67,7 @@ public abstract class AbstractAggregator {
 
     /**
      * @param index index of an aggregate.
+     *
      * @return {@link String} representation of the aggregate value at the given index.
      */
     public String getStringValue(int index) {

@@ -35,6 +35,7 @@ public class StructuredQuery implements AbstractStructuredQuery {
     private String continuousMatchOutputLocation;
     private String filePath;
     private List<QueryPropertyPredicate> queryPropertyPredicates = new ArrayList<>();
+    private List<ExistsPredicate> existsPredicates = new ArrayList<>();
 
     /**
      * @return A read-only list of query relations.
@@ -145,6 +146,14 @@ public class StructuredQuery implements AbstractStructuredQuery {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public List<ExistsPredicate> getExistsPredicates() {
+        return existsPredicates;
+    }
+
+    public void addExistsPredicates(ExistsPredicate existsPredicate) {
+        existsPredicates.add(existsPredicate);
     }
 
     /**

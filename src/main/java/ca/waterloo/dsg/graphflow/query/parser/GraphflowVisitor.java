@@ -4,6 +4,7 @@ import ca.waterloo.dsg.graphflow.exceptions.MalformedWhereClauseException;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowBaseVisitor;
 import ca.waterloo.dsg.graphflow.grammar.GraphflowParser.*;
 import ca.waterloo.dsg.graphflow.query.structuredquery.AbstractStructuredQuery;
+import ca.waterloo.dsg.graphflow.query.structuredquery.ExistsPredicate;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryAggregation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryAggregation.AggregationFunction;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
@@ -252,49 +253,71 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
 
     private void visitWhereClause(StructuredQuery structuredQuery, WhereClauseContext ctx) {
         for (int i = 0; i < ctx.predicates().predicate().size(); i++) {
-            QueryPropertyPredicate queryPropertyPredicate = new QueryPropertyPredicate();
-            OperandContext leftOperandCtx = ctx.predicates().predicate(i).operand(0);
-            OperandContext rightOperandCtx = ctx.predicates().predicate(i).operand(1);
-
-            if (null != leftOperandCtx.literal() && null != rightOperandCtx.literal()) {
-                throw new MalformedWhereClauseException("Both operands of a where clause can't be" +
-                    " literals.");
-            } else if (null != leftOperandCtx.variableWithProperty() && null != rightOperandCtx.
-                variableWithProperty()) {
-                queryPropertyPredicate.setLeftOperand(new Pair<>(leftOperandCtx.
-                    variableWithProperty().variable().getText(), leftOperandCtx.
-                    variableWithProperty().key().getText()));
-                queryPropertyPredicate.setRightOperand(new Pair<>(rightOperandCtx.
-                    variableWithProperty().variable().getText(), rightOperandCtx.
-                    variableWithProperty().key().getText()));
-            } else if (null != leftOperandCtx.variableWithProperty() && null != rightOperandCtx.
-                literal()) {
-                queryPropertyPredicate.setLeftOperand(new Pair<>(leftOperandCtx.
-                    variableWithProperty().variable().getText(), leftOperandCtx.
-                    variableWithProperty().key().getText()));
-                queryPropertyPredicate.setLiteral(getLiteral(rightOperandCtx.literal()));
+            if (null != ctx.predicates().predicate(i).operation()) {
+                visitOperationClause(structuredQuery, ctx.predicates().predicate(i).operation());
             } else {
-                queryPropertyPredicate.setLeftOperand(new Pair<>(rightOperandCtx.
-                    variableWithProperty().variable().getText(), rightOperandCtx.
-                    variableWithProperty().key().getText()));
-                queryPropertyPredicate.setLiteral(getLiteral(leftOperandCtx.literal()));
+                visitExistsClause(structuredQuery, ctx.predicates().predicate(i).existsClause());
             }
-
-            if (null == rightOperandCtx.literal() && null == leftOperandCtx.literal()) {
-                queryPropertyPredicate.setPredicateType(PredicateType.TWO_PROPERTY_KEY_OPERANDS);
-            } else {
-                queryPropertyPredicate.setPredicateType(PredicateType.
-                    PROPERTY_KEY_AND_LITERAL_OPERANDS);
-            }
-
-            queryPropertyPredicate.setComparisonOperator(ComparisonOperator.
-                mapStringToComparisonOperator(ctx.predicates().predicate(i).operator().getText()));
-            if (null != leftOperandCtx.literal()) {
-                queryPropertyPredicate.invertComparisonOperator();
-            }
-
-            structuredQuery.addQueryPropertyPredicate(queryPropertyPredicate);
         }
+    }
+
+    private void visitExistsClause(StructuredQuery structuredQuery, ExistsClauseContext ctx) {
+        QueryRelation queryRelation = new QueryRelation(
+            (QueryVariable) visitVariableVertex(structuredQuery,
+                ctx.variableEdge().variableVertex(0)),
+            (QueryVariable) visitVariableVertex(structuredQuery,
+                ctx.variableEdge().variableVertex(1)));
+        if (null != ctx.variableEdge().edgeVariable()) {
+            if (null != ctx.variableEdge().edgeVariable().type()) {
+                queryRelation.setRelationType(ctx.variableEdge().edgeVariable().type().getText());
+            }
+        }
+        structuredQuery.addExistsPredicates(new ExistsPredicate(ctx.NOT() == null, queryRelation));
+    }
+
+    private void visitOperationClause(StructuredQuery structuredQuery, OperationContext ctx) {
+        QueryPropertyPredicate queryPropertyPredicate = new QueryPropertyPredicate();
+        OperandContext leftOperandCtx = ctx.operand(0);
+        OperandContext rightOperandCtx = ctx.operand(1);
+
+        if (null != leftOperandCtx.literal() && null != rightOperandCtx.literal()) {
+            throw new MalformedWhereClauseException("Both operands of a where clause can't be" +
+                " literals.");
+        } else if (null != leftOperandCtx.variableWithProperty() && null != rightOperandCtx.
+            variableWithProperty()) {
+            queryPropertyPredicate.setLeftOperand(new Pair<>(leftOperandCtx.
+                variableWithProperty().variable().getText(), leftOperandCtx.
+                variableWithProperty().key().getText()));
+            queryPropertyPredicate.setRightOperand(new Pair<>(rightOperandCtx.
+                variableWithProperty().variable().getText(), rightOperandCtx.
+                variableWithProperty().key().getText()));
+        } else if (null != leftOperandCtx.variableWithProperty() && null != rightOperandCtx.
+            literal()) {
+            queryPropertyPredicate.setLeftOperand(new Pair<>(leftOperandCtx.
+                variableWithProperty().variable().getText(), leftOperandCtx.
+                variableWithProperty().key().getText()));
+            queryPropertyPredicate.setLiteral(getLiteral(rightOperandCtx.literal()));
+        } else {
+            queryPropertyPredicate.setLeftOperand(new Pair<>(rightOperandCtx.
+                variableWithProperty().variable().getText(), rightOperandCtx.
+                variableWithProperty().key().getText()));
+            queryPropertyPredicate.setLiteral(getLiteral(leftOperandCtx.literal()));
+        }
+
+        if (null == rightOperandCtx.literal() && null == leftOperandCtx.literal()) {
+            queryPropertyPredicate.setPredicateType(PredicateType.TWO_PROPERTY_KEY_OPERANDS);
+        } else {
+            queryPropertyPredicate.setPredicateType(PredicateType.
+                PROPERTY_KEY_AND_LITERAL_OPERANDS);
+        }
+
+        queryPropertyPredicate.setComparisonOperator(ComparisonOperator.
+            mapStringToComparisonOperator(ctx.operator().getText()));
+        if (null != leftOperandCtx.literal()) {
+            queryPropertyPredicate.invertComparisonOperator();
+        }
+
+        structuredQuery.addQueryPropertyPredicate(queryPropertyPredicate);
     }
 
     private AbstractStructuredQuery visitVariableVertex(StructuredQuery structuredQuery,

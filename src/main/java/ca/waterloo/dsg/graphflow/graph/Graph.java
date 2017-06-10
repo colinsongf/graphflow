@@ -365,6 +365,22 @@ public class Graph implements GraphflowSerializable {
         }
     }
 
+    public boolean isEdgePresentOfType(int vertexId, Direction direction, short typeFilter) {
+        if (vertexId < 0 || vertexId > highestPermanentVertexId) {
+            return false;
+        }
+        SortedAdjacencyList[] permanentAdjacencyLists;
+        if (Direction.FORWARD == direction) {
+            permanentAdjacencyLists = forwardAdjLists;
+        } else {
+            permanentAdjacencyLists = backwardAdjLists;
+        }
+        if (typeFilter == TypeAndPropertyKeyStore.ANY) {
+            return permanentAdjacencyLists[vertexId].getSize() > 0;
+        }
+        return permanentAdjacencyLists[vertexId].isEdgePresentOfType(typeFilter);
+    }
+
     /**
      * Checks if an edge is present between {@code fromVertexId} and {@code toVertexId} in the
      * given {@code graphVersion} of the graph, for the given {@code direction}, with a given
@@ -373,7 +389,8 @@ public class Graph implements GraphflowSerializable {
      * @param fromVertexId The from vertex ID.
      * @param toVertexId The to vertex ID.
      * @param direction The {@link Direction} of the edge.
-     * @param graphVersion The {@link GraphVersion} where the edge's presence needs to be checked.
+     * @param graphVersion The {@link GraphVersion} where the edge's presence needs to be
+     * checked.
      * @param typeFilter The type of the edge being searched for.
      * @return {@code true} if the edge is present, {@code false} otherwise.
      */

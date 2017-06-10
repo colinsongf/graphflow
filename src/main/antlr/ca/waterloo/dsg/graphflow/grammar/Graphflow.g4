@@ -41,7 +41,10 @@ aggregationFunction : ( AVG | MAX | MIN | SUM ) ;
 countStarPattern :  COUNT OPEN_ROUND_BRACKET whitespace? STAR whitespace? CLOSE_ROUND_BRACKET ;
 whereClause : WHERE whitespace predicates ;
 predicates : predicate ( whitespace AND whitespace predicate )* ;
-predicate : operand whitespace? operator whitespace? operand ;
+predicate : operation | existsClause ;
+existsClause : (NOT whitespace)? EXISTS whitespace?
+               OPEN_ROUND_BRACKET whitespace? variableEdge whitespace? CLOSE_ROUND_BRACKET ;
+operation : operand whitespace? operator whitespace? operand ;
 operand : literal | variableWithProperty ;
 variableEdge : variableVertex (DASH edgeVariable)? DASH GREATER_THAN variableVertex ;
 digitsEdgeWithOptionalType : digitsVertex (DASH edgeType)? DASH GREATER_THAN digitsVertex ;
@@ -86,6 +89,7 @@ keyword
     | SHORTEST
     | PATH
     | WHERE
+    | EXISTS
     | RETURN
     | COUNT
     | AVG
@@ -105,6 +109,7 @@ keyword
     | FALSE
     | AND
     | OR
+    | NOT
     | FILE ;
 
 whitespace : ( SPACE | TAB | CARRIAGE_RETURN | LINE_FEED | FORM_FEED | Comment )+ ;
@@ -135,6 +140,7 @@ SHORTEST : S H O R T E S T ;
 PATH : P A T H ;
 WHERE : W H E R E ;
 RETURN : R E T U R N ;
+EXISTS : E X I S T S ;
 
 COUNT : C O U N T ;
 AVG : A V G ;
@@ -157,6 +163,7 @@ FALSE : F A L S E ;
 
 AND : A N D ;
 OR : O R ;
+NOT : N O T ;
 
 FILE : F I L E ;
 

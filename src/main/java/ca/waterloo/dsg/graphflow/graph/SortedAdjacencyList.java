@@ -308,6 +308,15 @@ public class SortedAdjacencyList {
         return search(neighbourId, edgeTypeFilter, 0 /* start index */);
     }
 
+    public boolean isEdgePresentOfType(short edgeTypeFilter) {
+        for (short edgeId : edgeTypes) {
+            if (edgeId == edgeTypeFilter) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Sorts {@code neighbourIds} first in ascending order of their IDs and then by edge type.
      * The {@code edgeTypes} and {@code edgeIds} are also sorted to match the neighbor ID ordering.

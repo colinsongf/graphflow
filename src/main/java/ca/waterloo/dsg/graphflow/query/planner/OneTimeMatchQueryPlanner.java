@@ -8,9 +8,12 @@ import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver.SourceDestinationIndexAndType;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeOrVertexPropertyDescriptor.DescriptorType;
+import ca.waterloo.dsg.graphflow.query.operator.ExistsFilter;
+import ca.waterloo.dsg.graphflow.query.operator.ExistsPredicateRule;
 import ca.waterloo.dsg.graphflow.query.operator.Filter;
 import ca.waterloo.dsg.graphflow.query.operator.GroupByAndAggregate;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.NotExistsPredicateRule;
 import ca.waterloo.dsg.graphflow.query.operator.Projection;
 import ca.waterloo.dsg.graphflow.query.operator.PropertyResolver;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.AbstractAggregator;
@@ -22,6 +25,7 @@ import ca.waterloo.dsg.graphflow.query.operator.aggregator.Sum;
 import ca.waterloo.dsg.graphflow.query.operator.filter.FilterPredicateFactory;
 import ca.waterloo.dsg.graphflow.query.plans.OneTimeMatchQueryPlan;
 import ca.waterloo.dsg.graphflow.query.plans.QueryPlan;
+import ca.waterloo.dsg.graphflow.query.structuredquery.ExistsPredicate;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryAggregation;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryGraph;
 import ca.waterloo.dsg.graphflow.query.structuredquery.QueryPropertyPredicate;
@@ -184,7 +188,63 @@ public class OneTimeMatchQueryPlanner extends AbstractQueryPlanner {
             oneTimeMatchQueryPlan.addStage(stage);
         }
 
-        oneTimeMatchQueryPlan.setNextOperator(getNextOperator(orderedVariables));
+        AbstractDBOperator nextOperator = getNextOperator(orderedVariables);
+        if (!structuredQuery.getExistsPredicates().isEmpty()) {
+            ExistsFilter existsFilter = new ExistsFilter(nextOperator);
+            for (ExistsPredicate existsPredicate : structuredQuery.getExistsPredicates()) {
+                int fromVariableIndex = orderedVariables.indexOf(existsPredicate.
+                    getQueryRelation().getFromQueryVariable().getVariableName());
+                int toVariableIndex = orderedVariables.indexOf(existsPredicate.getQueryRelation().
+                    getToQueryVariable().getVariableName());
+                if (!existsPredicate.isExists()) {
+                    if (-1 == fromVariableIndex || -1 == toVariableIndex) {
+                        throw new IllegalArgumentException("Not exists cannot use variables not " +
+                            "part of the output query graph");
+                    }
+                    existsFilter.addNotExistsPredicateRules(new NotExistsPredicateRule(
+                        fromVariableIndex, toVariableIndex,
+                        TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
+                            existsPredicate.getQueryRelation().getFromQueryVariable().
+                                getVariableType()),
+                        TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
+                            existsPredicate.getQueryRelation().getToQueryVariable().
+                                getVariableType()),
+                        TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
+                            existsPredicate.getQueryRelation().getRelationType())));
+                } else {
+                    if (-1 == fromVariableIndex && -1 == toVariableIndex) {
+                        throw new IllegalArgumentException("Exists query requires atleast one " +
+                            "variable to be part of the output query graph");
+                    }
+                    if (!(-1 == fromVariableIndex || -1 == toVariableIndex)) {
+                        throw new IllegalArgumentException("Exists query requires atleast one " +
+                            "variable to be NOT be part of the output query graph");
+                    }
+                    Direction direction;
+                    int variableIndex;
+                    String variableType;
+                    if (fromVariableIndex == -1) {
+                        direction = Direction.BACKWARD;
+                        variableIndex = toVariableIndex;
+                        variableType = existsPredicate.getQueryRelation().getToQueryVariable().
+                            getVariableType();
+                    } else {
+                        direction = Direction.FORWARD;
+                        variableIndex = fromVariableIndex;
+                        variableType = existsPredicate.getQueryRelation().getFromQueryVariable().
+                            getVariableType();
+                    }
+                    existsFilter.addExistsPredicateRules(new ExistsPredicateRule(variableIndex,
+                        direction,
+                        TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(variableType),
+                        TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(
+                            existsPredicate.getQueryRelation().getRelationType())
+                    ));
+                }
+            }
+            nextOperator = existsFilter;
+        }
+        oneTimeMatchQueryPlan.setNextOperator(nextOperator);
         logger.info("**********Printing OneTimeMatchQueryPlan**********");
         logger.info("Plan: \n" + oneTimeMatchQueryPlan.getHumanReadablePlan());
         return oneTimeMatchQueryPlan;

@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.util.JsonUtils;
 import com.google.gson.JsonObject;
@@ -14,13 +15,12 @@ import java.util.Arrays;
 /**
  * Outputs query results to a file.
  */
-public class FileOutputSink extends AbstractDBOperator {
+public class FileOutputSink extends OutputSink {
 
     private File location;
     private PrintWriter writer;
 
     public FileOutputSink(File location) throws IOException {
-        super(null /* no nextOperator, always last operator in the OneTimeMatchQueryPlan. */);
         this.location = location;
         this.writer = new PrintWriter(new BufferedWriter(new FileWriter(location, true)));
     }
@@ -50,7 +50,7 @@ public class FileOutputSink extends AbstractDBOperator {
 
     @Override
     public String getHumanReadableOperator() {
-        return "FileOutputSink:\n";
+        return "FileOutputSink\n";
     }
 
     @Override

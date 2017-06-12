@@ -18,6 +18,7 @@ public class SerDeUtils {
      *
      * @param directoryPath The path of the directory where serialized data is stored.
      * @param className The name of the class whose objects are being serialized.
+     *
      * @return The full path to the main file.
      */
     public static String getMainFilePath(String directoryPath, String className) {
@@ -32,6 +33,7 @@ public class SerDeUtils {
      * @param directoryPath The path of the directory where serialized data is stored.
      * @param className The name of the class whose objects are being serialized.
      * @param arrayName The name of the array being serialized in parallel.
+     *
      * @return The full path to the metadata file.
      */
     public static String getMetadataFilePath(String directoryPath, String className,
@@ -48,6 +50,7 @@ public class SerDeUtils {
      * @param className The name of the class whose objects are being serialized.
      * @param arrayName The name of the array being serialized in parallel.
      * @param blockIndex The block index of the array being serialized.
+     *
      * @return The full path to the block file.
      */
     public static String getArrayBlockFilePath(String directoryPath, String className,

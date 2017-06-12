@@ -97,7 +97,9 @@ public class QueryGraph {
 
     /**
      * @param variable The from variable whose number of adjacent relations is required.
+     *
      * @return The count of all incoming and outgoing relations of {@code variable}.
+     *
      * @throws NoSuchElementException if {@code variable} is not present in the {@link QueryGraph}.
      */
     public int getNumberOfAdjacentRelations(String variable) {
@@ -112,7 +114,9 @@ public class QueryGraph {
 
     /**
      * @param variable The from variable whose neighbors are required.
+     *
      * @return The unordered list of neighbor variables.
+     *
      * @throws NoSuchElementException if {@code variable} is not present in the {@link QueryGraph}.
      */
     public Set<String> getAllNeighborVariables(String variable) {
@@ -125,8 +129,9 @@ public class QueryGraph {
     /**
      * @param variable1 One of the variables.
      * @param variable2 The other variable.
-     * @return {@code true} if there is an relation between {@code variable1} and
-     * {@code variable2} in any direction, {@code false} otherwise.
+     *
+     * @return {@code true} if there is an relation between {@code variable1} and {@code variable2}
+     * in any direction, {@code false} otherwise.
      */
     public boolean containsRelation(String variable1, String variable2) {
         return queryGraph.containsKey(variable1) && queryGraph.get(variable1).
@@ -136,9 +141,10 @@ public class QueryGraph {
     /**
      * @param fromVariable The from variable.
      * @param toVariable The to variable.
+     *
      * @return A read-only list of {@link QueryRelation}s representing all the relations present
-     * between
-     * {@code variable} and {@code neighborVariable}.
+     * between {@code variable} and {@code neighborVariable}.
+     *
      * @throws NoSuchElementException if either {@code fromVariable} or {@code toVariable} is not
      * present in the {@link QueryGraph}.
      */

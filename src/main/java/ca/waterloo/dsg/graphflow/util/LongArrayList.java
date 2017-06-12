@@ -31,6 +31,7 @@ public class LongArrayList {
      * Returns the value at the specified index.
      *
      * @param index The index being searched.
+     *
      * @return The value at the given index.
      */
     public long get(int index) {

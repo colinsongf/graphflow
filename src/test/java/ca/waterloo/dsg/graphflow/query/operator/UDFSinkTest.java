@@ -56,7 +56,7 @@ public class UDFSinkTest {
         TestUtils.createEdgesTemporarily(Graph.getInstance(), "CREATE (0:t{age: 4})-[:te]->" +
             "(1:t),(1:t)-[:t]->(2:t);");
 
-        ContinuousMatchQueryExecutor.getInstance().execute(Graph.getInstance());
+        ContinuousMatchQueryExecutor.getInstance().execute();
 
         // Test the output of the registered CONTINUOUS MATCH query.
         BufferedReader br = new BufferedReader(new FileReader(location));

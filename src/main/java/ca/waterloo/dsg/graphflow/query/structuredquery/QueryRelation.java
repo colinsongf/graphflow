@@ -71,8 +71,9 @@ public class QueryRelation implements AbstractStructuredQuery {
      *
      * @param a One of the objects.
      * @param b The other object.
-     * @return {@code true} if the {@code a} object values are the same as the
-     * {@code b} object values, {@code false} otherwise.
+     *
+     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
+     * values, {@code false} otherwise.
      */
     @UsedOnlyByTests
     public static boolean isSameAs(QueryRelation a, QueryRelation b) {

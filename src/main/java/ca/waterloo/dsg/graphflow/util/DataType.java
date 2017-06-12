@@ -16,9 +16,10 @@ public enum DataType {
      * Converts the {@code String} dataType to the actual {@link DataType} enum.
      *
      * @param stringDataType The {@code String} dataType.
+     *
      * @return The {@link DataType} enum obtained from the {@code String} stringDataType.
-     * @throws IllegalArgumentException if {@code stringDataType} is not one of the {@link
-     * DataType}
+     *
+     * @throws IllegalArgumentException if {@code stringDataType} is not one of the {@link DataType}
      * enum values.
      */
     public static DataType mapStringToDataType(String stringDataType) {
@@ -42,6 +43,7 @@ public enum DataType {
      *
      * @param stringDataType The {@code String} dataType.
      * @param stringValue The {@code String} value.
+     *
      * @throws IllegalArgumentException if the  {@code stringDataType} is not one of the {@link
      * DataType} enum values or if the casting cannot be done.
      */
@@ -57,7 +59,7 @@ public enum DataType {
                 "parsed as BOOLEAN. It has to be equal to true or false ignoring case.");
         }
         try {
-            if(INTEGER == dataType || DOUBLE == dataType) {
+            if (INTEGER == dataType || DOUBLE == dataType) {
                 Double.parseDouble(stringValue);
             }
         } catch (NumberFormatException e) {
@@ -70,6 +72,7 @@ public enum DataType {
      * @param dataType The {@link DataType} of the passed values.
      * @param thisValue First value as {@code Object}.
      * @param thatValue Second value as {@code String}.
+     *
      * @throws IllegalArgumentException if the dataType is not one of the {@link DataType} enum
      * values or if casting of {@code thatValue} or {@code thisValue} to {@link DataType} fails.
      */
@@ -99,7 +102,9 @@ public enum DataType {
 
     /**
      * @param dataType One of the {@link DataType} enum values.
+     *
      * @return The number of bytes required to store the {@code dataType}.
+     *
      * @throws IllegalArgumentException if {@code dataType} passed is not one of the {@link
      * DataType} enum values.
      */
@@ -125,7 +130,9 @@ public enum DataType {
      * @param key The key of the key-value pair.
      * @param dataType The {@code DataType} of the value.
      * @param value The value of the key-value pair.
+     *
      * @return The {@code byte[]} containing the serialized bytes.
+     *
      * @throws IllegalArgumentException if the dataType passed is not one of the {@link DataType}
      * enum values, if {@code value} is {@code null} or if the value cannot be cast to the given
      * {@code dataType}.
@@ -170,7 +177,9 @@ public enum DataType {
      * @param data The byte array containing the value to deserialize.
      * @param startIndex Index to start deserializing at from the {@code byte[]} data.
      * @param length length of the property value as stored in bytes.
+     *
      * @return The deserialized bytes as an appropriate Object.
+     *
      * @throws IllegalArgumentException if the dataType passed is not one of the {@link DataType}
      * enum values.
      */
@@ -206,6 +215,7 @@ public enum DataType {
      *
      * @param data The byte array containing the Integer to deserialize.
      * @param startIndex Index to start deserializing at from the {@code byte[]} data.
+     *
      * @return The deserialized bytes as an int.
      */
     public static int deserializeInteger(byte[] data, int startIndex) {

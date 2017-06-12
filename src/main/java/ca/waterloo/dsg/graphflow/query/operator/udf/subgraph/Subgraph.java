@@ -22,6 +22,10 @@ import java.util.Map;
  */
 public class Subgraph {
 
+    public enum SubgraphType {
+        EMERGED,
+        DELETED
+    }
     private Map<String, Integer> vertexIndices;
     private List<Vertex> vertices;
     private List<Edge> edges;
@@ -30,8 +34,8 @@ public class Subgraph {
     /**
      * @param vertices The list of vertices in the subgraph.
      * @param edges The list of edges in the subgraph.
-     * @param vertexIndices A map of the {@code String} vertex variable as provided by the user
-     * in the query to its index in the list of vertices.
+     * @param vertexIndices A map of the {@code String} vertex variable as provided by the user in
+     * the query to its index in the list of vertices.
      */
     Subgraph(List<Vertex> vertices, List<Edge> edges, SubgraphType subgraphType,
         Map<String, Integer> vertexIndices) {
@@ -62,10 +66,5 @@ public class Subgraph {
 
     private int getVertexId(String vertexVariable) {
         return vertices.get(vertexIndices.get(vertexVariable)).getId();
-    }
-
-    public enum SubgraphType {
-        EMERGED,
-        DELETED
     }
 }

@@ -6,11 +6,11 @@ import ca.waterloo.dsg.graphflow.query.structuredquery.StructuredQuery;
 /**
  * Interface definition for creating {@code AbstractQueryPlanner}s for different operations.
  */
-public abstract class AbstractQueryPlanner {
+abstract class AbstractQueryPlanner {
 
     StructuredQuery structuredQuery;
 
-    public AbstractQueryPlanner(StructuredQuery structuredQuery) {
+    AbstractQueryPlanner(StructuredQuery structuredQuery) {
         this.structuredQuery = structuredQuery;
     }
 

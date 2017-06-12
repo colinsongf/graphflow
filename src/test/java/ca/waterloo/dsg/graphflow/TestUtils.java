@@ -2,9 +2,9 @@ package ca.waterloo.dsg.graphflow;
 
 import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
-import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
+import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput.MatchQueryResultType;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.plans.CreateQueryPlan;
@@ -140,9 +140,9 @@ public class TestUtils {
      */
     public static void initializeGraphPermanentlyWithProperties(String createQuery) {
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(createQuery);
-        AbstractDBOperator outputSink = new InMemoryOutputSink();
-        ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(Graph
-            .getInstance(), outputSink);
+        OutputSink inMemoryOutputSink = new InMemoryOutputSink();
+        ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(
+            inMemoryOutputSink);
     }
 
     /**

@@ -3,12 +3,15 @@ package ca.waterloo.dsg.graphflow.query.planner;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
-import ca.waterloo.dsg.graphflow.query.executors.GenericJoinIntersectionRule;
-import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.AbstractOperator;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver;
+import ca.waterloo.dsg.graphflow.query.operator.Extend;
 import ca.waterloo.dsg.graphflow.query.operator.FileOutputSink;
 import ca.waterloo.dsg.graphflow.query.operator.Filter;
+import ca.waterloo.dsg.graphflow.query.operator.Scan;
 import ca.waterloo.dsg.graphflow.query.operator.UDFSink;
+import ca.waterloo.dsg.graphflow.query.operator.genericjoin.EdgeIntersectionRule;
+import ca.waterloo.dsg.graphflow.query.operator.genericjoin.StageOperator;
 import ca.waterloo.dsg.graphflow.query.operator.udf.UDFAction;
 import ca.waterloo.dsg.graphflow.query.operator.udf.UDFResolver;
 import ca.waterloo.dsg.graphflow.query.plans.ContinuousMatchQueryPlan;
@@ -38,7 +41,7 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
      */
     public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery) throws IOException,
         ClassNotFoundException, InstantiationException, IllegalAccessException {
-        super(structuredQuery);
+        super(structuredQuery, null /* outputSink not yet set */);
         if (QueryOperation.CONTINUOUS_EXPLAIN != structuredQuery.getQueryOperation()) {
             if (null != structuredQuery.getFilePath()) {
                 outputSink = new FileOutputSink(new File(structuredQuery.getFilePath()));
@@ -48,6 +51,18 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
                     getContinuousMatchAction()));
             }
         }
+    }
+
+    @UsedOnlyByTests
+    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery, File location)
+        throws IOException {
+        super(structuredQuery, new FileOutputSink(location));
+    }
+
+    @UsedOnlyByTests
+    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery, UDFAction udfAction)
+        throws IOException {
+        super(structuredQuery, new UDFSink(udfAction));
     }
 
     /**
@@ -68,7 +83,7 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
         // that use the {@code PERMANENT} version of the graph.
         Set<QueryRelation> mergedRelations = new HashSet<>();
         OneTimeMatchQueryPlan queryPlan;
-        AbstractDBOperator nextOperator;
+        AbstractOperator nextOperator;
         Set<QueryRelation> permanentRelations = new HashSet<>(structuredQuery.getQueryRelations());
         for (QueryRelation diffRelation : structuredQuery.getQueryRelations()) {
             // The first two variables considered in each round will be the variables from the
@@ -83,17 +98,40 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             nextOperator = getNextOperator(orderedVariables);
             queryPlan = addSingleQueryPlan(
                 GraphVersion.DIFF_PLUS, orderedVariables, diffRelation, permanentRelations,
-                mergedRelations);
-            queryPlan.setNextOperator(nextOperator);
+                mergedRelations, nextOperator);
             continuousMatchQueryPlan.addOneTimeMatchQueryPlan(queryPlan);
             queryPlan = addSingleQueryPlan(
                 GraphVersion.DIFF_MINUS, orderedVariables, diffRelation, permanentRelations,
-                mergedRelations);
-            queryPlan.setNextOperator(nextOperator);
+                mergedRelations, nextOperator);
             continuousMatchQueryPlan.addOneTimeMatchQueryPlan(queryPlan);
             mergedRelations.add(diffRelation);
         }
         return continuousMatchQueryPlan;
+    }
+
+    /**
+     * Adds to the delta query plans the next set of operators. The op1->op2 below indicates that
+     * operator op1 appends results to operator op2.
+     * Delta queries always append to {@link EdgeIdResolver}->({@link Filter})?->{@link UDFSink}
+     * or {@link FileOutputSink}.
+     */
+    AbstractOperator getNextOperator(List<String> orderedVertexVariables) {
+        AbstractOperator nextOperator = outputSink;
+
+        Map<String, Integer> orderedVariableIndexMap = getOrderedVariableIndexMap(
+            orderedVertexVariables);
+
+        List<String> orderedEdgeVariables = giveAllQueryRelationsVariableNames();
+
+        // Construct the {@code Filter} operator if needed.
+        if (!structuredQuery.getQueryPropertyPredicates().isEmpty()) {
+            Map<String, Integer> orderedEdgeIndexMap = getOrderedVariableIndexMap(
+                orderedEdgeVariables);
+            nextOperator = constructFilter(orderedVariableIndexMap, orderedEdgeIndexMap,
+                nextOperator);
+        }
+
+        return constructEdgeIdResolver(orderedEdgeVariables, orderedVariableIndexMap, nextOperator);
     }
 
     /**
@@ -104,29 +142,27 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
      * the {@code ContinuousMatchQueryPlan}.
      * @param permanentRelations The set of relations that uses the {@link GraphVersion#PERMANENT}
      * version of the graph.
-     * @param mergedRelations The set of relations that uses the {@link GraphVersion#MERGED}
-     * version of the graph.
+     * @param mergedRelations The set of relations that uses the {@link GraphVersion#MERGED} version
+     * of the graph.
+     *
      * @return OneTimeMatchQueryPlan A set of stages representing a single generic join query plan.
      */
     private OneTimeMatchQueryPlan addSingleQueryPlan(GraphVersion graphVersion,
         List<String> orderedVariables, QueryRelation diffRelation,
-        Set<QueryRelation> permanentRelations, Set<QueryRelation> mergedRelations) {
-        OneTimeMatchQueryPlan oneTimeMatchQueryPlan = new OneTimeMatchQueryPlan();
+        Set<QueryRelation> permanentRelations, Set<QueryRelation> mergedRelations,
+        AbstractOperator nextOperator) {
+        OneTimeMatchQueryPlan plan = new OneTimeMatchQueryPlan();
         // Store variable ordering in {@link OneTimeMatchQueryPlan}
-        oneTimeMatchQueryPlan.setOrderedVariables(orderedVariables);
-        List<GenericJoinIntersectionRule> stage;
+        plan.setOrderedVariables(orderedVariables);
+        List<EdgeIntersectionRule> stage;
         // Add the first stage. The first stage always starts with extending the diffRelation's
         // {@code fromVariable} to {@code toVariable} with the type on the relation.
         stage = new ArrayList<>();
-
-        stage.add(new GenericJoinIntersectionRule(0, Direction.FORWARD, graphVersion,
-            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(diffRelation.
-                getFromQueryVariable().getVariableType()),
-            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(diffRelation.
-                getToQueryVariable().getVariableType()),
+        stage.add(new EdgeIntersectionRule(0, Direction.FORWARD, graphVersion,
             TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(diffRelation.
                 getRelationType())));
-        oneTimeMatchQueryPlan.addStage(stage);
+        Map<String, Integer> variableIndicesMap = getVariableIndicesMap(orderedVariables);
+
         // Add the other relations that are present between the diffRelation's
         // {@code fromVariable} to {@code toVariable}.
         String fromVariable = orderedVariables.get(0);
@@ -144,7 +180,15 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
                     Direction.FORWARD : Direction.BACKWARD,
                 queryRelation, stage, permanentRelations, mergedRelations);
         }
+        StageOperator previousStageOperator;
+        StageOperator currentStageOperator = new Scan(stage, TypeAndPropertyKeyStore.getInstance().
+            mapStringTypeToShort(diffRelation.getFromQueryVariable().getVariableType()),
+            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(diffRelation.
+                getToQueryVariable().getVariableType()));
+        plan.setFirstOperator(currentStageOperator);
+
         // Add the rest of the stages.
+        String toVertexTypeFilterAsString = null;
         for (int i = 2; i < orderedVariables.size(); i++) {
             String nextVariable = orderedVariables.get(i);
             // We add a new stage that consists of the following intersection rules. For each
@@ -167,31 +211,39 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
                             queryRelation.getFromQueryVariable().getVariableName().equals(
                                 coveredVariable) ? Direction.FORWARD : Direction.BACKWARD,
                             queryRelation, stage, permanentRelations, mergedRelations);
+                        toVertexTypeFilterAsString = queryRelation.getToQueryVariable().
+                            getVariableType();
                     }
                 }
             }
-            oneTimeMatchQueryPlan.addStage(stage);
+            previousStageOperator = currentStageOperator;
+            currentStageOperator = new Extend(stage, TypeAndPropertyKeyStore.getInstance().
+                mapStringTypeToShort(toVertexTypeFilterAsString));
+            previousStageOperator.nextOperator = currentStageOperator;
         }
-        return oneTimeMatchQueryPlan;
+
+        currentStageOperator.nextOperator = nextOperator;
+        currentStageOperator.setMatchQueryOutput(plan.getFirstOperator().
+            getMatchQueryResultType(), variableIndicesMap);
+        return plan;
     }
 
     /**
-     * Adds a {@code GenericJoinIntersectionRule} to the given stage with the given
+     * Adds a {@code EdgeIntersectionRule} to the given stage with the given
      * {@code prefixIndex}, {@code direction} and the relation and variable type IDs, if the
      * {@code newRelation} exists in either {@code permanentRelations} or {@code mergedRelations}.
      *
-     * @param prefixIndex Prefix index of the {@code GenericJoinIntersectionRule} to be created.
-     * @param direction Direction from the covered variable to the variable under
-     * consideration.
+     * @param prefixIndex Prefix index of the {@code EdgeIntersectionRule} to be created.
+     * @param direction Direction from the covered variable to the variable under consideration.
      * @param newRelation The relation for which the rule is being added.
      * @param stage The generic join stage to which the intersection rule will be added.
      * @param permanentRelations The set of relations that uses the {@link GraphVersion#PERMANENT}
      * version of the graph.
-     * @param mergedRelations The set of relations that uses the {@link GraphVersion#MERGED}
-     * version of the graph.
+     * @param mergedRelations The set of relations that uses the {@link GraphVersion#MERGED} version
+     * of the graph.
      */
     private void addGenericJoinIntersectionRule(int prefixIndex, Direction direction,
-        QueryRelation newRelation, List<GenericJoinIntersectionRule> stage,
+        QueryRelation newRelation, List<EdgeIntersectionRule> stage,
         Set<QueryRelation> permanentRelations, Set<QueryRelation> mergedRelations) {
         // Select the appropriate {@code GraphVersion} by checking for the existence of
         // {@code newRelation} in either {@code mergedRelations} or {@code mergedRelations}.
@@ -204,20 +256,16 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             throw new IllegalStateException("The new relation is not present in either " +
                 "mergedRelations or permanentRelations");
         }
-        stage.add(new GenericJoinIntersectionRule(prefixIndex, direction, version,
-            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(newRelation.
-                getFromQueryVariable().getVariableType()),
-            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(newRelation.
-                getToQueryVariable().getVariableType()),
-            TypeAndPropertyKeyStore.getInstance().mapStringTypeToShort(newRelation.
-                getRelationType())));
+        stage.add(new EdgeIntersectionRule(prefixIndex, direction, version, TypeAndPropertyKeyStore.
+            getInstance().mapStringTypeToShort(newRelation.getRelationType())));
     }
 
     /**
      * @param queryRelationToCheck The {@link QueryRelation} to be searched.
      * @param queryRelations A set of {@link QueryRelation}s.
-     * @return {@code true} if {@code fromVariable} and {@code toVariable} match the
-     * corresponding values of any of the {@link QueryRelation} present in {@code queryRelations}.
+     *
+     * @return {@code true} if {@code fromVariable} and {@code toVariable} match the corresponding
+     * values of any of the {@link QueryRelation} present in {@code queryRelations}.
      */
     private boolean isRelationPresentInSet(QueryRelation queryRelationToCheck,
         Set<QueryRelation> queryRelations) {
@@ -227,31 +275,6 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             }
         }
         return false;
-    }
-
-    /**
-     * Adds to the delta query plans the next set of operators. The op1->op2 below indicates that
-     * operator op1 appends results to operator op2.
-     * Delta queries always append to {@link EdgeIdResolver}->({@link Filter})?->{@link UDFSink}
-     * or {@link FileOutputSink}.
-     */
-    AbstractDBOperator getNextOperator(List<String> orderedVertexVariables) {
-        AbstractDBOperator nextOperator = outputSink;
-
-        Map<String, Integer> orderedVariableIndexMap = getOrderedVariableIndexMap(
-            orderedVertexVariables);
-
-        List<String> orderedEdgeVariables = giveAllQueryRelationsVariableNames();
-
-        // Construct the {@code Filter} operator if needed.
-        if (!structuredQuery.getQueryPropertyPredicates().isEmpty()) {
-            Map<String, Integer> orderedEdgeIndexMap = getOrderedVariableIndexMap(
-                orderedEdgeVariables);
-            nextOperator = constructFilter(orderedVariableIndexMap, orderedEdgeIndexMap,
-                nextOperator);
-        }
-
-        return constructEdgeIdResolver(orderedEdgeVariables, orderedVariableIndexMap, nextOperator);
     }
 
     private List<String> giveAllQueryRelationsVariableNames() {
@@ -278,19 +301,5 @@ public class ContinuousMatchQueryPlanner extends OneTimeMatchQueryPlanner {
             queryGraph.addToRelationMap(relationName, queryRelation);
         }
         return orderedEdgeVariables;
-    }
-
-    @UsedOnlyByTests
-    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery, File location)
-        throws IOException {
-        super(structuredQuery, null);
-        outputSink = new FileOutputSink(location);
-    }
-
-    @UsedOnlyByTests
-    public ContinuousMatchQueryPlanner(StructuredQuery structuredQuery, UDFAction udfAction)
-        throws IOException {
-        super(structuredQuery, null);
-        outputSink = new UDFSink(udfAction);
     }
 }

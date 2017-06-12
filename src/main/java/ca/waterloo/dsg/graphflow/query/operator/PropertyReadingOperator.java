@@ -13,7 +13,7 @@ import java.util.List;
  * methods that take in an {@link EdgeOrVertexPropertyDescriptor} and a {@link MatchQueryOutput}
  * and reads either the ID or a property of an edge or a vertex.
  */
-public abstract class PropertyReadingOperator extends AbstractDBOperator {
+public abstract class PropertyReadingOperator extends AbstractOperator {
 
     private static final Logger logger = LogManager.getLogger(PropertyReadingOperator.class);
 
@@ -28,7 +28,7 @@ public abstract class PropertyReadingOperator extends AbstractDBOperator {
      * @param propertyDescriptors a list of {@link EdgeOrVertexPropertyDescriptor} that indicate
      * which vertices and edges and/or their properties should be used by this operator.
      */
-    public PropertyReadingOperator(AbstractDBOperator nextOperator,
+    public PropertyReadingOperator(AbstractOperator nextOperator,
         List<EdgeOrVertexPropertyDescriptor> propertyDescriptors) {
         super(nextOperator);
         this.propertyDescriptors = propertyDescriptors;
@@ -41,8 +41,8 @@ public abstract class PropertyReadingOperator extends AbstractDBOperator {
      * {@link MatchQueryOutput}.
      *
      * @param matchQueryOutput {@link MatchQueryOutput} to read values from.
-     * @param delimiter delimiter to use when appending the values read from the given
-     * {@link MatchQueryOutput}.
+     * @param delimiter delimiter to use when appending the values read from the given {@link
+     * MatchQueryOutput}.
      */
     protected void clearAndFillStringBuilder(MatchQueryOutput matchQueryOutput, String delimiter) {
         // The below code ensures that stringBuilder does not grow excessively.
@@ -67,10 +67,11 @@ public abstract class PropertyReadingOperator extends AbstractDBOperator {
      * or the ID of an edge or a vertex.
      *
      * @param matchQueryOutput {@link MatchQueryOutput} to read values from.
-     * @param propertyDescriptor descriptor of which values to read from the given
-     * {@link MatchQueryOutput}.
-     * @return the value from {@link MatchQueryOutput} specified by the given
-     * {@link EdgeOrVertexPropertyDescriptor}.
+     * @param propertyDescriptor descriptor of which values to read from the given {@link
+     * MatchQueryOutput}.
+     *
+     * @return the value from {@link MatchQueryOutput} specified by the given {@link
+     * EdgeOrVertexPropertyDescriptor}.
      */
     protected Object getPropertyOrId(MatchQueryOutput matchQueryOutput,
         EdgeOrVertexPropertyDescriptor propertyDescriptor) {

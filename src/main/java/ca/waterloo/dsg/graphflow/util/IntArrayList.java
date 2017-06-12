@@ -52,9 +52,11 @@ public class IntArrayList {
      * Returns the value at the specified index.
      *
      * @param index The index in the underlying array of the element to be returned.
+     *
      * @return int The value at index {@code index}.
-     * @throws ArrayIndexOutOfBoundsException Exception thrown when {@code index} is larger than
-     * the size of the collection.
+     *
+     * @throws ArrayIndexOutOfBoundsException Exception thrown when {@code index} is larger than the
+     * size of the collection.
      */
     public int get(int index) {
         if (index >= size) {

@@ -113,11 +113,9 @@ public class Graph implements GraphflowSerializable {
 
     /**
      * Adds a vertex to the graph.
-     * <p>
      * Warning: Currently, as part of this call, we will overwrite the current vertex type and
      * properties of {@code vertexId} with {@code vertexType} and {@code vertexProperties},
      * respectively.
-     * <p>
      * If the properties passed are {@code null}, no changes to the vertex properties occur.
      * If a vertex u has type T, callers should always call this method with type T for u to keep
      * u's type.
@@ -138,10 +136,8 @@ public class Graph implements GraphflowSerializable {
     /**
      * Adds an edge temporarily to the graph. A call to {@link #finalizeChanges()} is required to
      * make the changes permanent.
-     * <p>
      * Note: If an edge to {@code toVertex} with the given {@code edgeType} already exists, this
      * method returns without doing anything.
-     * <p>
      * Warning: Currently, as part of this call, we will overwrite the current vertex types and
      * properties of {@code fromVertex} and {@code toVertex} with {@code fromVertexType}, {@code
      * toVertexType}, {@code toVertexProperties}, and {@code fromVertexProperties}, respectively.
@@ -185,6 +181,7 @@ public class Graph implements GraphflowSerializable {
      * @param fromVertex The starting vertex ID for the edge.
      * @param toVertex The ending vertex ID for the edge.
      * @param edgeType The type of the edge being deleted.
+     *
      * @throws NoSuchElementException Exception thrown when the specified edge does not exist.
      */
     public void deleteEdgeTemporarily(int fromVertex, int toVertex, short edgeType) {
@@ -321,11 +318,13 @@ public class Graph implements GraphflowSerializable {
      * iterator.
      * @param toVertexTypeFilter The type of the to vertex of the edge returned by the iterator.
      * @param edgeTypeFilter The type of the edges returned by the iterator.
-     * @return An iterator to the list of edges for the given {@code graphVersion} and
-     * {@code direction}.
-     * @throws UnsupportedOperationException Exception thrown when {@code graphVersion} is
-     * {@link GraphVersion#DIFF_MINUS} or {@link GraphVersion#DIFF_PLUS} and direction is
-     * {@link Direction#BACKWARD}.
+     *
+     * @return An iterator to the list of edges for the given {@code graphVersion} and {@code
+     * direction}.
+     *
+     * @throws UnsupportedOperationException Exception thrown when {@code graphVersion} is {@link
+     * GraphVersion#DIFF_MINUS} or {@link GraphVersion#DIFF_PLUS} and direction is {@link
+     * Direction#BACKWARD}.
      */
     public Iterator<int[]> getEdgesIterator(GraphVersion graphVersion, Direction direction,
         short fromVertexTypeFilter, short toVertexTypeFilter, short edgeTypeFilter) {
@@ -375,6 +374,7 @@ public class Graph implements GraphflowSerializable {
      * @param direction The {@link Direction} of the edge.
      * @param graphVersion The {@link GraphVersion} where the edge's presence needs to be checked.
      * @param typeFilter The type of the edge being searched for.
+     *
      * @return {@code true} if the edge is present, {@code false} otherwise.
      */
     public boolean isEdgePresent(int fromVertexId, int toVertexId, Direction direction,
@@ -410,9 +410,10 @@ public class Graph implements GraphflowSerializable {
      * @param srcId ID of the source vertex.
      * @param destinationId ID of the destination vertex.
      * @param type type of the edge between srcId and destinationId.
+     *
      * @return the ID of the edge between fromVertexId and toVertexId with the given type in the
-     * {@link GraphVersion#MERGED} or {@link GraphVersion#PERMANENT} graph. Returns -1, if the
-     * edge does not exist.
+     * {@link GraphVersion#MERGED} or {@link GraphVersion#PERMANENT} graph. Returns -1, if the edge
+     * does not exist.
      */
     public long getEdgeIdFromGraph(int srcId, int destinationId, short type) {
         long edgeId = -1;
@@ -434,6 +435,7 @@ public class Graph implements GraphflowSerializable {
      * @param vertexId The vertex ID whose adjacency list is required.
      * @param direction The {@code Direction} of the adjacency list.
      * @param graphVersion The {@code GraphVersion} to consider.
+     *
      * @return The adjacency list for the vertex with the given {@code vertexId}, for the given
      * {@code graphVersion} and {@code direction}.
      */
@@ -554,6 +556,7 @@ public class Graph implements GraphflowSerializable {
      * Converts the permanent adjacency lists {@code permanentAdjLists} to a {@code String}.
      *
      * @param permanentAdjLists The permanent adjacency list to convert to a {@code String}.
+     *
      * @return The{@code String} representation of {@code permanentAdjLists}.
      */
     private String convertPermanentAdjListsToString(SortedAdjacencyList[] permanentAdjLists) {
@@ -571,6 +574,7 @@ public class Graph implements GraphflowSerializable {
      * Converts the merged adjacency lists {@code mergedAdjLists} to a {@code String}.
      *
      * @param mergedAdjLists The merged adjacency list to convert to a {@code String}.
+     *
      * @return The {@code String} representation of {@code permanentAdjLists}.
      */
     private String convertMergedAdjListsToString(Map<Integer, SortedAdjacencyList> mergedAdjLists) {
@@ -588,6 +592,7 @@ public class Graph implements GraphflowSerializable {
      * Converts the list of diff edges {@code diffEdges} to a {@code String}.
      *
      * @param diffEdges The list of diff edges to convert to a {@code String}.
+     *
      * @return The {@code String} representation of {@code diffEdges}.
      */
     private String convertDiffEdgesToString(List<int[]> diffEdges) {
@@ -665,6 +670,7 @@ public class Graph implements GraphflowSerializable {
      *
      * @param a One of the objects.
      * @param b The other object.
+     *
      * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests

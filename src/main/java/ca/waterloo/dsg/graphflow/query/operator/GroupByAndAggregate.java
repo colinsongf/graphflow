@@ -2,6 +2,7 @@ package ca.waterloo.dsg.graphflow.query.operator;
 
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.AbstractAggregator;
 import ca.waterloo.dsg.graphflow.query.operator.aggregator.CountStar;
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
 import ca.waterloo.dsg.graphflow.util.JsonUtils;
 import ca.waterloo.dsg.graphflow.util.StringToIntKeyMap;
@@ -29,32 +30,16 @@ public class GroupByAndAggregate extends PropertyReadingOperator {
      *
      * @param nextOperator next operator to append outputs to.
      * @param valuesToGroupBy descriptions of the list of values to group by.
-     * @param valueAggregatorPairs descriptions of the values to aggregate and the aggregator to
-     * use for these values.
+     * @param valueAggregatorPairs descriptions of the values to aggregate and the aggregator to use
+     * for these values.
      */
-    public GroupByAndAggregate(AbstractDBOperator nextOperator,
+    public GroupByAndAggregate(OutputSink nextOperator,
         List<EdgeOrVertexPropertyDescriptor> valuesToGroupBy,
         List<Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator>> valueAggregatorPairs) {
         super(nextOperator, valuesToGroupBy);
         this.valuesToGroupBy = valuesToGroupBy;
         this.valueAggregatorPairs = valueAggregatorPairs;
         this.groupByKeys = new StringToIntKeyMap();
-    }
-
-    @Override
-    public void done() {
-        for (Entry<String, Integer> groupByKeyAndIndex : groupByKeys.entrySet()) {
-            String groupByKey = groupByKeyAndIndex.getKey();
-            int index = groupByKeyAndIndex.getValue();
-            stringBuilder.delete(0, stringBuilder.length());
-            stringBuilder.append(groupByKey);
-            for (Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator> valueAggregatorPair :
-                valueAggregatorPairs) {
-                stringBuilder.append(" " + valueAggregatorPair.b.getStringValue(index));
-            }
-            nextOperator.append(stringBuilder.toString());
-        }
-        nextOperator.done();
     }
 
     @Override
@@ -74,7 +59,23 @@ public class GroupByAndAggregate extends PropertyReadingOperator {
     }
 
     @Override
-    protected String getHumanReadableOperator() {
+    public void finalizeOperator() {
+        for (Entry<String, Integer> groupByKeyAndIndex : groupByKeys.entrySet()) {
+            String groupByKey = groupByKeyAndIndex.getKey();
+            int index = groupByKeyAndIndex.getValue();
+            stringBuilder.delete(0, stringBuilder.length());
+            stringBuilder.append(groupByKey);
+            for (Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator> valueAggregatorPair :
+                valueAggregatorPairs) {
+                stringBuilder.append(" ").append(valueAggregatorPair.b.getStringValue(index));
+            }
+            ((OutputSink) nextOperator).append(stringBuilder.toString());
+        }
+        nextOperator.finalizeOperator();
+    }
+
+    @Override
+    public String getHumanReadableOperator() {
         StringBuilder stringBuilder = new StringBuilder("GroupByAndAggregate:\n");
         appendListAsCommaSeparatedString(stringBuilder, valuesToGroupBy, "valuesToGroupBy");
         appendListAsCommaSeparatedString(stringBuilder, valueAggregatorPairs,
@@ -90,8 +91,8 @@ public class GroupByAndAggregate extends PropertyReadingOperator {
         JsonObject jsonArgument = new JsonObject();
         jsonArgument.addProperty(JsonUtils.NAME, "Values to Group-By");
         JsonArray jsonValuesToGroupBy = new JsonArray();
-        for (int i = 0; i < valuesToGroupBy.size(); ++i) {
-            jsonValuesToGroupBy.add(valuesToGroupBy.get(i).toJson());
+        for (EdgeOrVertexPropertyDescriptor descriptor : valuesToGroupBy) {
+            jsonValuesToGroupBy.add(descriptor.toJson());
         }
         jsonArgument.add(JsonUtils.VALUE, jsonValuesToGroupBy);
         jsonArguments.add(jsonArgument);
@@ -99,9 +100,8 @@ public class GroupByAndAggregate extends PropertyReadingOperator {
         jsonArgument = new JsonObject();
         jsonArgument.addProperty(JsonUtils.NAME, "Aggregator Pairs");
         JsonArray jsonAggregatorPairs = new JsonArray();
-        for (int i = 0; i < valueAggregatorPairs.size(); ++i) {
-            Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator> aggregatorPair =
-                valueAggregatorPairs.get(i);
+        for (Pair<EdgeOrVertexPropertyDescriptor, AbstractAggregator> aggregatorPair :
+            valueAggregatorPairs) {
             if (aggregatorPair.a.toJson().getAsJsonPrimitive(JsonUtils.TYPE).getAsString().equals(
                 JsonUtils.COUNT_STAR_DESCRIPTOR)) {
                 jsonAggregatorPairs.add(aggregatorPair.b.toString());

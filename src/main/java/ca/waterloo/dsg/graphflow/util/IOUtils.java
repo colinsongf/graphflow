@@ -17,6 +17,7 @@ public class IOUtils {
      * Calculates the time difference between now and the time stored in {@code beginTime}.
      *
      * @param beginTime The start time.
+     *
      * @return Time difference in milliseconds.
      */
     public static double getElapsedTimeInMillis(long beginTime) {
@@ -27,6 +28,7 @@ public class IOUtils {
      * Creates a {@link ObjectOutputStream} object from the given {@code outputFilePath}.
      *
      * @param outputFilePath The {@link String} path to the output file.
+     *
      * @return An {@link ObjectOutputStream} object.
      */
     public static ObjectOutputStream constructObjectOutputStream(String outputFilePath) throws
@@ -39,6 +41,7 @@ public class IOUtils {
      * Creates a {@link ObjectInputStream} object from the given {@code inputFilePath}.
      *
      * @param inputFilePath The {@link String} path to the input file.
+     *
      * @return An {@link ObjectInputStream} object.
      */
     public static ObjectInputStream constructObjectInputStream(String inputFilePath) throws

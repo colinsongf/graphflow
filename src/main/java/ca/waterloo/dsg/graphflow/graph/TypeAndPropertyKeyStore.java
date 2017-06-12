@@ -44,6 +44,7 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
 
     /**
      * @param stringType The {@code String} type.
+     *
      * @return The {@code Short} type. If {@code stringType} is either {@code null} or an empty
      * string, {@link TypeAndPropertyKeyStore#ANY} is returned.
      */
@@ -56,6 +57,7 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
 
     /**
      * @param stringType The {@code String} type.
+     *
      * @return The {@code short} type. If {@code stringType} is either {@code null} or an empty
      * string, {@link TypeAndPropertyKeyStore#ANY} is returned.
      */
@@ -70,8 +72,10 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
      * Asserts the {@code String} type has been inserted in the store previously.
      *
      * @param type The {@code String} type.
+     *
      * @return The {@code short} type. If {@code stringType} is either {@code null} or an empty
      * string, {@link TypeAndPropertyKeyStore#ANY} is returned.
+     *
      * @throws NoSuchTypeException if the type is not found in the store.
      */
     public void mapStringTypeToShortAndAssertTypeExists(String type) {
@@ -85,7 +89,9 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
 
     /**
      * @param key The {@code String} key to map.
+     *
      * @return {@code Short} mapping of the key or null if the key does not exist.
+     *
      * @throws IllegalArgumentException if the given String key is null or empty.
      */
     public Short mapStringPropertyKeyToShort(String key) {
@@ -97,7 +103,9 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
 
     /**
      * @param shortType The {@code Short} type.
+     *
      * @return The {@code String} type.
+     *
      * @throws NoSuchTypeException if {@code shortType} is either {@code null} or an invalid
      * shortType.
      */
@@ -111,7 +119,9 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
 
     /**
      * @param shortPropertyKey The {@code Short} property key.
+     *
      * @return The {@code String} property key.
+     *
      * @throws NoSuchPropertyKeyException if {@code shortPropertyKey} is either {@code null} or a
      * negative shortPropertyKey.
      */
@@ -125,7 +135,9 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
 
     /**
      * @param key The {@code short} property key.
+     *
      * @return The data type of the property with the given key.
+     *
      * @throws NoSuchPropertyKeyException if the {@code key} passed is not present in the store.
      */
     public DataType getPropertyDataType(short key) {
@@ -138,7 +150,9 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
 
     /**
      * @param key The {@code String} property key.
+     *
      * @return The data type of the property with the given key.
+     *
      * @throws NoSuchPropertyKeyException if the {@code key} passed is not present in the store.
      */
     public DataType getPropertyDataType(String key) {
@@ -155,10 +169,12 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
      * does not exist in the given properties, K is inserted into the store.
      *
      * @param stringProperties The properties as {@code Map<String, Pair<String, String>>}.
+     *
      * @return The properties as {@code Map<Short, Pair<DataType, String>>}. If the {@code
      * stringProperties} passed is {@code null}, {@code null} is returned.
-     * @throws IncorrectDataTypeException if any of the property keys has been previously
-     * stored with a different data type from the one passed.
+     *
+     * @throws IncorrectDataTypeException if any of the property keys has been previously stored
+     * with a different data type from the one passed.
      */
     public Map<Short, Pair<DataType, String>> mapStringPropertiesToShortAndDataTypeOrInsert(
         Map<String, Pair<String, String>> stringProperties) {
@@ -173,8 +189,9 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
      * in the store if it had previously been inserted.
      *
      * @param properties The properties to check the data types of in the store.
-     * @throws IncorrectDataTypeException if the dataType of any property key is not the
-     * same as that in the store if it had been previously inserted.
+     *
+     * @throws IncorrectDataTypeException if the dataType of any property key is not the same as
+     * that in the store if it had been previously inserted.
      */
     public void assertExistingKeyDataTypesMatchPreviousDeclarations(
         Map<String, Pair<String, String>> properties) {
@@ -185,6 +202,7 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
 
     /**
      * @param stringKey String key to check.
+     *
      * @return whether the given key is defined as a property in the store.
      */
     public boolean isPropertyDefined(String stringKey) {
@@ -291,6 +309,7 @@ public class TypeAndPropertyKeyStore implements GraphflowSerializable {
      *
      * @param a One of the objects.
      * @param b The other object.
+     *
      * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests

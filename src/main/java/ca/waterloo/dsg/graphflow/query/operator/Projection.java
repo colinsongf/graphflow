@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Projection operator for projecting MATCH query outputs onto a subset of the variables.
  */
-public class Projection extends AbstractDBOperator {
+public class Projection extends AbstractOperator {
 
     private int[] projectedVertexIds;
     private List<Integer> vertexIndicesToProject;
@@ -24,10 +24,10 @@ public class Projection extends AbstractDBOperator {
      * @param vertexIndicesToProject indices that specify which of the vertices in the vertexIds
      * array of {@link MatchQueryOutput}s should be in the output of the projection.
      */
-    public Projection(AbstractDBOperator nextOperator, List<Integer> vertexIndicesToProject) {
+    public Projection(AbstractOperator nextOperator, List<Integer> vertexIndicesToProject) {
         super(nextOperator);
-        this.vertexIndicesToProject = vertexIndicesToProject != null ? vertexIndicesToProject
-            : new ArrayList<>();
+        this.vertexIndicesToProject = vertexIndicesToProject != null ? vertexIndicesToProject :
+            new ArrayList<>();
         projectedVertexIds = new int[vertexIndicesToProject.size()];
     }
 
@@ -53,8 +53,8 @@ public class Projection extends AbstractDBOperator {
         JsonObject jsonOperator = new JsonObject();
 
         JsonArray jsonVertexIndicesToProject = new JsonArray();
-        for (int i = 0; i < vertexIndicesToProject.size(); i++) {
-            jsonVertexIndicesToProject.add(vertexIndicesToProject.get(i));
+        for (Integer vertexIndexToProject : vertexIndicesToProject) {
+            jsonVertexIndicesToProject.add(vertexIndexToProject);
         }
         JsonArray jsonArguments = new JsonArray();
         JsonObject jsonArgument = new JsonObject();

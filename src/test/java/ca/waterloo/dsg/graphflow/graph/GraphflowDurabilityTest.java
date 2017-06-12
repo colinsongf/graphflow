@@ -46,7 +46,7 @@ public class GraphflowDurabilityTest {
 
         StructuredQuery structuredQuery = new StructuredQueryParser().parse(query);
         ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(
-            Graph.getInstance(), new InMemoryOutputSink());
+            new InMemoryOutputSink());
 
         GraphDBState.serialize(saveDirectory.getAbsolutePath());
 

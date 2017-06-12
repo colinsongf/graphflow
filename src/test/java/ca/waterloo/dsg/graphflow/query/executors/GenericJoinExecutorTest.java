@@ -217,7 +217,7 @@ public class GenericJoinExecutorTest {
         InMemoryOutputSink outputSink = new InMemoryOutputSink();
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new
             OneTimeMatchQueryPlanner(structuredQuery, outputSink).plan();
-        actualOneTimeMatchQueryPlan.execute(graph);
+        actualOneTimeMatchQueryPlan.execute();
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
             getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
 
@@ -228,7 +228,7 @@ public class GenericJoinExecutorTest {
         outputSink = new InMemoryOutputSink();
         actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
             structuredQuery, outputSink).plan();
-        actualOneTimeMatchQueryPlan.execute(graph);
+        actualOneTimeMatchQueryPlan.execute();
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
             getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));
     }
@@ -255,7 +255,7 @@ public class GenericJoinExecutorTest {
         InMemoryOutputSink outputSink = new InMemoryOutputSink();
         OneTimeMatchQueryPlan actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new
             OneTimeMatchQueryPlanner(structuredQuery, outputSink).plan();
-        actualOneTimeMatchQueryPlan.execute(graph);
+        actualOneTimeMatchQueryPlan.execute();
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
             getInMemoryOutputSinkForMotifs(expectedMotifsAfterAdditions)));
 
@@ -266,7 +266,7 @@ public class GenericJoinExecutorTest {
         outputSink = new InMemoryOutputSink();
         actualOneTimeMatchQueryPlan = (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(
             structuredQuery, outputSink).plan();
-        actualOneTimeMatchQueryPlan.execute(graph);
+        actualOneTimeMatchQueryPlan.execute();
 
         Assert.assertTrue(InMemoryOutputSink.isSameAs(outputSink, TestUtils.
             getInMemoryOutputSinkForMotifs(expectedMotifsAfterDeletion)));

@@ -1,5 +1,6 @@
 package ca.waterloo.dsg.graphflow.query.operator;
 
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
 import ca.waterloo.dsg.graphflow.util.JsonUtils;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import com.google.gson.JsonObject;
@@ -12,14 +13,10 @@ import java.util.StringJoiner;
 /**
  * Stores the output as an in memory data structure in the form of a list of {@code Strings}s.
  */
-public class InMemoryOutputSink extends AbstractDBOperator {
+public class InMemoryOutputSink extends OutputSink {
 
     private String header;
     private List<String> results = new ArrayList<>();
-
-    public InMemoryOutputSink() {
-        super(null /* no nextOperator, always last operator in the OneTimeMatchQueryPlan. */);
-    }
 
     /**
      * Adds {@code result} to the list of in-memory outputs.
@@ -43,7 +40,7 @@ public class InMemoryOutputSink extends AbstractDBOperator {
 
     @Override
     public String getHumanReadableOperator() {
-        return "InMemoryOutputSink:\n";
+        return "InMemoryOutputSink\n";
     }
 
     @Override
@@ -77,8 +74,9 @@ public class InMemoryOutputSink extends AbstractDBOperator {
      *
      * @param a One of the objects.
      * @param b The other object.
-     * @return {@code true} if the {@code a} object values are the same as the
-     * {@code b} object values, {@code false} otherwise.
+     *
+     * @return {@code true} if the {@code a} object values are the same as the {@code b} object
+     * values, {@code false} otherwise.
      */
     @UsedOnlyByTests
     public static boolean isSameAs(InMemoryOutputSink a, InMemoryOutputSink b) {

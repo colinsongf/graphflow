@@ -12,6 +12,11 @@ import java.util.Map;
  */
 public class Edge extends VertexOrEdge {
 
+    public enum EdgeUpdate {
+        INSERTION,
+        DELETION,
+        NONE
+    }
     private int fromVertexId;
     private int toVertexId;
     private EdgeUpdate edgeUpdate;
@@ -21,9 +26,8 @@ public class Edge extends VertexOrEdge {
      * @param toVertexId The destination vertex Id.
      * @param type The edge {@code String} type.
      * @param properties The properties as a Map<String, String>.
-     * @param edgeUpdate The operation done on the edge triggering the continuous query. A value
-     * of {@code None} indicates the edges was in the permanent graph and is not inserted or
-     * deleted.
+     * @param edgeUpdate The operation done on the edge triggering the continuous query. A value of
+     * {@code None} indicates the edges was in the permanent graph and is not inserted or deleted.
      */
     Edge(int fromVertexId, int toVertexId, String type, Map<String, String> properties,
         EdgeUpdate edgeUpdate) {
@@ -43,11 +47,5 @@ public class Edge extends VertexOrEdge {
 
     public EdgeUpdate getEdgeUpdate() {
         return edgeUpdate;
-    }
-
-    public enum EdgeUpdate {
-        INSERTION,
-        DELETION,
-        NONE
     }
 }

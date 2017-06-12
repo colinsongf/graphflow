@@ -25,9 +25,9 @@ public abstract class ParallelArraySerDeUtils {
         logger.error("Error caught in thread", e);
         throw new SerializationDeserializationException("Error caught in thread");
     };
+    private final String directoryPath;
     private long beginTimeInNano;
     private List<Thread> threads = new ArrayList<>();
-    private final String directoryPath;
     private boolean isSerialization;
 
     /**
@@ -72,7 +72,6 @@ public abstract class ParallelArraySerDeUtils {
 
     /**
      * Starts serializing the large arrays in parallel.
-     * <p>
      * Note: The method returns after starting the threads. A call to
      * {@link ParallelArraySerDeUtils#finishSerDe()} should be made to ensure that all threads
      * have finished their execution.
@@ -108,7 +107,6 @@ public abstract class ParallelArraySerDeUtils {
 
     /**
      * Starts deserializing the large arrays in parallel.
-     * <p>
      * Note: The method returns after starting the threads. A call to
      * {@link ParallelArraySerDeUtils#finishSerDe()} should be made to ensure that all threads
      * have finished their execution.

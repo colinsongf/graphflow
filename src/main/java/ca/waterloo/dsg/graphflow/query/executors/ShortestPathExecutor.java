@@ -5,7 +5,7 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.Direction;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.graph.SortedAdjacencyList;
-import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
 import ca.waterloo.dsg.graphflow.util.IntQueue;
 import ca.waterloo.dsg.graphflow.util.UsedOnlyByTests;
 import ca.waterloo.dsg.graphflow.util.VisibleForTesting;
@@ -116,10 +116,11 @@ public class ShortestPathExecutor {
      *
      * @param source The source vertex of the shortest path query.
      * @param target The target vertex for the shortest path query.
-     * @throws NoSuchVertexIDException Throws exception if the specified {@code source} and
-     * {@code target} vertex IDs don't exist.
+     *
+     * @throws NoSuchVertexIDException Throws exception if the specified {@code source} and {@code
+     * target} vertex IDs don't exist.
      */
-    public void execute(int source, int target, AbstractDBOperator outputSink)
+    public void execute(int source, int target, OutputSink outputSink)
         throws NoSuchVertexIDException {
         assertVertexIDExists(source);
         assertVertexIDExists(target);
@@ -274,6 +275,7 @@ public class ShortestPathExecutor {
      * present.
      *
      * @param vertexId The vertexID to be checked.
+     *
      * @throws NoSuchVertexIDException
      */
     private void assertVertexIDExists(int vertexId) throws NoSuchVertexIDException {

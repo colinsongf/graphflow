@@ -5,8 +5,8 @@ import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.Graph.GraphVersion;
 import ca.waterloo.dsg.graphflow.graph.TypeAndPropertyKeyStore;
 import ca.waterloo.dsg.graphflow.graph.VertexPropertyStore;
-import ca.waterloo.dsg.graphflow.query.executors.MatchQueryResultType;
 import ca.waterloo.dsg.graphflow.query.operator.EdgeIdResolver.SourceDestinationIndexAndType;
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
 import ca.waterloo.dsg.graphflow.query.operator.udf.UDFAction;
 import ca.waterloo.dsg.graphflow.query.operator.udf.UDFResolver;
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.Edge;
@@ -16,7 +16,7 @@ import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.Subgraph.SubgraphTy
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.SubgraphFactory;
 import ca.waterloo.dsg.graphflow.query.operator.udf.subgraph.Vertex;
 import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput;
-import com.google.gson.JsonObject;
+import ca.waterloo.dsg.graphflow.query.output.MatchQueryOutput.MatchQueryResultType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,7 +28,7 @@ import java.util.Map;
  * Acts as an output sink. Operators append {@link MatchQueryOutput} one at a time. For each
  * match output tuple, the udf method resolved by the {@link UDFResolver} is executed.
  */
-public class UDFSink extends AbstractDBOperator {
+public class UDFSink extends OutputSink {
 
     private static final Logger logger = LogManager.getLogger(UDFSink.class);
 
@@ -39,7 +39,6 @@ public class UDFSink extends AbstractDBOperator {
      * @param udfObject The {@link UDFAction} to execute.
      */
     public UDFSink(UDFAction udfObject) {
-        super(null /* No nextOperator, always last operator in the OneTimeMatchQueryPlan. */);
         this.udfObject = udfObject;
     }
 
@@ -50,6 +49,13 @@ public class UDFSink extends AbstractDBOperator {
         SubgraphType subgraphType = getSubgraphType(matchQueryOutput);
         subgraphList.add(SubgraphFactory.getSubgraph(vertices, edges, subgraphType,
             matchQueryOutput.vertexIndices));
+    }
+
+    /**
+     * @return a String human readable representation of an operator excluding its next operator.
+     */
+    public String getHumanReadableOperator() {
+        return "UDFSink: " + udfObject.getClass().getCanonicalName() + ".evaluate(Subgraph)";
     }
 
     public void executeUDF() {
@@ -121,18 +127,5 @@ public class UDFSink extends AbstractDBOperator {
             }
         }
         return EdgeUpdate.NONE;
-    }
-
-    /**
-     * @return a String human readable representation of an operator excluding its next operator.
-     */
-    protected String getHumanReadableOperator() {
-        return "UDFSink: " + udfObject.getClass().getCanonicalName() + ".evaluate(Subgraph)";
-    }
-
-    @Override
-    public JsonObject toJson() {
-        throw new UnsupportedOperationException(this.getClass().getSimpleName() + " does not " +
-            "support the toJson() method.");
     }
 }

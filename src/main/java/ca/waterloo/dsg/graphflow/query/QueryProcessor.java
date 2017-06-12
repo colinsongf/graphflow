@@ -9,11 +9,10 @@ import ca.waterloo.dsg.graphflow.exceptions.NoSuchPropertyKeyException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchTypeException;
 import ca.waterloo.dsg.graphflow.exceptions.NoSuchVertexIDException;
 import ca.waterloo.dsg.graphflow.exceptions.SerializationDeserializationException;
-import ca.waterloo.dsg.graphflow.graph.Graph;
 import ca.waterloo.dsg.graphflow.graph.GraphDBState;
 import ca.waterloo.dsg.graphflow.query.executors.ContinuousMatchQueryExecutor;
-import ca.waterloo.dsg.graphflow.query.operator.AbstractDBOperator;
 import ca.waterloo.dsg.graphflow.query.operator.InMemoryOutputSink;
+import ca.waterloo.dsg.graphflow.query.operator.sinks.OutputSink;
 import ca.waterloo.dsg.graphflow.query.parser.StructuredQueryParser;
 import ca.waterloo.dsg.graphflow.query.planner.ContinuousMatchQueryPlanner;
 import ca.waterloo.dsg.graphflow.query.planner.CreateQueryPlanner;
@@ -48,6 +47,7 @@ public class QueryProcessor {
      * corresponding {@link QueryPlan}, and executing the plan.
      *
      * @param request The {@code ServerQueryString} input request.
+     *
      * @return The result of the query as a {@code String}.
      */
     public String process(ServerQueryString request) {
@@ -123,37 +123,37 @@ public class QueryProcessor {
     }
 
     private String handleCreateQuery(StructuredQuery structuredQuery) {
-        AbstractDBOperator outputSink = new InMemoryOutputSink();
+        OutputSink inMemoryOutputSink = new InMemoryOutputSink();
         try {
-            ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(Graph.
-                getInstance(), outputSink);
+            ((CreateQueryPlan) new CreateQueryPlanner(structuredQuery).plan()).execute(
+                inMemoryOutputSink);
         } catch (IncorrectDataTypeException e) {
             logger.debug(e.getMessage());
-            outputSink.append("ERROR: " + e.getMessage());
+            inMemoryOutputSink.append("ERROR: " + e.getMessage());
         }
-        return outputSink.toString();
+        return inMemoryOutputSink.toString();
     }
 
     private String handleDeleteQuery(StructuredQuery structuredQuery) {
-        AbstractDBOperator outputSink = new InMemoryOutputSink();
-        ((DeleteQueryPlan) new DeleteQueryPlanner(structuredQuery).plan()).execute(Graph.
-            getInstance(), outputSink);
-        return outputSink.toString();
+        OutputSink inMemoryOutputSink = new InMemoryOutputSink();
+        ((DeleteQueryPlan) new DeleteQueryPlanner(structuredQuery).plan()).execute(
+            inMemoryOutputSink);
+        return inMemoryOutputSink.toString();
     }
 
     private String handleMatchQuery(StructuredQuery structuredQuery) {
-        AbstractDBOperator outputSink = new InMemoryOutputSink();
+        OutputSink inMemoryOutputSink = new InMemoryOutputSink();
         try {
-            ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink).
-                plan()).execute(Graph.getInstance());
+            ((OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery,
+                inMemoryOutputSink).plan()).execute();
         } catch (IncorrectDataTypeException | IncorrectVertexTypeException |
             NoSuchPropertyKeyException | NoSuchTypeException | MalformedMatchQueryException |
             MalformedReturnClauseException | MalformedWhereClauseException |
             NoSuchVertexIDException e) {
             logger.debug(e.getMessage());
-            outputSink.append("ERROR: " + e.getMessage());
+            inMemoryOutputSink.append("ERROR: " + e.getMessage());
         }
-        return (outputSink.toString().isEmpty()) ? "{}" : outputSink.toString();
+        return (inMemoryOutputSink.toString().isEmpty()) ? "{}" : inMemoryOutputSink.toString();
     }
 
     private String handleContinuousMatchQuery(StructuredQuery structuredQuery) {
@@ -172,23 +172,22 @@ public class QueryProcessor {
     }
 
     private String handleShortestPathQuery(StructuredQuery structuredQuery) {
-        AbstractDBOperator outputSink = new InMemoryOutputSink();
+        OutputSink inMemoryOutputSink = new InMemoryOutputSink();
         try {
             ((ShortestPathPlan) new ShortestPathPlanner(structuredQuery).plan()).execute(
-                outputSink);
+                inMemoryOutputSink);
         } catch (NoSuchVertexIDException e) {
             return "ERROR: " + e.getMessage();
         }
-        return outputSink.toString();
+        return inMemoryOutputSink.toString();
     }
 
     private String handleExplainMatchQuery(StructuredQuery structuredQuery, ReturnType returnType) {
-        AbstractDBOperator outputSink = new InMemoryOutputSink();
+        OutputSink inMemoryOutputSink = new InMemoryOutputSink();
         try {
             OneTimeMatchQueryPlan oneTimeMatchQueryPlan =
-                (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery, outputSink)
-                    .plan();
-
+                (OneTimeMatchQueryPlan) new OneTimeMatchQueryPlanner(structuredQuery,
+                    inMemoryOutputSink).plan();
             switch (returnType) {
                 case TEXT:
                     return oneTimeMatchQueryPlan.getHumanReadablePlan();

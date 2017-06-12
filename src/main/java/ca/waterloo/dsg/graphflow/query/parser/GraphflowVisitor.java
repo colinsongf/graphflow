@@ -144,36 +144,6 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
             Digits(1).getText()));
     }
 
-    private void visitVariableEdge(VariableEdgeContext ctx, StructuredQuery structuredQuery) {
-        QueryRelation queryRelation = new QueryRelation((QueryVariable) visitVariableVertex(
-            structuredQuery, ctx.variableVertex(0)), (QueryVariable) visitVariableVertex(
-            structuredQuery, ctx.variableVertex(1)));
-        if (null != ctx.edgeVariable()) {
-            if (null != ctx.edgeVariable().variable()) {
-                queryRelation.setRelationName(ctx.edgeVariable().variable().getText());
-            }
-            if (null != ctx.edgeVariable().type()) {
-                queryRelation.setRelationType(ctx.edgeVariable().type().getText());
-            }
-            if (null != ctx.edgeVariable().properties()) {
-                Map<String, Pair<String, String>> relationPropertyFilters = parseProperties(ctx.
-                    edgeVariable().properties());
-                QueryPropertyPredicate queryPropertyPredicate;
-                for (String key : relationPropertyFilters.keySet()) {
-                    queryPropertyPredicate = new QueryPropertyPredicate();
-                    queryPropertyPredicate.setLeftOperand(new Pair<>(ctx.edgeVariable().variable().
-                        getText(), key));
-                    queryPropertyPredicate.setLiteral(relationPropertyFilters.get(key).b);
-                    queryPropertyPredicate.setComparisonOperator(ComparisonOperator.EQUALS);
-                    queryPropertyPredicate.setPredicateType(PredicateType.
-                        PROPERTY_KEY_AND_LITERAL_OPERANDS);
-                    structuredQuery.addQueryPropertyPredicate(queryPropertyPredicate);
-                }
-            }
-        }
-        structuredQuery.addRelation(queryRelation);
-    }
-
     @Override
     public AbstractStructuredQuery visitDigitsEdgeWithOptionalType(
         DigitsEdgeWithOptionalTypeContext ctx) {
@@ -217,6 +187,36 @@ public class GraphflowVisitor extends GraphflowBaseVisitor<AbstractStructuredQue
             queryVariable.setVariableProperties(parseProperties(ctx.properties()));
         }
         return queryVariable;
+    }
+
+    private void visitVariableEdge(VariableEdgeContext ctx, StructuredQuery structuredQuery) {
+        QueryRelation queryRelation = new QueryRelation((QueryVariable) visitVariableVertex(
+            structuredQuery, ctx.variableVertex(0)), (QueryVariable) visitVariableVertex(
+            structuredQuery, ctx.variableVertex(1)));
+        if (null != ctx.edgeVariable()) {
+            if (null != ctx.edgeVariable().variable()) {
+                queryRelation.setRelationName(ctx.edgeVariable().variable().getText());
+            }
+            if (null != ctx.edgeVariable().type()) {
+                queryRelation.setRelationType(ctx.edgeVariable().type().getText());
+            }
+            if (null != ctx.edgeVariable().properties()) {
+                Map<String, Pair<String, String>> relationPropertyFilters = parseProperties(ctx.
+                    edgeVariable().properties());
+                QueryPropertyPredicate queryPropertyPredicate;
+                for (String key : relationPropertyFilters.keySet()) {
+                    queryPropertyPredicate = new QueryPropertyPredicate();
+                    queryPropertyPredicate.setLeftOperand(new Pair<>(ctx.edgeVariable().variable().
+                        getText(), key));
+                    queryPropertyPredicate.setLiteral(relationPropertyFilters.get(key).b);
+                    queryPropertyPredicate.setComparisonOperator(ComparisonOperator.EQUALS);
+                    queryPropertyPredicate.setPredicateType(PredicateType.
+                        PROPERTY_KEY_AND_LITERAL_OPERANDS);
+                    structuredQuery.addQueryPropertyPredicate(queryPropertyPredicate);
+                }
+            }
+        }
+        structuredQuery.addRelation(queryRelation);
     }
 
     private void visitReturnClauseAndAggregations(StructuredQuery structuredQuery,

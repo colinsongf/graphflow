@@ -18,7 +18,6 @@ import java.util.NoSuchElementException;
 
 /**
  * Stores the IDs and properties of the edges in the Graph.
- * <p>
  * Warning: The properties of a deleted edge are not deleted. The ID of the deleted edge is recycled
  * and the properties are overwritten by those of the edge that gets assigned the recycled ID next.
  */
@@ -50,6 +49,7 @@ public class EdgeStore extends PropertyStore {
      * Adds a new edge and sets its properties to the given properties.
      *
      * @param properties The properties of the edge as <key, <DataType, value>> pairs.
+     *
      * @return The ID of the added edge.
      */
     public long addEdge(Map<Short, Pair<DataType, String>> properties) {
@@ -89,7 +89,9 @@ public class EdgeStore extends PropertyStore {
      * are returned.
      *
      * @param edgeId The ID of the edge.
+     *
      * @return The properties of the edge as a Map<Short, Object>.
+     *
      * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
      */
     public Map<Short, Object> getProperties(long edgeId) {
@@ -110,7 +112,9 @@ public class EdgeStore extends PropertyStore {
      * are returned.
      *
      * @param edgeId The ID of the edge.
+     *
      * @return The properties of the edge as a Map<String, String>.
+     *
      * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
      */
     public Map<String, String> getPropertiesAsStrings(long edgeId) {
@@ -151,6 +155,7 @@ public class EdgeStore extends PropertyStore {
      *
      * @param edgeId ID of an edge.
      * @param key key of a property.
+     *
      * @return the given edge's property with the given key or null if no such property exists.
      */
     public Object getProperty(long edgeId, short key) {
@@ -208,6 +213,7 @@ public class EdgeStore extends PropertyStore {
      * Warning: Internally adds the given ID to the recycled IDs array.
      *
      * @param edgeId The ID of the edge to delete.
+     *
      * @throws NoSuchElementException if the {@code edgeId} has never been assigned before.
      */
     public void deleteEdge(long edgeId) {
@@ -338,6 +344,7 @@ public class EdgeStore extends PropertyStore {
      *
      * @param a One of the objects.
      * @param b The other object.
+     *
      * @return {@code true} if {@code a}'s values are the same as {@code b}'s.
      */
     @UsedOnlyByTests
